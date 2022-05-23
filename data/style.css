@@ -1,0 +1,22 @@
+html, body {
+    height: 100%;
+}
+
+body{
+    margin: 0px;
+    font-family: Muli, sans-serif;
+    background-color: #F0F0FA;
+}
+
+#container {
+    display: flex;
+    margin: 15px;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    /* gap: 5vw; */
+}
+
+.control {
+    margin-bottom: 10px;
+}
