@@ -23,7 +23,7 @@ void WiFiStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info){
   Serial.print("WiFi lost connection. Reason: ");
   Serial.println(info.disconnected.reason);
   Serial.println("Trying to Reconnect");
-  WiFi.begin("fiveElementsOrrery", "enlighten");
+  WiFi.begin("keeperOfTheDiamondLights", "enlighten");
 }
 
 void wsSetup() {
@@ -31,7 +31,7 @@ void wsSetup() {
   WiFi.disconnect();
   WiFi.mode(WIFI_STA);
   WiFi.onEvent(WiFiStationDisconnected, SYSTEM_EVENT_STA_DISCONNECTED);
-  WiFi.begin("fiveElementsOrrery", "enlighten");
+  WiFi.begin("keeperOfTheDiamondLights", "enlighten");
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");

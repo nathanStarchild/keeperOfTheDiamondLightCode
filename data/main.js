@@ -197,4 +197,32 @@ $(document).ready(function() {
         }
         ws.send(JSON.stringify(data));
     })
+
+    $("#ripplesBtn").click(function() {
+        let data = {
+            'msgType': 28,
+        }
+        ws.send(JSON.stringify(data));
+    })
+
+    $("#tailBtn").click(function() {
+        let data = {
+            'msgType': 29,
+        }
+        ws.send(JSON.stringify(data));
+    })
+
+    $("#blenderBtn").click(function() {
+        let data = {
+            'msgType': 30,
+        }
+        ws.send(JSON.stringify(data));
+    })
+
+    $("#flashBtn").click(function() {
+        let data = {
+            'msgType': 31,
+        }
+        ws.send(JSON.stringify(data));
+    })
 })

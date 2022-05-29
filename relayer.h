@@ -30,7 +30,7 @@ void WiFiStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info){
   Serial.print("WiFi lost connection. Reason: ");
   Serial.println(info.disconnected.reason);
   Serial.println("Trying to Reconnect");
-  WiFi.begin("fiveElementsOrrery", "enlighten");
+  WiFi.begin("keeperOfTheDiamondLights", "enlighten");
 }
 
 void sendMessage(uint8_t messageType) {
@@ -52,7 +52,7 @@ void wsSetup() {
   if (!WiFi.config(local_IP, gateway, subnet)) {
     Serial.println("STA Failed to configure");
   }
-  WiFi.begin("fiveElementsOrrery", "enlighten");
+  WiFi.begin("keeperOfTheDiamondLights", "enlighten");
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");

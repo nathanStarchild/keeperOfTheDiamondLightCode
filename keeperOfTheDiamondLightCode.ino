@@ -11,9 +11,9 @@ FASTLED_USING_NAMESPACE
 
 MilliTimer boredTimer(11 * 60000); //bored timer, change if no messages or controller input
 
-//#include "server.h"
+#include "server.h"
 //#include "relayer.h"
-#include "client.h"
+//#include "client.h"
 
 
 #define   LED  2       // GPIO number of connected LED, ON ESP-12 IS GPIO2
@@ -54,12 +54,15 @@ uint16_t nX(uint8_t n, int x);
 
 //#include "theDome.h"
 //#include "outerLegs.h"
-#include "innerLegs.h"
+//#include "innerLegs.h"
 // #include "air.h"
 // #include "water.h"
 //#include "earth.h"
 //#include "fire.h"
 //#include "metal.h"
+//#include "lamp1.h"
+//#include "serverOfTheDiamondLightNetwork.h"
+#include "hotJam.h"
 
 //CRGB leds[NUM_LEDS];
 //CRGB oldLeds[NUM_LEDS];
@@ -916,7 +919,7 @@ void rain() {
       dropSpeed[nDrop] = random8(3, mainState.rain.pspeed);
     }
     if (dropPosition[nDrop] == 0) {
-      dropPosition[nDrop] = stripLength - random8(1, 11);
+      dropPosition[nDrop] = max(1, stripLength - random8(1, 11));
     }
     if (mainState.patternStep != lastStep) {
       if (mainState.patternStep % dropSpeed[nDrop] == 0) {
@@ -1409,6 +1412,18 @@ void processWSMessage(){
        break;
      case 26:
        mainState.air.pspeed = wsMsg["val"].as<int>();
+       break;
+     case 28:
+       rippleGeddon();
+       break;
+     case 29:
+       tailTime();
+       break;
+     case 30:
+       blender();
+       break;
+     case 31:
+       flashGrid();
        break;
    }
   }

@@ -96,7 +96,7 @@ void wsSetup() {
 
   WiFi.disconnect();
   WiFi.mode(WIFI_OFF);
-  WiFi.softAP("fiveElementsOrrery", "enlighten", 1, false, 8);
+  WiFi.softAP("keeperOfTheDiamondLights", "enlighten", 1, false, 8);
   Serial.println(WiFi.softAPIP());
   dnsServer.start(53, "*", WiFi.softAPIP());
   Serial.println("DNS Server started!");
@@ -110,7 +110,7 @@ void wsSetup() {
   Serial.println("Web socket server started");
 
   // No authentication by default
-  ArduinoOTA.setPassword("admin");
+//  ArduinoOTA.setPassword("admin");
   ArduinoOTA
     .onStart([]() {
       String type;
