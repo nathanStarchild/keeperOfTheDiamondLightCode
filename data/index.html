@@ -8,6 +8,9 @@
     
 	<!-- Bootstrap core CSS -->
 	<link href="bootstrap.min.css" rel="stylesheet">
+
+    <!-- slider CSS -->
+    <link rel="stylesheet" href="nouislider.min.css">
     
     <!--Our styles -->
     <link rel="stylesheet" href="style.css">
@@ -18,61 +21,64 @@
 	<!-- JQuery-->
 	<script src="jquery-3.6.0.min.js"></script>
 
+	<!-- slider js-->
+	<script src="nouislider.min.js"></script>
+
     <!-- Our JS -->
 	<script src="main.js"></script>	
 </head>
 <body>
     <div id="container">
-        <div id="earthBtn" class="btn btn-secondary control">Earth</div>
-        <div id="fireBtn" class="btn btn-secondary control">Fire</div>
-        <div id="airBtn" class="btn btn-secondary control">Air</div>
-        <div id="waterBtn" class="btn btn-secondary control">Water</div>
-        <div id="metalBtn" class="btn btn-secondary control">Metal</div>
-        <div id="randomBtn" class="btn btn-secondary control">Random</div>
-        <div id="rainbowBtn" class="btn btn-secondary control">Rainbow</div>
-        <div id="tranquilityBtn" class="btn btn-secondary control">Tranquility</div>        
-        <div id="paletteBtn" class="btn btn-secondary control">Next Palette</div>       
-        <div id="tripperBtn" class="btn btn-secondary control">Tripper Trap</div>        
-        <div id="antsBtn" class="btn btn-secondary control">Ants!</div>      
-        <div id="starsBtn" class="btn btn-secondary control">Shooting Stars</div> 
-        <div id="ripplesBtn" class="btn btn-secondary control">Ripples</div> 
-        <div id="tailBtn" class="btn btn-secondary control">Tail Time</div> 
-        <div id="blenderBtn" class="btn btn-secondary control">Blender</div> 
-        <div id="flashBtn" class="btn btn-secondary control">Flash Grid</div> 
-        <div id="noiseBtn" class="btn btn-secondary control">Blob</div> 
-        <div id="maskBtn" class="btn btn-secondary control">Mask</div> 
-        <div id="houseLightsBtn" class="btn btn-secondary control">House Lights</div> 
+        <div id="earthBtn" data-msgType="20" class="btn btn-secondary control">Earth</div>
+        <div id="fireBtn" data-msgType="21" class="btn btn-secondary control">Fire</div>
+        <div id="airBtn" data-msgType="22" class="btn btn-secondary control">Air</div>
+        <div id="waterBtn" data-msgType="23" class="btn btn-secondary control">Water</div>
+        <div id="metalBtn" data-msgType="24" class="btn btn-secondary control">Metal</div>
+        <div id="randomBtn" data-msgType="1" class="btn btn-secondary control">Random</div>
+        <div id="rainbowBtn" data-msgType="2" class="btn btn-secondary control">Rainbow</div>
+        <div id="tranquilityBtn" data-msgType="3" class="btn btn-secondary control">Tranquility</div>        
+        <div id="paletteBtn" data-msgType="4" class="btn btn-secondary control">Next Palette</div>       
+        <div id="tripperBtn" data-msgType="5" class="btn btn-secondary control">Tripper Trap</div>        
+        <div id="antsBtn" data-msgType="6" class="btn btn-secondary control">Ants!</div>      
+        <div id="starsBtn" data-msgType="7" class="btn btn-secondary control">Shooting Stars</div> 
+        <div id="ripplesBtn" data-msgType="28" class="btn btn-secondary control">Ripples</div> 
+        <div id="tailBtn" data-msgType="29" class="btn btn-secondary control">Tail Time</div> 
+        <div id="blenderBtn" data-msgType="30" class="btn btn-secondary control">Blender</div> 
+        <div id="flashBtn" data-msgType="31" class="btn btn-secondary control">Flash Grid</div> 
+        <div id="noiseBtn" data-msgType="14"  class="btn btn-secondary control">Blob</div> 
+        <div id="maskBtn" data-msgType="15"  class="btn btn-secondary control">Mask</div> 
+        <div id="houseLightsBtn" data-msgType="8" class="btn btn-secondary control">House Lights</div> 
         <label class="control">Step Rate:
-            <input id="stepInput" type="number" class="form-control"></input>              
+            <div id="stepInput" data-msgType="10" class="slider" data-min="1" data-max="10"></input>              
         </label>    
         <label class="control">Fade Rate:
-            <input id="fadeInput" type="number" class="form-control"></input>              
+            <input id="fadeInput" data-msgType="11" class="slider" data-min="1" data-max="250"></input>              
         </label>      
         <label class="control">Dimmer:
-            <input id="brightnessInput" type="number" class="form-control"></input>              
+            <input id="brightnessInput" data-msgType="12" class="slider" data-min="0" data-max="10"></input>              
         </label>        
         <label class="control">Ripples:
-            <input id="ripplesInput" type="number" class="form-control"></input>              
+            <input id="ripplesInput" data-msgType="13" class="slider" data-min="0" data-max="10"></input>              
         </label>    
         <label class="control">Noise Length:
-            <input id="nlInput" type="number" class="form-control"></input>              
+            <input id="nlInput" data-msgType="16" class="slider" data-min="1" data-max="60"></input>              
         </label> 
         <label class="control">Noise Speed:
-            <input id="nsInput" type="number" class="form-control"></input>              
+            <input id="nsInput" data-msgType="17" class="slider" data-min="1" data-max="60"></input>              
         </label>     
         <label class="control">NoiseFade Length:
-            <input id="nflInput" type="number" class="form-control"></input>              
+            <input id="nflInput" data-msgType="18" class="slider" data-min="1" data-max="60"></input>              
         </label> 
         <label class="control">NoiseFade Speed:
-            <input id="nfsInput" type="number" class="form-control"></input>              
+            <input id="nfsInput" data-msgType="19" class="slider" data-min="1" data-max="60"></input>              
         </label>  
         <label class="control">Air Length:
-            <input id="airlInput" type="number" class="form-control"></input>              
+            <input id="airlInput"  data-msgType="25" class="slider" data-min="1" data-max="60"></input>              
         </label> 
         <label class="control">Air Speed:
-            <input id="airsInput" type="number" class="form-control"></input>              
+            <input id="airsInput"  data-msgType="26" class="slider" data-min="1" data-max="60"></input>              
         </label> 
-        <div id="launchBtn" class="btn btn-secondary control">Launch</div> 
+        <div id="launchBtn" data-msgType="9" class="btn btn-secondary control">Launch</div> 
     </div>
     
 </body>
