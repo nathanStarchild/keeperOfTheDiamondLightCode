@@ -11,15 +11,19 @@ FASTLED_USING_NAMESPACE
 
 MilliTimer boredTimer(11 * 60000); //bored timer, change if no messages or controller input
 
-#include "server.h"
+// #include "server.h"
 //#include "relayer.h"
-//#include "client.h"
+#include "client.h"
 
 
 #define   LED  2       // GPIO number of connected LED, ON ESP-12 IS GPIO2
-#define DATA_PIN_1 14
-#define DATA_PIN_2 27
-#define DATA_PIN_3 15
+// #define DATA_PIN_1 14
+// #define DATA_PIN_2 27
+// #define DATA_PIN_3 15
+
+// //for esp8266
+#define DATA_PIN 14
+#define CLOCK_PIN 13
 
 // #define FASTLED_ESP8266_D1_PIN_ORDER
 
@@ -61,8 +65,9 @@ uint16_t nX(uint8_t n, int x);
 //#include "fire.h"
 //#include "metal.h"
 //#include "lamp1.h"
-#include "serverOfTheDiamondLightNetwork.h"
+// #include "serverOfTheDiamondLightNetwork.h"
 // #include "hotJam.h"
+#include "lightPainting2.h"
 
 //CRGB leds[NUM_LEDS];
 //CRGB oldLeds[NUM_LEDS];
@@ -121,7 +126,7 @@ void loop(){
 void blendFrames(){
   uint8_t ratio;
   if (stepRate > 1) {
-    ratio = map(frameCount % stepRate, 0, stepRate, 0, 255);
+    ratio = map(frameCount % stepRate, 0, stepRate-1, 1, 255);
   } else {
     ratio = 0;
   }
@@ -350,8 +355,8 @@ void fireMode() {
   //if (audienceSpot == 0 || audienceSpot == 6 || audienceSpot == 4){
   if (audienceSpot == 0 || audienceSpot == 6){
     mainState.fire.enabled = true;
-    mainState.fire.pspeed = 80;
-    mainState.fire.decay = 70;
+    mainState.fire.pspeed = 20;
+    mainState.fire.decay = 50;
   } else if (audienceSpot == 4) {
     mainState.fire.enabled = true;
     mainState.fire.pspeed = 20;
@@ -1081,7 +1086,7 @@ void Fire2012(){
     // Step 3.  Randomly ignite new 'sparks' of heat near the bottom
     for (int s=0; s<nStrips; s++){
       if( random8() < mainState.fire.pspeed ) {
-        int y = random8(7);
+        int y = random8(int(stripLength/3));
         heat[nX(s, y)] = qadd8( heat[nX(s, y)], random8(160,255) );
       }
     }
@@ -1434,6 +1439,12 @@ void processWSMessage(){
        break;
      case 31:
        flashGrid();
+       break;
+     case 32:
+       mainState.fire.decay = wsMsg["val"].as<int>();
+       break;
+     case 33:
+       mainState.fire.pspeed = wsMsg["val"].as<int>();
        break;
    }
   }

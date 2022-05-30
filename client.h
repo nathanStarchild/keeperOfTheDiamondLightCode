@@ -50,7 +50,7 @@ void wsSetup() {
   // ArduinoOTA.setHostname("myesp32");
 
   // No authentication by default
-  ArduinoOTA.setPassword("admin");
+  // ArduinoOTA.setPassword("admin");
   ArduinoOTA
     .onStart([]() {
       String type;
@@ -84,10 +84,10 @@ void wsSetup() {
 
 void wsLoop() {
     loopCounter++;
+    ArduinoOTA.handle();
 
   if (loopCounter % 4 == 0){
     webSocket.loop();
-    ArduinoOTA.handle();
   }
 
   if (inbox) {
