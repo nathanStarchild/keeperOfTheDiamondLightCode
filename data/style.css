@@ -20,3 +20,8 @@ body{
 .control {
     margin-bottom: 10px;
 }
+
+
+.slider-label {
+    width: 150px;
+}

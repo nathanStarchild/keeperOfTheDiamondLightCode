@@ -3,44 +3,48 @@ $(document).ready(function() {
     ws.onmessage = function(event) { processReceivedCommand(event); };
 
     function processReceivedCommand(evt) {
+        console.log("event")
         console.log(evt.data);
     }
+
     $(".slider").each(function(index) {
+        console.log($(this).data())
         noUiSlider.create(this, {
+            start: $(this).data("start"),
             range: {
                 'min': $(this).data("min"),
                 'max': $(this).data("max")
             },
-            format: wNumb({
-                decimals: 0
-            })
         })
         let slider = this
         slider.noUiSlider.on('change', function(){
             let data = {
-                'msgType': $(slider).data("msgType"),
-                'val': $(slider).val(),
+                'msgType': $(slider).data("msgtype"),
+                'val': slider.noUiSlider.get(),
             };
+            console.log(data)
             ws.send(JSON.stringify(data));
         });
     })
 
-    $(".control").click(function(event) {
+    $(".inputBtn").click(function(event) {
+        console.log($(event.currentTarget))
         let data = {
-            'msgType': $(event.currentTarget).data("msgType")
+            'msgType': $(event.currentTarget).data("msgtype")
         }
+        console.log(data)
         ws.send(JSON.stringify(data));
     })
 
 
-    $("#.form-control").on("input", function(event) {
-        let data = {
-            'msgType': $(event.currentTarget).data("msgType"),
-            'val': $(event.currentTarget).val(),
-        };
-        ws.send(JSON.stringify(data));
+    // $("#.form-control").on("input", function(event) {
+    //     let data = {
+    //         'msgType': $(event.currentTarget).data("msgType"),
+    //         'val': $(event.currentTarget).val(),
+    //     };
+    //     ws.send(JSON.stringify(data));
         
-    })
+    // })
 
     // $("#randomBtn").click(function() {
     //     let data = {
