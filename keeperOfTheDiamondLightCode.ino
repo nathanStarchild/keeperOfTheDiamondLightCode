@@ -120,7 +120,7 @@ void loop(){
 
 void blendFrames(){
   uint8_t ratio;
-  if (stepRate > 1)
+  if (stepRate > 1) {
     ratio = map(frameCount % stepRate, 0, stepRate, 0, 255);
   } else {
     ratio = 0;
