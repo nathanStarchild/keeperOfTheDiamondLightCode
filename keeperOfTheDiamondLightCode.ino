@@ -61,8 +61,8 @@ uint16_t nX(uint8_t n, int x);
 //#include "fire.h"
 //#include "metal.h"
 //#include "lamp1.h"
-//#include "serverOfTheDiamondLightNetwork.h"
-#include "hotJam.h"
+#include "serverOfTheDiamondLightNetwork.h"
+// #include "hotJam.h"
 
 //CRGB leds[NUM_LEDS];
 //CRGB oldLeds[NUM_LEDS];
@@ -119,10 +119,20 @@ void loop(){
 }
 
 void blendFrames(){
-    uint8_t ratio = map(frameCount % stepRate, 0, stepRate-1, 0, 255);
-    for (int i = 0; i < NUM_LEDS; i++) {
+  uint8_t ratio;
+  if (stepRate > 1)
+    ratio = map(frameCount % stepRate, 0, stepRate, 0, 255);
+  } else {
+    ratio = 0;
+  }
+    
+  for (int i = 0; i < NUM_LEDS; i++) {
+    if (ratio > 0) {
         outLeds[i] = blend( oldLeds[i], leds[i], ratio );
+    } else {
+      outLeds[i] = leds[i];
     }
+  }
 }
 
 void upset_mainState() {
