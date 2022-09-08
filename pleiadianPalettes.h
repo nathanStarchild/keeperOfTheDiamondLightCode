@@ -7,7 +7,7 @@ TBlendType    currentBlending;                                // NOBLEND or LINE
 CRGB designColour = CRGB::Black;
 CRGBPalette16 currentDesignPalette;
 //CRGBPalette16 targetDesignPalette;
-uint8_t paletteCycleIndex = 9;
+uint8_t paletteCycleIndex = 1;
 const uint8_t nPalettes = 23;
 
 
@@ -193,7 +193,7 @@ DEFINE_GRADIENT_PALETTE( Id_Like_To_Dive_gp ) {//aqua and purple
   158,  18,  6, 63,
   158,   7,  1, 22,
   255,   7,  1, 22};
-
+  
 DEFINE_GRADIENT_PALETTE( Palomino_gp ) {//orangish pastels
   // Gradient palette "Palomino_gp", originally from
   // http://soliton.vm.bytemark.co.uk/pub/cpt-city/colo/smorin2002/tn/Palomino.png.index.html
@@ -270,7 +270,7 @@ DEFINE_GRADIENT_PALETTE( autumnrose_gp ) {//!!!!Orange
   153, 224, 69, 13,
   188, 229, 84,  6,
   226, 242,135, 17,
-  255, 247,161, 79};
+  255, 247,161, 79}; 
 
 DEFINE_GRADIENT_PALETTE( ib53_gp ) {//!!!yellow/orange
   // Gradient palette "ib53_gp", originally from
@@ -405,6 +405,10 @@ CRGBPalette16 cyclePalettes[nPalettes] = {
   srtPurples04_gp,   
   departure_gp,//green brown white
 };
+
+//CRGBPalette16 cyclePalettes[nPalettes] = {
+//  LavaColors_p, Warm_summer_day_gp, Palomino_gp, Emo_Barbie_Playmate_gp, autumnrose_gp, ib53_gp, Sunset_Real_gp
+//};
 
 #else
 

@@ -17,13 +17,17 @@ MilliTimer boredTimer(11 * 60000); //bored timer, change if no messages or contr
 
 
 #define   LED  2       // GPIO number of connected LED, ON ESP-12 IS GPIO2
-// #define DATA_PIN_1 14
-// #define DATA_PIN_2 27
-// #define DATA_PIN_3 15
+ #define DATA1_CLOCK1 14
+ #define DATA_PIN_1 14
+ #define DATA2_DATA1 27
+ #define DATA_PIN_2 27
+ #define DATA3_DATA2 15
+ #define DATA_PIN_3 15
+ #define CLOCK2 2
 
 // //for esp8266
-#define DATA_PIN 14
-#define CLOCK_PIN 13
+//#define DATA_PIN 14
+//#define CLOCK_PIN 13
 
 // #define FASTLED_ESP8266_D1_PIN_ORDER
 
@@ -56,7 +60,7 @@ const float fib =  1.61803;
 
 uint16_t nX(uint8_t n, int x);
 
-//#include "theDome.h"
+#include "theDome.h"
 //#include "outerLegs.h"
 //#include "innerLegs.h"
 // #include "air.h"
@@ -67,7 +71,10 @@ uint16_t nX(uint8_t n, int x);
 //#include "lamp1.h"
 // #include "serverOfTheDiamondLightNetwork.h"
 // #include "hotJam.h"
-#include "lightPainting2.h"
+//#include "lightPainting1.h"
+//#include "lightPainting2.h"
+//#include "lightPainting3.h"
+//#include "lightPainting4.h"
 
 //CRGB leds[NUM_LEDS];
 //CRGB oldLeds[NUM_LEDS];
@@ -147,7 +154,7 @@ void upset_mainState() {
     patternsOff();
     fadeRate = random8(10, 240);
         //  stepRate = max(1, random8(0, 15) - 10);
-    stepRate = random8(2, 10);
+    stepRate = random8(1, 4);
 
     mainState.hue = 0;
     mainState.patternStep = 0;
@@ -188,7 +195,7 @@ void upset_mainState() {
     mainState.noise.plength = random8(1, 30);
     mainState.noise.pspeed = random8(1, 5);
     
-    mainState.noiseFade.enabled = (random8() > 90);
+    mainState.noiseFade.enabled = (random8() > 120);
     mainState.noiseFade.plength = random8(1, 33);
     mainState.noiseFade.pspeed = random8(1, 10);
 }
@@ -222,8 +229,9 @@ void tripperTrapMode() {
 
 void tranquilityMode() {
     patternsOff();
-    targetPalette = OceanColors_p;
-    paletteCycleIndex = 0;
+//    targetPalette = OceanColors_p;
+//    paletteCycleIndex = 0;
+    nextPalette();
     mainState.rain.enabled = true;
     mainState.rain.decay = 100;
     mainState.rain.pspeed = 50;
@@ -246,7 +254,8 @@ void rippleGeddon() {
     stepRate = 7;
     fadeRate = 20;
     setNRipples(9);
-    targetPalette = Alive_And_Kicking_gp;  
+//    targetPalette = Alive_And_Kicking_gp;  
+    nextPalette();
 }
 
 void tailTime() {
@@ -261,8 +270,9 @@ void tailTime() {
   mainState.noiseFade.enabled = true;
   mainState.noiseFade.plength = random8(1, 30);
   mainState.noiseFade.pspeed = random8(1, 10);
-  stepRate = 4;
+  stepRate = 2;
   fadeRate = 10;
+  nextPalette();
 }
 
 void blender() {
@@ -277,8 +287,9 @@ void blender() {
   mainState.noiseFade.enabled = true;
   mainState.noiseFade.plength = random8(1, 30);
   mainState.noiseFade.pspeed = random8(1, 10);
-  stepRate = 6;
+  stepRate = 3;
   fadeRate = 20;
+  nextPalette();
 }
 
 void doubleRainbow() {
@@ -308,7 +319,8 @@ void flashGrid() {
   mainState.noiseFade.enabled = true;
   mainState.noiseFade.plength = random8(1, 30);
   mainState.noiseFade.pspeed = random8(1, 10);
-  stepRate = 12;
+  stepRate = 2;
+  nextPalette();
 }
 
 void antsMode() {
@@ -355,8 +367,8 @@ void fireMode() {
   //if (audienceSpot == 0 || audienceSpot == 6 || audienceSpot == 4){
   if (audienceSpot == 0 || audienceSpot == 6){
     mainState.fire.enabled = true;
-    mainState.fire.pspeed = 20;
-    mainState.fire.decay = 50;
+    mainState.fire.pspeed = 30;
+    mainState.fire.decay = 30;
   } else if (audienceSpot == 4) {
     mainState.fire.enabled = true;
     mainState.fire.pspeed = 20;
@@ -1307,9 +1319,11 @@ void dontGetBored(){
       } else if (random8() > 200) {
         fireMode();
       } else if (random8() > 200) {
-        airMode();
+//        airMode();
+        fireMode();
       } else if (random8() > 200) {
-        waterMode();
+//        waterMode();
+        fireMode();
       } else if (random8() > 200) {
         metalMode();
       } else if (random8() > 210) {

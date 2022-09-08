@@ -166,17 +166,21 @@ void wsLoop() {
         sendMessage(9);
         mainState.launch.enabled = true;
       } else if (ran < 37) {
-        sendMessage(20);
-        earthMode();
+        sendMessage(21);
+        fireMode();
+//        sendMessage(20);
+//        earthMode();
       } else if (ran < 60) {
         sendMessage(21);
         fireMode();
       } else if (ran < 83) {
-        sendMessage(22);
-        airMode();
+//        sendMessage(22);
+//        airMode();
+        sendMessage(1);
+        upset_mainState();
       } else if (ran < 106) {
-        sendMessage(23);
-        waterMode();
+        sendMessage(21);
+        fireMode();
       } else if (ran < 129) {
         sendMessage(24);
         metalMode();
@@ -190,8 +194,10 @@ void wsLoop() {
         sendMessage(2);
         doubleRainbow();
       } else if (ran < 221) {
-        sendMessage(3);
-        tranquilityMode();
+//        sendMessage(3);
+//        tranquilityMode();
+        sendMessage(21);
+        fireMode();
       } else if (ran < 245) {
         sendMessage(1);
         upset_mainState();

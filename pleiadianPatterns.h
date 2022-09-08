@@ -77,14 +77,29 @@ patternState mainState = {
 pattern *patternPointers[] = {
   &mainState.wave,//0
   &mainState.tail,//1
-  &mainState.glitter,//2
-  &mainState.ripple,//3
-  &mainState.blendwave,//4
-  &mainState.rain,//5
-  &mainState.ants,//6
-  &mainState.noiseFade,//7
-  &mainState.spiral,//8
-  &mainState.rainbow,//9
-  &mainState.noise,//10
-  &mainState.noiseFade,//11  
+  &mainState.breathe,//2
+  &mainState.glitter,//3
+  &mainState.crazytown,//4
+  &mainState.enlightenment,//5
+  &mainState.ripple,//6
+  &mainState.blendwave,//7
+  &mainState.rain,//8
+  &mainState.holdingPattern,//9
+  &mainState.mapPattern,//10
+  &mainState.paletteDisplay,//11
+  &mainState.sweep,//12
+  &mainState.dimmer,//13
+  &mainState.skaters,//14
+  &mainState.poleChaser,//15
+  &mainState.powerSaver,//16
+  &mainState.ants,//17
+  &mainState.launch,//18
+  &mainState.houseLights,//19
+  &mainState.spiral,//20
+  &mainState.rainbow,//21
+  &mainState.noise,//22
+  &mainState.noiseFade,//23
+  &mainState.air,//24
+  &mainState.fire,//25
+  &mainState.metal,//26
 };
