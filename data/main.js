@@ -36,6 +36,11 @@ $(document).ready(function() {
         ws.send(JSON.stringify(data));
     })
 
+    $(".caret").click(function(){
+        console.log("clicked")
+        $(this).toggleClass("rotated")
+    });
+
 
     // $("#.form-control").on("input", function(event) {
     //     let data = {
