@@ -11,9 +11,9 @@ FASTLED_USING_NAMESPACE
 
 MilliTimer boredTimer(11 * 60000); //bored timer, change if no messages or controller input
 
-// #include "server.h"
+ #include "server.h"
 //#include "relayer.h"
-#include "client.h"
+//#include "client.h"
 
 
 #define   LED  2       // GPIO number of connected LED, ON ESP-12 IS GPIO2
@@ -60,7 +60,9 @@ const float fib =  1.61803;
 
 uint16_t nX(uint8_t n, int x);
 
-#include "theDome.h"
+
+#include "tetrahedron.h"
+// #include "theDome.h"
 //#include "outerLegs.h"
 //#include "innerLegs.h"
 // #include "air.h"
