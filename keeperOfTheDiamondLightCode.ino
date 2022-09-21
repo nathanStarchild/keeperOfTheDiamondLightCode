@@ -60,7 +60,7 @@ const float fib =  1.61803;
 
 uint16_t nX(uint8_t n, int x);
 
-#include "theDome.h"
+//#include "theDome.h"
 //#include "outerLegs.h"
 //#include "innerLegs.h"
 // #include "air.h"
@@ -69,9 +69,9 @@ uint16_t nX(uint8_t n, int x);
 //#include "fire.h"
 //#include "metal.h"
 //#include "lamp1.h"
-// #include "serverOfTheDiamondLightNetwork.h"
+//#include "serverOfTheDiamondLightNetwork.h"
 // #include "hotJam.h"
-//#include "lightPainting1.h"
+#include "lightPainting1.h"
 //#include "lightPainting2.h"
 //#include "lightPainting3.h"
 //#include "lightPainting4.h"
@@ -1356,6 +1356,11 @@ void processWSMessage(){
   uint8_t mtype = wsMsg["msgType"].as<int>();
     //  Serial.println("that json again is:");
     //  serializeJson(wsMsg, Serial);
+
+  JsonArray paletteArrayTmp;
+  
+  uint8_t paletteArray[48] = {};
+  uint8_t bleep;
   if (mtype) {
     Serial.printf(" of msgType %i\n", mtype);
     boredTimer.resetTimer();
@@ -1460,6 +1465,17 @@ void processWSMessage(){
      case 33:
        mainState.fire.pspeed = wsMsg["val"].as<int>();
        break;
+      case 34:
+        setPalette(wsMsg["val"].as<int>());
+        break;
+      case 35:
+        paletteArrayTmp = wsMsg["palette"].as<JsonArray>();
+        copyArray(paletteArrayTmp, paletteArray);
+        for (int i = 0; i < 16; i++) {
+          int j = i * 3;
+          targetPalette[i] = CRGB(paletteArray[j], paletteArray[j + 1], paletteArray[j + 2]);
+        }
+        break;
    }
   }
 }

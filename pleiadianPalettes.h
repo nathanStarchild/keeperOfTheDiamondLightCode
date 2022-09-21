@@ -8,7 +8,7 @@ CRGB designColour = CRGB::Black;
 CRGBPalette16 currentDesignPalette;
 //CRGBPalette16 targetDesignPalette;
 uint8_t paletteCycleIndex = 1;
-const uint8_t nPalettes = 23;
+const uint8_t nPalettes = 26;
 
 
 #ifndef NO_PALETTES
@@ -382,28 +382,31 @@ CRGBPalette16 mapPalettes[7] = {
 
 CRGBPalette16 cyclePalettes[nPalettes] = {
   OceanColors_p,//0
-  Id_Like_To_Dive_gp,//light blue to purple
-  Sleep_Deprevation_gp,//1 blue and purple - maybe the purple
-  rainbowsherbet_gp,//pink green whiteish purple
-  GMT_drywet_gp,//blue and brown
-  CloudColors_p, //2
-  Colorfull_gp,//white pastels
-  Sunset_Real_gp,//bold blue purple yellow red NOPE
-  Blue_Cyan_Yellow_gp,//3
-  RainbowColors_p,
-  byr_gp,
-  Adrift_in_Dreams_gp,//4 blue to whitish blue - 1st blue
-  Crystal_Ice_Palace_gp,// washed out blue and purple NOPE
-  Dusk_Finds_Us_gp,//pale blue and pink
-  Alive_And_Kicking_gp,//blue and purple
-  srtYlGnBu05_gp,  
-  Adrift_in_Dreams_gp,//5 blue to whitish blue - 1st blue
-  ib53_gp, 
-  velvet_ocean_gp, //6
-  autumnrose_gp,
-  Deep_Skyblues_gp, //7
-  srtPurples04_gp,   
-  departure_gp,//green brown white
+  Id_Like_To_Dive_gp,//1 light blue to purple
+  Sleep_Deprevation_gp,//2 blue and purple - maybe the purple
+  rainbowsherbet_gp,//3 pink green whiteish purple
+  GMT_drywet_gp,//4 blue and brown
+  CloudColors_p, //5
+  Colorfull_gp,//6white pastels
+  Sunset_Real_gp,//7bold blue purple yellow red NOPE
+  Blue_Cyan_Yellow_gp,//8 3
+  RainbowColors_p,//9 
+  byr_gp,//10
+  Adrift_in_Dreams_gp,//11 blue to whitish blue - 1st blue
+  Crystal_Ice_Palace_gp,//12  washed out blue and purple NOPE
+  Dusk_Finds_Us_gp,//13 pale blue and pink
+  Alive_And_Kicking_gp,//14 blue and purple
+  srtYlGnBu05_gp,//15
+  Adrift_in_Dreams_gp,//16 blue to whitish blue - 1st blue
+  ib53_gp,//17
+  velvet_ocean_gp, //18 
+  Emo_Barbie_Playmate_gp,//19
+  Lucy_in_the_Sky_gp,//20 pink and yellow - maybe shorten the pink
+  srtYlGn04_gp,//21
+  autumnrose_gp,//22
+  Deep_Skyblues_gp, //23
+  srtPurples04_gp,//24
+  departure_gp,//25 green brown white
 };
 
 //CRGBPalette16 cyclePalettes[nPalettes] = {

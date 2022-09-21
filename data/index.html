@@ -24,68 +24,205 @@
 	<!-- slider js-->
 	<script src="nouislider.min.js"></script>
 
+    <!-- colour picker -->
+    <script src="iro.min.js"></script>
+
     <!-- Our JS -->
 	<script src="main.js"></script>	
 </head>
 <body>
-    <div id="container">
-        <div id="earthBtn" data-msgtype="20" class="btn btn-secondary control inputBtn">Earth</div>
-        <button class="collapseBtn" type="button"><img class="caret" src="caret-down.svg"></button>
-        <div id="fireBtn" data-msgtype="21" class="btn btn-secondary control inputBtn inputDiv">Fire</div>
-        <div id="airBtn" data-msgtype="22" class="btn btn-secondary control inputBtn">Air</div>
-        <div id="waterBtn" data-msgtype="23" class="btn btn-secondary control inputBtn">Water</div>
-        <div id="metalBtn" data-msgtype="24" class="btn btn-secondary control inputBtn">Metal</div>
-        <div id="randomBtn" data-msgtype="1" class="btn btn-secondary control inputBtn">Random</div>
-        <div id="rainbowBtn" data-msgtype="2" class="btn btn-secondary control inputBtn">Rainbow</div>
-        <div id="tranquilityBtn" data-msgtype="3" class="btn btn-secondary control inputBtn">Tranquility</div>        
-        <div id="paletteBtn" data-msgtype="4" class="btn btn-secondary control inputBtn">Next Palette</div>       
-        <div id="tripperBtn" data-msgtype="5" class="btn btn-secondary control inputBtn">Tripper Trap</div>        
-        <div id="antsBtn" data-msgtype="6" class="btn btn-secondary control inputBtn">Ants!</div>      
-        <div id="starsBtn" data-msgtype="7" class="btn btn-secondary control inputBtn">Shooting Stars</div> 
-        <div id="ripplesBtn" data-msgtype="28" class="btn btn-secondary control inputBtn">Ripples</div> 
-        <div id="tailBtn" data-msgtype="29" class="btn btn-secondary control inputBtn">Tail Time</div> 
-        <div id="blenderBtn" data-msgtype="30" class="btn btn-secondary control inputBtn">Blender</div> 
-        <div id="flashBtn" data-msgtype="31" class="btn btn-secondary control inputBtn">Flash Grid</div> 
-        <div id="noiseBtn" data-msgtype="14"  class="btn btn-secondary control inputBtn">Blob</div> 
-        <div id="maskBtn" data-msgtype="15"  class="btn btn-secondary control inputBtn">Mask</div> 
-        <div id="houseLightsBtn" data-msgtype="8" class="btn btn-secondary control inputBtn">House Lights</div> 
-        <label class="control slider-label">Step Rate:
-            <div id="stepInput" data-msgtype="10" class="slider" data-start="2" data-min="1" data-max="10"></div>              
-        </label>    
-        <label class="control slider-label">Fade Rate:
-            <div id="fadeInput" data-msgtype="11" class="slider" data-start="128" data-min="1" data-max="250"></div>              
-        </label>      
-        <label class="control slider-label">Dimmer:
-            <div id="brightnessInput" data-msgtype="12" class="slider" data-start="0" data-min="0" data-max="10"></div>              
-        </label>        
-        <label class="control slider-label">Ripples:
-            <div id="ripplesInput" data-msgtype="13" class="slider" data-start="5" data-min="0" data-max="10"></div>              
-        </label>    
-        <label class="control slider-label">Noise Length:
-            <div id="nlInput" data-msgtype="16" class="slider" data-start="5" data-min="1" data-max="60"></div>              
-        </label> 
-        <label class="control slider-label">Noise Speed:
-            <div id="nsInput" data-msgtype="17" class="slider" data-start="5" data-min="1" data-max="60"></div>              
-        </label>     
-        <label class="control slider-label">NoiseFade Length:
-            <div id="nflInput" data-msgtype="18" class="slider" data-start="5" data-min="1" data-max="60"></div>              
-        </label> 
-        <label class="control slider-label">NoiseFade Speed:
-            <div id="nfsInput" data-msgtype="19" class="slider" data-start="5" data-min="1" data-max="60"></div>              
-        </label>  
-        <label class="control slider-label">Air Length:
-            <div id="airlInput"  data-msgtype="25" class="slider" data-start="5" data-min="1" data-max="60"></div>              
-        </label> 
-        <label class="control slider-label">Air Speed:
-            <div id="airsInput"  data-msgtype="26" class="slider" data-start="5" data-min="1" data-max="60"></div>              
-        </label> 
-        <label class="control slider-label">Fire Decay:
-            <div id="firedInput"  data-msgtype="32" class="slider" data-start="50" data-min="1" data-max="120"></div>              
-        </label> 
-        <label class="control slider-label">Fire Speed:
-            <div id="firesInput"  data-msgtype="33" class="slider" data-start="50" data-min="1" data-max="120"></div>              
-        </label> 
-        <div id="launchBtn" data-msgtype="9" class="btn btn-secondary control inputBtn">Launch</div> 
+    <div class="main">
+        <div class="accordion-container">
+            <div class="accordion accordion-flush">
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#presets">
+                            Presets
+                        </button>
+                    </h2>
+                    <div id="presets" class="accordion-collapse collapse show">
+                        <div class="accordion-body gridContainer">
+                            <div id="rainbowBtn" data-msgtype="2" class="btn btn-secondary control inputBtn">Rainbow</div>      
+                            <div id="tripperBtn" data-msgtype="5" class="btn btn-secondary control inputBtn">Tripper Trap</div> 
+                            <div id="tranquilityBtn" data-msgtype="3" class="btn btn-secondary control inputBtn">Tranquility</div>     
+                            <div id="starsBtn" data-msgtype="7" class="btn btn-secondary control inputBtn">Shooting Stars</div>  
+                            <div id="randomBtn" data-msgtype="1" class="btn btn-secondary control inputBtn">Random</div>    
+                            <div id="tailBtn" data-msgtype="29" class="btn btn-secondary control inputBtn">Tail Time</div> 
+                            <div id="blenderBtn" data-msgtype="30" class="btn btn-secondary control inputBtn">Blender</div> 
+                            <div id="flashBtn" data-msgtype="31" class="btn btn-secondary control inputBtn">Flash Grid</div> 
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#globals">
+                            Globals
+                        </button>
+                    </h2>
+                    <div id="globals" class="accordion-collapse collapse">
+                        <div class="d-flex flex-column justify-content-center align-items-center gap-4 py-3">
+                            <label class="control slider-label">Frame Rate:
+                                <div id="stepInput" data-msgtype="10" class="slider" data-start="2" data-min="1" data-max="10" data-direction="rtl"></div>              
+                            </label>    
+                            <label class="control slider-label">Fade Rate:
+                                <div id="fadeInput" data-msgtype="11" class="slider" data-start="128" data-min="1" data-max="250" data-direction="rtl"></div>              
+                            </label>      
+                            <label class="control slider-label">Brightness:
+                                <div id="brightnessInput" data-msgtype="12" class="slider" data-start="0" data-min="0" data-max="10" data-direction="rtl"></div>              
+                            </label>  
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#elements">
+                            Elements
+                        </button>
+                    </h2>
+                    <div id="elements" class="accordion-collapse collapse">
+                        <div class="accordion-body gridContainer">
+                            <div id="earthBtn" data-msgtype="20" class="btn btn-secondary control inputBtn">Earth</div>
+                            <div id="fireBtn" data-msgtype="21" class="btn btn-secondary control inputBtn inputDiv">Fire</div>
+                            <button class="collapseBtn" type="button" data-bs-toggle="collapse" data-bs-target="#fireCtls" ><img class="caret" src="caret-down.svg"></button>
+                            <div id="fireCtls" class="collapse collapsed slider-container"> 
+                                <div class="d-flex flex-column justify-content-center align-items-center gap-4 py-3">
+                                    <label class="control slider-label">Sparking:
+                                        <div id="firesInput"  data-msgtype="33" class="slider" data-start="50" data-min="1" data-max="120"></div>              
+                                    </label> 
+                                    <label class="control slider-label">Cooling:
+                                        <div id="firedInput"  data-msgtype="32" class="slider" data-start="50" data-min="1" data-max="120"></div>              
+                                    </label> 
+                                    <label class="control slider-label">Noise Length:
+                                        <div id="nlInput" data-msgtype="16" class="slider" data-start="5" data-min="1" data-max="60"></div>              
+                                    </label> 
+                                    <label class="control slider-label">Noise Speed:
+                                        <div id="nsInput" data-msgtype="17" class="slider" data-start="5" data-min="1" data-max="30"></div>              
+                                    </label>   
+                                    
+                                </div>  
+                            </div>
+                            <div id="airBtn" data-msgtype="22" class="btn btn-secondary control inputBtn">Air</div>
+                            <div id="waterBtn" data-msgtype="23" class="btn btn-secondary control inputBtn">Water</div>
+                            <div id="metalBtn" data-msgtype="24" class="btn btn-secondary control inputBtn">Metal</div>       
+                            <div id="antsBtn" data-msgtype="6" class="btn btn-secondary control inputBtn">Ants!</div>     
+                            <div id="noiseBtn" data-msgtype="14"  class="btn btn-secondary control inputBtn">Blob</div>  
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#palettes">
+                            Palettes
+                        </button>
+                    </h2>
+                    <div id="palettes" class="accordion-collapse collapse">
+                        <div class="accordion-body gridContainer">
+
+                            <div class="select-container">
+                                <label><b>Select Palette:</b>
+                                    <select id="paletteSelect" class="form-select" data-msgtype="34">
+                                        <option value="0">Ocean Colours</option>
+                                        <option value="1">I'd Like To Dive</option>
+                                        <option value="2">Sleep Deprivation</option>
+                                        <option value="3">Rainbow Sherbet</option>
+                                        <option value="4">GMT drywet</option>
+                                        <option value="5">Cloud Colors</option>
+                                        <option value="6">Colourfull</option>
+                                        <option value="7">Sunset Real</option>
+                                        <option value="8">Blue Cyan Yellow</option>
+                                        <option value="9">Rainbow Colours</option>
+                                        <option value="10">Blue Yellow Red</option>
+                                        <option value="11">Adrift in Dreams</option>
+                                        <option value="12">Crystal Ice Palace</option>
+                                        <option value="13">Dusk Finds Us</option>
+                                        <option value="14">Alive And Kicking</option>
+                                        <option value="15">Yellow Green Blue</option>
+                                        <option value="16">Adrift in Dreams</option>
+                                        <option value="17">ib53</option>
+                                        <option value="18">Velvet Ocean</option>
+                                        <option value="19">Emo Barbie Playmate</option>
+                                        <option value="20">Lucy in the Sky</option>
+                                        <option value="21">Yellow Green</option>
+                                        <option value="22">Autumn Rose</option>
+                                        <option value="23">Deep Sky Blues</option>
+                                        <option value="24">Purples</option>
+                                        <option value="25">Departure</option>
+                                    </select>  
+                                </label>
+                            </div>
+
+                            <div id="paletteBtn" data-msgtype="4" class="btn btn-secondary control inputBtn mt-1">Next Palette</div>  
+
+                            <b class="gridMiddle mt-3">Create New Palette:</b>
+                            <div id="paletteDesigner" class="slider-container w-100"> 
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="platteType" id="inlineRadio1" value="gradient" checked>
+                                    <label class="form-check-label" for="inlineRadio1">Gradient</label>
+                                  </div>
+                                  <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="platteType" id="inlineRadio2" value="solid">
+                                    <label class="form-check-label" for="inlineRadio2">Solid</label>
+                                  </div>
+                                <div class="w-100">
+                                    <div id="colourBar"></div>
+                                    <div id="colourStops" class="d-flex flex-row justify-content-between"></div>
+                                    <div class="wheel d-flex flex-row justify-content-center pt-3" id="colorWheelDemo"></div>
+                                </div>  
+                            </div>
+                            <div id="customPaletteBtn" data-msgtype="35" class="btn btn-secondary control inputDiv palBtn">Send</div>
+
+                        </div>
+
+
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#patterns">
+                            Patterns
+                        </button>
+                    </h2>
+                    <div id="patterns" class="accordion-collapse collapse">
+                        <div class="accordion-body gridContainer">
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <!-- <div class="gridContainer">
+            <div id="ripplesBtn" data-msgtype="28" class="btn btn-secondary control inputBtn">Ripples</div> 
+            <div id="noiseBtn" data-msgtype="14"  class="btn btn-secondary control inputBtn">Blob</div> 
+            <div id="maskBtn" data-msgtype="15"  class="btn btn-secondary control inputBtn">Mask</div> 
+            <div id="houseLightsBtn" data-msgtype="8" class="btn btn-secondary control inputBtn">House Lights</div> 
+                  
+            <label class="control slider-label">Ripples:
+                <div id="ripplesInput" data-msgtype="13" class="slider" data-start="5" data-min="0" data-max="10"></div>              
+            </label>    
+            <label class="control slider-label">Noise Length:
+                <div id="nlInput" data-msgtype="16" class="slider" data-start="5" data-min="1" data-max="60"></div>              
+            </label> 
+            <label class="control slider-label">Noise Speed:
+                <div id="nsInput" data-msgtype="17" class="slider" data-start="5" data-min="1" data-max="60"></div>              
+            </label>     
+            <label class="control slider-label">NoiseFade Length:
+                <div id="nflInput" data-msgtype="18" class="slider" data-start="5" data-min="1" data-max="60"></div>              
+            </label> 
+            <label class="control slider-label">NoiseFade Speed:
+                <div id="nfsInput" data-msgtype="19" class="slider" data-start="5" data-min="1" data-max="60"></div>              
+            </label>  
+            <label class="control slider-label">Air Length:
+                <div id="airlInput"  data-msgtype="25" class="slider" data-start="5" data-min="1" data-max="60"></div>              
+            </label> 
+            <label class="control slider-label">Air Speed:
+                <div id="airsInput"  data-msgtype="26" class="slider" data-start="5" data-min="1" data-max="60"></div>              
+            </label> 
+            <div id="launchBtn" data-msgtype="9" class="btn btn-secondary control inputBtn">Launch</div> 
+        </div> -->
     </div>
     
 </body>
