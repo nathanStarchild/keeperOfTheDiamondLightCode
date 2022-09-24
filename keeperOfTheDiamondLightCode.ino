@@ -171,7 +171,7 @@ void upset_mainState() {
 
     mainState.glitter.enabled = (random8() > 180);
     mainState.glitter.pspeed = random8();
-    mainState.glitter.length = random8(1, 20);
+    mainState.glitter.plength = random8(1, 20);
     mainState.glitter.decay = random8();
 
     mainState.rain.enabled = (random8() > 140);
@@ -914,7 +914,7 @@ void paletteBlendwave() {
 } // blendwave()
 
 void holdingPattern() {
-   uint8_t fps = 1000000 / INTERVAL;
+   uint8_t fps = 1000 / 20;
    uint8_t hPeriod = fps * 3; //every 3 seconds
    uint8_t hStep = mainState.patternStep % hPeriod;
    if (hStep == 0) {
