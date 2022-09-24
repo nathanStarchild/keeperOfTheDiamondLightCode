@@ -15,6 +15,7 @@ int directionIO[nStrips] = {1, 1, 1};
 int stripDirection[nStrips] =  {-1, -1, -1};
 uint16_t audienceSpot = 0;
 uint16_t sweepSpot = 6;
+uint16_t element = 0;
 
 void elementSetup(){
     FastLED.addLeds<WS2813, DATA_PIN_1, RGB>(outLeds, 0, LEDS_PER_OUTPUT); 

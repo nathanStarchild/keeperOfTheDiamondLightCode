@@ -12,17 +12,17 @@ CRGB outLeds[NUM_LEDS];
 
 int directionLR[nStrips] = {1, 1, 1, 1, 1, 1, 1, 1};
 int directionUD[nStrips] = {-1, 1, -1, -1, 1, 1, 1, -1};
-int directionIO[nStrips] = {1, -1, 1, 1, 1, 1, 1, 1};
-int stripDirection[nStrips] =  {1, 1, 1, -1, 1, 1, 1, -1};
-uint16_t audienceSpot = 6;
+int directionIO[nStrips] = {1, -1, 1, -1, 1, -1, 1, -1};
+int stripDirection[nStrips] =  {-1, 1, -1, -1, 1, 1, 1, -1};
+uint16_t audienceSpot = 1;
 uint16_t sweepSpot = 1;
 uint16_t element = 0;
 
 void elementSetup(){
-    FastLED.addLeds<WS2813, DATA_PIN_1, RGB>(outLeds, 0, LEDS_PER_OUTPUT); 
-    FastLED.addLeds<WS2813, DATA_PIN_2, RGB>(outLeds, LEDS_PER_OUTPUT, LEDS_PER_OUTPUT); 
+    FastLED.addLeds<WS2813, DATA_PIN_1, RGB>(outLeds, 0, LEDS_OUTPUT1); 
+    FastLED.addLeds<WS2813, DATA_PIN_3, RGB>(outLeds, LEDS_OUTPUT1, LEDS_OUTPUT2); 
 //    FastLED.addLeds<WS2813, DATA_PIN_1, RGB>(outLeds, 0, 600); 
 //    FastLED.addLeds<WS2813, DATA_PIN_2, RGB>(outLeds, 600, 360); 
 
-    ArduinoOTA.setHostname("theDome");
+    ArduinoOTA.setHostname("antares2");
 }

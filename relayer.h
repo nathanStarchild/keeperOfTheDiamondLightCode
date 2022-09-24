@@ -28,7 +28,7 @@ void processWSMessage();
 void WiFiStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info){
   Serial.println("Disconnected from WiFi access point");
   Serial.print("WiFi lost connection. Reason: ");
-  Serial.println(info.disconnected.reason);
+//  Serial.println(info.disconnected.reason);
   Serial.println("Trying to Reconnect");
   WiFi.begin("keeperOfTheDiamondLights", "enlighten");
 }
@@ -48,7 +48,7 @@ void wsSetup() {
 
   WiFi.disconnect();
   WiFi.mode(WIFI_STA);
-  WiFi.onEvent(WiFiStationDisconnected, SYSTEM_EVENT_STA_DISCONNECTED);
+  WiFi.onEvent(WiFiStationDisconnected, ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
   if (!WiFi.config(local_IP, gateway, subnet)) {
     Serial.println("STA Failed to configure");
   }
@@ -76,7 +76,7 @@ void wsSetup() {
   // ArduinoOTA.setHostname("myesp32");
 
   // No authentication by default
-  ArduinoOTA.setPassword("admin");
+//  ArduinoOTA.setPassword("admin");
   ArduinoOTA
     .onStart([]() {
       String type;

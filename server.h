@@ -37,10 +37,17 @@ void upset_mainState();
 void blender();
 void tailTime();
 void shootingStars();
+void rainbowSpiral();
+void noiseTest();
+void noiseFader();
 
 
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length);
 void processWSMessage();
+
+
+IPAddress apIP(8, 8, 8, 8);
+IPAddress netMsk(255, 255, 255, 0);
 
 class CaptiveRequestHandler : public AsyncWebHandler {
 public:
@@ -57,16 +64,22 @@ public:
 
       Serial.println("index.html exists!");
 
-      AsyncResponseStream *response = request->beginResponseStream("text/html");
+      request->send(SPIFFS, "/index.html","text/html", false);
 
-      File file = SPIFFS.open("/index.html");
-
-      while(file.available()){
-
-          response->write(file.read());
-      }
-
-      request->send(response);
+//      AsyncResponseStream *response = request->beginResponseStream("text/html");
+//
+//      File file = SPIFFS.open("/index.html");
+//
+//      Serial.println("opened the file");
+//
+//      while(file.available()){
+//
+//          response->write(file.read());
+//      }
+//
+//      Serial.println("response ready");
+//      request->send(response);
+      Serial.println("response sent");
     }
 
     else{
@@ -95,13 +108,18 @@ void wsSetup() {
   }
 
   WiFi.disconnect();
-  WiFi.mode(WIFI_OFF);
+//  WiFi.mode(WIFI_OFF);
+  WiFi.mode(WIFI_AP);
+//  WiFi.softAPConfig(apIP, apIP, netMsk);
   WiFi.softAP("keeperOfTheDiamondLights", "enlighten", 1, false, 8);
   Serial.println(WiFi.softAPIP());
+  server.serveStatic("/", SPIFFS, "/", "max-age=86400").setDefaultFile("index.html");
+  
   dnsServer.start(53, "*", WiFi.softAPIP());
   Serial.println("DNS Server started!");
+  
+//  server.addHandler(new CaptiveRequestHandler()).setFilter(ON_AP_FILTER);//only when requested from AP
 
-  server.serveStatic("/", SPIFFS, "/", "max-age=86400").setDefaultFile("index.html");
   server.begin();
   Serial.println("Webserver started!");
   
@@ -162,43 +180,45 @@ void wsLoop() {
     boredTimer.resetTimer();
     uint8_t ran = random8();
     if (!mainState.launch.enabled){ 
-      if (ran < 15) {
+      if (ran < 5) {
         sendMessage(9);
         mainState.launch.enabled = true;
-      } else if (ran < 37) {
-        sendMessage(21);
-        fireMode();
-//        sendMessage(20);
-//        earthMode();
+      } else if (ran < 25) {
+        sendMessage(14);
+        sendMessage(15);
+        noiseTest();
+        noiseFader();
+      } else if (ran < 40) {
+        sendMessage(20);
+        earthMode();
       } else if (ran < 60) {
         sendMessage(21);
         fireMode();
-      } else if (ran < 83) {
-//        sendMessage(22);
-//        airMode();
-        sendMessage(1);
-        upset_mainState();
-      } else if (ran < 106) {
-        sendMessage(21);
-        fireMode();
-      } else if (ran < 129) {
+      } else if (ran < 80) {
+        sendMessage(22);
+        airMode();
+      } else if (ran < 100) {
+        sendMessage(39);
+        rainbowSpiral();
+      } else if (ran < 120) {
         sendMessage(24);
         metalMode();
-      } else if (ran < 152) {
+      } else if (ran < 140) {
         sendMessage(5);
         tripperTrapMode();
-      } else if (ran < 175) {
+      } else if (ran < 160) {
         sendMessage(6);
         antsMode();
-      } else if (ran < 198) {
+      } else if (ran < 180) {
         sendMessage(2);
         doubleRainbow();
-      } else if (ran < 221) {
-//        sendMessage(3);
-//        tranquilityMode();
-        sendMessage(21);
-        fireMode();
-      } else if (ran < 245) {
+      } else if (ran < 200) {
+        sendMessage(40);
+        blender();
+      } else if (ran < 220) {
+        sendMessage(3);
+        tranquilityMode();
+      } else {
         sendMessage(1);
         upset_mainState();
       }

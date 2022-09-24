@@ -1,4 +1,11 @@
 $(document).ready(function() {
+    Object.defineProperty(String.prototype, 'capitalize', {
+        value: function() {
+          return this.charAt(0).toUpperCase() + this.slice(1);
+        },
+        enumerable: false
+      });
+
     var ws = new WebSocket('ws://' + window.location.hostname + ':81/');
     ws.onmessage = function(event) { processReceivedCommand(event); };
 
@@ -6,6 +13,8 @@ $(document).ready(function() {
         console.log("event")
         console.log(evt.data);
     }
+
+    loadPatterns()
 
     $(".slider").each(function(index) {
         console.log($(this).data())
@@ -29,10 +38,56 @@ $(document).ready(function() {
         });
     })
 
+    $(".patternSlider").each(function(index) {
+        console.log($(this).data())
+        noUiSlider.create(this, {
+            start: $(this).data("start"),
+            direction: $(this).data("direction"),
+            step: 1,
+            range: {
+                'min': $(this).data("min"),
+                'max': $(this).data("max")
+            },
+        })
+        let slider = this
+        slider.noUiSlider.on('change', function(){
+            let data = {
+                'msgType': $(slider).data("msgtype"),
+                'pointer': $(slider).data("pointer"),
+                'param': $(slider).data("param"),
+                'val': slider.noUiSlider.get(),
+            };
+            console.log(data)
+            ws.send(JSON.stringify(data));
+        });
+    })
+
     $(".inputBtn").click(function(event) {
         console.log($(event.currentTarget))
         let data = {
             'msgType': $(event.currentTarget).data("msgtype")
+        }
+        console.log(data)
+        ws.send(JSON.stringify(data));
+    })
+
+    $(".soloBtn").click(function(event) {
+        console.log($(event.currentTarget))
+        let data = {
+            'msgType': $(event.currentTarget).data("msgtype"),
+            'pointer': $(event.currentTarget).data("pattern")
+        }
+        console.log(data)
+        ws.send(JSON.stringify(data));
+    })
+
+
+    $(".patternSwitch").on('change', function(event) {
+        console.log($(event.currentTarget))
+        let data = {
+            'msgType': 38,
+            'pointer': $(event.currentTarget).data("pattern"),
+            'enabled': $(event.currentTarget).prop("checked")
         }
         console.log(data)
         ws.send(JSON.stringify(data));
@@ -269,234 +324,649 @@ $(document).ready(function() {
 
     //////////////////////////////////////////////////
 
+    //Pattern biz
 
+    function loadPatterns() {
+        let patterns = [
+        {
+            "name": "tail",
+            "pointer": 1,
+            "enabled": false,
+            "speed": {
+                "direction": "ltr",
+                "name": "speed",
+                "min": -3,
+                "max": 3,
+                "start": 1,
+            },
+            "length": {
+                "direction": "ltr",
+                "name": "spacing",
+                "min": 2,
+                "max": 120,
+                "start": 20
+            },
+            "decay": ""
+        },
+        {
+            "name": "breathe",
+            "pointer": 2,
+            "enabled": false,
+            "speed": {
+                "direction": "ltr",
+                "name": "bpm",
+                "min": 6,
+                "max": 60,
+                "start": 12,
+            },
+            "length": "",
+            "decay": ""
+        },
+        {
+            "name": "glitter",
+            "pointer": 3,
+            "enabled": false,
+            "speed": {
+                "direction": "ltr",
+                "name": "frequency",
+                "min": 20,
+                "max": 255,
+                "start": 60,
+            },
+            "length": {
+                "direction": "ltr",
+                "name": "density",
+                "min": 1,
+                "max": 50,
+                "start": 8,
+            },
+            "decay": {
+                "direction": "ltr",
+                "name": "colour",
+                "min": 0,
+                "max": 255,
+                "start": 36,
+            }
+        },
+        // {
+        //     "name": "crazytown",
+        //     "pointer": 4,
+        //     "enabled": false,
+        //     "speed": {
+        //         "direction": "ltr",
+        //         "name": "",
+        //         "min": ,
+        //         "max": ,
+        //         "start": ,
+        //     },
+        //     "length": {
+        //         "direction": "ltr",
+        //         "name": "",
+        //         "min": ,
+        //         "max": ,
+        //         "start": 
+        //     },
+        //     "decay": {
+        //         "direction": "ltr",
+        //         "name": "",
+        //         "min": ,
+        //         "max": ,
+        //         "start":
+        //     }
+        // },
+        // {
+        //     "name": "enlightenment",
+        //     "pointer": 5,
+        //     "enabled": false,
+        //     "speed": {
+        //         "direction": "ltr",
+        //         "name": "",
+        //         "min": ,
+        //         "max": ,
+        //         "start": ,
+        //     },
+        //     "length": {
+        //         "direction": "ltr",
+        //         "name": "",
+        //         "min": ,
+        //         "max": ,
+        //         "start": 
+        //     },
+        //     "decay": {
+        //         "direction": "ltr",
+        //         "name": "",
+        //         "min": ,
+        //         "max": ,
+        //         "start":
+        //     }
+        // },
+        {
+            "name": "ripple",
+            "pointer": 6,
+            "enabled": false,
+            "speed": "",
+            "length": "",
+            "decay": ""
+        },
+        {
+            "name": "blendwave",
+            "pointer": 7,
+            "enabled": false,
+            "speed": "",
+            "length": "",
+            "decay": "",
+        },
+        {
+            "name": "rain",
+            "pointer": 8,
+            "enabled": false,
+            "speed": {
+                "direction": "rtl",
+                "name": "min speed",
+                "min": 5,
+                "max": 50,
+                "start": 15,
+            },
+            "length": {
+                "direction": "ltr",
+                "name": "drops",
+                "min": 3,
+                "max": 30,
+                "start": 15
+            },
+            "decay": {
+                "direction": "ltr",
+                "name": "brightness",
+                "min": 10,
+                "max": 255,
+                "start": 150
+            }
+        },
+        // {
+        //     "name": "holdingPattern",
+        //     "pointer": 9,
+        //     "enabled": false,
+        //     "speed": {
+        //         "direction": "ltr",
+        //         "name": "",
+        //         "min": ,
+        //         "max": ,
+        //         "start": ,
+        //     },
+        //     "length": {
+        //         "direction": "ltr",
+        //         "name": "",
+        //         "min": ,
+        //         "max": ,
+        //         "start": 
+        //     },
+        //     "decay": {
+        //         "direction": "ltr",
+        //         "name": "",
+        //         "min": ,
+        //         "max": ,
+        //         "start":
+        //     }
+        // },
+        // {
+        //     "name": "mapPattern",
+        //     "pointer": 10,
+        //     "enabled": false,
+        //     "speed": {
+        //         "direction": "ltr",
+        //         "name": "",
+        //         "min": ,
+        //         "max": ,
+        //         "start": ,
+        //     },
+        //     "length": {
+        //         "direction": "ltr",
+        //         "name": "",
+        //         "min": ,
+        //         "max": ,
+        //         "start": 
+        //     },
+        //     "decay": {
+        //         "direction": "ltr",
+        //         "name": "",
+        //         "min": ,
+        //         "max": ,
+        //         "start":
+        //     }
+        // },
+        // {
+        //     "name": "paletteDisplay",
+        //     "pointer": 11,
+        //     "enabled": false,
+        //     "speed": {
+        //         "direction": "ltr",
+        //         "name": "",
+        //         "min": ,
+        //         "max": ,
+        //         "start": ,
+        //     },
+        //     "length": {
+        //         "direction": "ltr",
+        //         "name": "",
+        //         "min": ,
+        //         "max": ,
+        //         "start": 
+        //     },
+        //     "decay": {
+        //         "direction": "ltr",
+        //         "name": "",
+        //         "min": ,
+        //         "max": ,
+        //         "start":
+        //     }
+        // },
+        // {
+        //     "name": "sweep",
+        //     "pointer": 12,
+        //     "enabled": false,
+        //     "speed": {
+        //         "direction": "ltr",
+        //         "name": "",
+        //         "min": ,
+        //         "max": ,
+        //         "start": ,
+        //     },
+        //     "length": {
+        //         "direction": "ltr",
+        //         "name": "",
+        //         "min": ,
+        //         "max": ,
+        //         "start": 
+        //     },
+        //     "decay": {
+        //         "direction": "ltr",
+        //         "name": "",
+        //         "min": ,
+        //         "max": ,
+        //         "start":
+        //     }
+        // },
+        // {
+        //     "name": "dimmer",
+        //     "pointer": 13,
+        //     "enabled": false,
+        //     "speed": {
+        //         "direction": "ltr",
+        //         "name": "",
+        //         "min": ,
+        //         "max": ,
+        //         "start": ,
+        //     },
+        //     "length": {
+        //         "direction": "ltr",
+        //         "name": "",
+        //         "min": ,
+        //         "max": ,
+        //         "start": 
+        //     },
+        //     "decay": {
+        //         "direction": "ltr",
+        //         "name": "",
+        //         "min": ,
+        //         "max": ,
+        //         "start":
+        //     }
+        // },
+        // {
+        //     "name": "skaters",
+        //     "pointer": 14,
+        //     "enabled": false,
+        //     "speed": {
+        //         "direction": "ltr",
+        //         "name": "",
+        //         "min": ,
+        //         "max": ,
+        //         "start": ,
+        //     },
+        //     "length": {
+        //         "direction": "ltr",
+        //         "name": "",
+        //         "min": ,
+        //         "max": ,
+        //         "start": 
+        //     },
+        //     "decay": {
+        //         "direction": "ltr",
+        //         "name": "",
+        //         "min": ,
+        //         "max": ,
+        //         "start":
+        //     }
+        // },
+        // {
+        //     "name": "poleChaser",
+        //     "pointer": 15,
+        //     "enabled": false,
+        //     "speed": {
+        //         "direction": "ltr",
+        //         "name": "",
+        //         "min": ,
+        //         "max": ,
+        //         "start": ,
+        //     },
+        //     "length": {
+        //         "direction": "ltr",
+        //         "name": "",
+        //         "min": ,
+        //         "max": ,
+        //         "start": 
+        //     },
+        //     "decay": {
+        //         "direction": "ltr",
+        //         "name": "",
+        //         "min": ,
+        //         "max": ,
+        //         "start":
+        //     }
+        // },
+        // {
+        //     "name": "powerSaver",
+        //     "pointer": 16,
+        //     "enabled": false,
+        //     "speed": {
+        //         "direction": "ltr",
+        //         "name": "",
+        //         "min": ,
+        //         "max": ,
+        //         "start": ,
+        //     },
+        //     "length": {
+        //         "direction": "ltr",
+        //         "name": "",
+        //         "min": ,
+        //         "max": ,
+        //         "start": 
+        //     },
+        //     "decay": {
+        //         "direction": "ltr",
+        //         "name": "",
+        //         "min": ,
+        //         "max": ,
+        //         "start":
+        //     }
+        // },
+        {
+            "name": "ants",
+            "pointer": 17,
+            "enabled": false,
+            "speed": {
+                "direction": "ltr",
+                "name": "spacing",
+                "min": 2,
+                "max": 60,
+                "start": 5,
+            },
+            "length": {
+                "direction": "ltr",
+                "name": "number",
+                "min": 1,
+                "max": 90,
+                "start": 20
+            },
+            "decay": {
+                "direction": "ltr",
+                "name": "colour",
+                "min": 0,
+                "max": 255,
+                "start": 55
+            }
+        },
+        // {
+        //     "name": "launch",
+        //     "pointer": 18,
+        //     "enabled": false,
+        //     "speed": {
+        //         "direction": "ltr",
+        //         "name": "",
+        //         "min": ,
+        //         "max": ,
+        //         "start": ,
+        //     },
+        //     "length": {
+        //         "direction": "ltr",
+        //         "name": "",
+        //         "min": ,
+        //         "max": ,
+        //         "start": 
+        //     },
+        //     "decay": {
+        //         "direction": "ltr",
+        //         "name": "",
+        //         "min": ,
+        //         "max": ,
+        //         "start":
+        //     }
+        // },
+        // {
+        //     "name": "houseLights",
+        //     "pointer": 19,
+        //     "enabled": false,
+        //     "speed": {
+        //         "direction": "ltr",
+        //         "name": "",
+        //         "min": ,
+        //         "max": ,
+        //         "start": ,
+        //     },
+        //     "length": {
+        //         "direction": "ltr",
+        //         "name": "",
+        //         "min": ,
+        //         "max": ,
+        //         "start": 
+        //     },
+        //     "decay": {
+        //         "direction": "ltr",
+        //         "name": "",
+        //         "min": ,
+        //         "max": ,
+        //         "start":
+        //     }
+        // },
+        {
+            "name": "spiral",
+            "pointer": 20,
+            "enabled": false,
+            "speed": "",
+            "length": "",
+            "decay": ""
+        },
+        {
+            "name": "rainbow",
+            "pointer": 21,
+            "enabled": false,
+            "speed": {
+                "direction": "ltr",
+                "name": "speed",
+                "min": 1,
+                "max": 20,
+                "start": 5,
+            },
+            "length": {
+                "direction": "ltr",
+                "name": "length",
+                "min": 1,
+                "max": 20,
+                "start": 5
+            },
+            "decay": {
+                "direction": "ltr",
+                "name": "brightness",
+                "min": 1,
+                "max": 255,
+                "start": 100
+            }
+        },
+        {
+            "name": "noise",
+            "pointer": 22,
+            "enabled": false,
+            "speed": {
+                "direction": "ltr",
+                "name": "speed",
+                "min": 1,
+                "max": 30,
+                "start": 2,
+            },
+            "length": {
+                "direction": "rtl",
+                "name": "length",
+                "min": 1,
+                "max": 50,
+                "start": 5
+            },
+            "decay": ""
+        },
+        {
+            "name": "shadow",
+            "pointer": 23,
+            "enabled": false,
+            "speed": {
+                "direction": "ltr",
+                "name": "speed",
+                "min": 1,
+                "max": 30,
+                "start": 2,
+            },
+            "length": {
+                "direction": "rtl",
+                "name": "length",
+                "min": 1,
+                "max": 50,
+                "start": 5
+            },
+            "decay": ""
+        },
+        {
+            "name": "air",
+            "pointer": 24,
+            "enabled": false,
+            "speed": {
+                "direction": "ltr",
+                "name": "speed",
+                "min": 2,
+                "max": 7,
+                "start": 3,
+            },
+            "length": {
+                "direction": "ltr",
+                "name": "length",
+                "min": 1,
+                "max": 10,
+                "start": 3
+            },
+            "decay": ""
+        },
+        {
+            "name": "fire",
+            "pointer": 25,
+            "enabled": false,
+            "speed": {
+                "direction": "ltr",
+                "name": "sparking",
+                "min": 3,
+                "max": 60,
+                "start": 30,
+            },
+            "length": "",
+            "decay": {
+                "direction": "ltr",
+                "name": "cooling",
+                "min": 10,
+                "max": 80,
+                "start": 30
+            }
+        },
+        {
+            "name": "the Void",
+            "pointer": 27,
+            "enabled": false,
+            "speed": {
+                "direction": "ltr",
+                "name": "speed",
+                "min": 1,
+                "max": 10,
+                "start": 1,
+            },
+            "length": {
+                "direction": "ltr",
+                "name": "length",
+                "min": 5,
+                "max": 255,
+                "start": 30
+            },
+            "decay": {
+                "direction": "ltr",
+                "name": "fringe",
+                "min": 5,
+                "max": 255,
+                "start": 30
+            }
+        }
+        // {
+        //     "name": "metal",
+        //     "pointer": 26,
+        //     "enabled": false,
+        //     "speed": {
+        //         "direction": "ltr",
+        //         "name": "",
+        //         "min": ,
+        //         "max": ,
+        //         "start": ,
+        //     },
+        //     "length": {
+        //         "direction": "ltr",
+        //         "name": "",
+        //         "min": ,
+        //         "max": ,
+        //         "start": 
+        //     },
+        //     "decay": {
+        //         "direction": "ltr",
+        //         "name": "",
+        //         "min": ,
+        //         "max": ,
+        //         "start":
+        //     }
+        ]
 
-    // $("#.form-control").on("input", function(event) {
-    //     let data = {
-    //         'msgType': $(event.currentTarget).data("msgType"),
-    //         'val': $(event.currentTarget).val(),
-    //     };
-    //     ws.send(JSON.stringify(data));
-        
-    // })
+        for (const pattern of patterns) {
+            let tmpl = `
+                <h4 class="gridLeft mt-2">${pattern.name.capitalize()}</h4>
+                <div class="gridMiddle mt-2 d-flex flex-row justify-content-evenly w-100">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input patternSwitch" type="checkbox" data-pattern="${pattern.pointer}">
+                    </div>
+                    <div data-msgtype="37" data-pattern="${pattern.pointer}" class="btn btn-secondary btn-sm soloBtn">Solo</div>
+                </div>
+                <button class="collapseBtn gridRight mt-2" type="button" data-bs-toggle="collapse" data-bs-target="#pattern${pattern.pointer}" ><img class="caret" src="caret-down.svg"></button>
+                <div id="pattern${pattern.pointer}" class="collapse collapsed slider-container"> 
+                    <div class="d-flex flex-column justify-content-center align-items-center gap-4">
+            `
+            for (const [i, param] of ["speed", "length", "decay"].entries()){
+                if (pattern[param]){
+                    tmpl += `
+                        <label class="control slider-label">${pattern[param].name.capitalize()}:
+                            <div data-msgtype="36" class="patternSlider" data-start="${pattern[param].start}" data-min="${pattern[param].min}" data-max="${pattern[param].max}" data-pointer="${pattern.pointer}" data-param="${i}"></div>              
+                        </label> 
+                    `
+                }
+            }
+            if (pattern.name == "ripple") {
+                tmpl += `
+                    <label class="control slider-label">Number:
+                        <div data-msgtype="13" class="slider" data-start="5" data-min="0" data-max="10"></div>              
+                    </label> 
+                `
+            }
+            tmpl += `</div></div>`
+            $("#patternContainer").append(tmpl)
+        }
+    }
 
-    // $("#randomBtn").click(function() {
-    //     let data = {
-    //         'msgType': 1,
-    //     }
-        
-    // })
-
-    // $("#rainbowBtn").click(function() {
-    //     let data = {
-    //         'msgType': 2,
-    //     }
-        
-    // })
-
-    // $("#tranquilityBtn").click(function() {
-    //     let data = {
-    //         'msgType': 3,
-    //     }
-        
-    // })
-
-    // $("#paletteBtn").click(function() {
-    //     let data = {
-    //         'msgType': 4,
-    //     }
-        
-    // })
-
-    // $("#tripperBtn").click(function() {
-    //     let data = {
-    //         'msgType': 5,
-    //     }
-        
-    // })
-
-    // $("#antsBtn").click(function() {
-    //     let data = {
-    //         'msgType': 6,
-    //     }
-        
-    // })
-
-    // $("#starsBtn").click(function() {
-    //     let data = {
-    //         'msgType': 7,
-    //     }
-        
-    // })
-
-    // $("#houseLightsBtn").click(function() {
-    //     let data = {
-    //         'msgType': 8,
-    //     }
-        
-    // })
-
-    // $("#launchBtn").click(function() {
-    //     let data = {
-    //         'msgType': 9,
-    //     }
-        
-    // })
-
-    // $("#noiseBtn").click(function() {
-    //     let data = {
-    //         'msgType': 14,
-    //     }
-        
-    // })
-
-    // $("#maskBtn").click(function() {
-    //     let data = {
-    //         'msgType': 15,
-    //     }
-        
-    // })
-
-    // $("#earthBtn").click(function() {
-    //     let data = {
-    //         'msgType': 20,
-    //     }
-        
-    // })
-
-    // $("#fireBtn").click(function() {
-    //     let data = {
-    //         'msgType': 21,
-    //     }
-        
-    // })
-
-    // $("#airBtn").click(function() {
-    //     let data = {
-    //         'msgType': 22,
-    //     }
-        
-    // })
-
-    // $("#waterBtn").click(function() {
-    //     let data = {
-    //         'msgType': 23,
-    //     }
-        
-    // })
-
-    // $("#metalBtn").click(function() {
-    //     let data = {
-    //         'msgType': 24,
-    //     }
-        
-    // })
-
-    // $("#stepInput").on("input", function() {
-    //     let data = {
-    //         'msgType': 10,
-    //         'val': $("#stepInput").val(),
-    //     }
-        
-    // })
-
-    // $("#fadeInput").on("input", function() {
-    //     let data = {
-    //         'msgType': 11,
-    //         'val': $("#fadeInput").val(),
-    //     }
-        
-    // })
-
-    // $("#brightnessInput").on("input", function() {
-    //     let data = {
-    //         'msgType': 12,
-    //         'val': $("#brightnessInput").val(),
-    //     }
-        
-    // })
-
-    // $("#ripplesInput").on("input", function() {
-    //     let data = {
-    //         'msgType': 13,
-    //         'val': $("#ripplesInput").val(),
-    //     }
-        
-    // })
-
-    // $("#nlInput").on("input", function() {
-    //     let data = {
-    //         'msgType': 16,
-    //         'val': $("#nlInput").val(),
-    //     }
-        
-    // })
-
-    // $("#nsInput").on("input", function() {
-    //     let data = {
-    //         'msgType': 17,
-    //         'val': $("#nsInput").val(),
-    //     }
-        
-    // })
-
-    // $("#nflInput").on("input", function() {
-    //     let data = {
-    //         'msgType': 18,
-    //         'val': $("#nflInput").val(),
-    //     }
-        
-    // })
-
-    // $("#nfsInput").on("input", function() {
-    //     let data = {
-    //         'msgType': 19,
-    //         'val': $("#nfsInput").val(),
-    //     }
-        
-    // })
-
-    // $("#airlInput").on("input", function() {
-    //     let data = {
-    //         'msgType': 25,
-    //         'val': $("#airlInput").val(),
-    //     }
-        
-    // })
-
-    // $("#airsInput").on("input", function() {
-    //     let data = {
-    //         'msgType': 26,
-    //         'val': $("#airsInput").val(),
-    //     }
-        
-    // })
-
-    // $("#ripplesBtn").click(function() {
-    //     let data = {
-    //         'msgType': 28,
-    //     }
-        
-    // })
-
-    // $("#tailBtn").click(function() {
-    //     let data = {
-    //         'msgType': 29,
-    //     }
-        
-    // })
-
-    // $("#blenderBtn").click(function() {
-    //     let data = {
-    //         'msgType': 30,
-    //     }
-        
-    // })
-
-    // $("#flashBtn").click(function() {
-    //     let data = {
-    //         'msgType': 31,
-    //     }
-        
-    // })
 })

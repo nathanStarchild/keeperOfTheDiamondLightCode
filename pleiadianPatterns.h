@@ -2,7 +2,7 @@ struct pattern {
   bool enabled;
   int8_t pspeed;
   uint8_t plength;
-  int16_t decay; 
+  uint8_t decay; 
 };
 
 typedef struct patternState {
@@ -38,6 +38,7 @@ typedef struct patternState {
   pattern air;
   pattern fire;
   pattern metal;
+  pattern theVoid;
 };
 
 // wave length 1 to 10
@@ -72,6 +73,7 @@ patternState mainState = {
   {false, 11, 5, 250}, //air
   {false, 120, 5, 55}, //fire
   {false, 120, 15, 55}, //metal
+  {false, 1, 30, 30}, //theVoid
   };
 
 pattern *patternPointers[] = {
@@ -102,4 +104,5 @@ pattern *patternPointers[] = {
   &mainState.air,//24
   &mainState.fire,//25
   &mainState.metal,//26
+  &mainState.theVoid,//27
 };

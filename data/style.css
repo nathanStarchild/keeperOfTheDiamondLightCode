@@ -51,6 +51,16 @@ body{
     place-self: center;
 }
 
+.gridLeft {
+    grid-column: 1 / 2;
+    place-self: center;
+}
+
+.gridRight {
+    grid-column: 3 / 4;
+    place-self: center;
+}
+
 .select-container {
     grid-column: 1 / 4;
     place-self: center;
