@@ -27,6 +27,9 @@
     <!-- colour picker -->
     <script src="iro.min.js"></script>
 
+    <!-- joystick -->
+    <script src="joy.min.js"></script>
+
     <!-- Our JS -->
 	<script src="main.js"></script>	
 </head>
@@ -34,16 +37,57 @@
     <div class="main">
         <div class="accordion-container">
             <div class="accordion accordion-flush">
+                
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#fun">
+                            Fun
+                        </button>
+                    </h2>
+                    <div id="fun" class="accordion-collapse collapse show">
+                        <div id="funContainer" class="accordion-body d-flex flex-column justify-content-center align-items-center gap-4 py-3">
+                            <div id="joyDiv"></div>
+                            <div class="d-flex flex-row justify-content-center">
+                                <div class="form-check form-switch funSwitchD">
+                                    <input class="form-check-input patternSwitch funSwitch launch1 launch2 launch3 launch4" data-launch="1" type="checkbox" data-pattern="3">
+                                </div>
+                                <div class="form-check form-switch funSwitchD">
+                                    <input class="form-check-input patternSwitch funSwitch launch2 launch3 launch4" data-launch="2" type="checkbox" data-pattern="8">
+                                </div>
+                                <div class="form-check form-switch funSwitchD">
+                                    <input class="form-check-input patternSwitch funSwitch launch3 launch4" data-launch="3" type="checkbox" data-pattern="17">
+                                </div>
+                                <div class="form-check form-switch funSwitchD">
+                                    <input class="form-check-input patternSwitch funSwitch launch4" data-launch="4" type="checkbox" data-pattern="21">
+                                </div>
+
+                            </div>
+                            <div>
+                                <div id="tripperSwitchC"> <input type="checkbox" class="tripperSwitch"> <label></label> </div>
+                            </div>
+
+                            <button type="button" id="enlightenmentBtn" class="mb-3">
+                                <div class="button__content">
+                                    <div class="button__text">
+                                        Hold for Enlightenment
+                                    </div>
+                                </div>
+                            </button>
+                                
+                        </div>
+                    </div>
+                </div>
+
                 <div class="accordion-item">
                     <h2 class="accordion-header">
                         <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#presets">
                             Presets
                         </button>
                     </h2>
-                    <div id="presets" class="accordion-collapse collapse show">
+                    <div id="presets" class="accordion-collapse collapse">
                         <div class="accordion-body gridContainer">
                             <div id="rainbowBtn" data-msgtype="2" class="btn btn-secondary control inputBtn">Rainbow</div>      
-                            <div id="tripperBtn" data-msgtype="5" class="btn btn-secondary control inputBtn">Tripper Trap</div> 
+                            <!-- <div id="tripperBtn" data-msgtype="5" class="btn btn-secondary control inputBtn">Tripper Trap</div>  -->
                             <div id="tranquilityBtn" data-msgtype="3" class="btn btn-secondary control inputBtn">Tranquility</div>     
                             <div id="starsBtn" data-msgtype="7" class="btn btn-secondary control inputBtn">Shooting Stars</div>  
                             <div id="randomBtn" data-msgtype="1" class="btn btn-secondary control inputBtn">Random</div>    
@@ -85,29 +129,10 @@
                         <div class="accordion-body gridContainer">
                             <div id="earthBtn" data-msgtype="20" class="btn btn-secondary control inputBtn">Earth</div>
                             <div id="fireBtn" data-msgtype="21" class="btn btn-secondary control inputBtn inputDiv">Fire</div>
-                            <button class="collapseBtn" type="button" data-bs-toggle="collapse" data-bs-target="#fireCtls" ><img class="caret" src="caret-down.svg"></button>
-                            <div id="fireCtls" class="collapse collapsed slider-container"> 
-                                <div class="d-flex flex-column justify-content-center align-items-center gap-4 py-3">
-                                    <label class="control slider-label">Sparking:
-                                        <div id="firesInput"  data-msgtype="33" class="slider" data-start="50" data-min="1" data-max="120"></div>              
-                                    </label> 
-                                    <label class="control slider-label">Cooling:
-                                        <div id="firedInput"  data-msgtype="32" class="slider" data-start="50" data-min="1" data-max="120"></div>              
-                                    </label> 
-                                    <label class="control slider-label">Noise Length:
-                                        <div id="nlInput" data-msgtype="16" class="slider" data-start="5" data-min="1" data-max="60"></div>              
-                                    </label> 
-                                    <label class="control slider-label">Noise Speed:
-                                        <div id="nsInput" data-msgtype="17" class="slider" data-start="5" data-min="1" data-max="30"></div>              
-                                    </label>   
-                                    
-                                </div>  
-                            </div>
                             <div id="airBtn" data-msgtype="22" class="btn btn-secondary control inputBtn">Air</div>
                             <div id="waterBtn" data-msgtype="23" class="btn btn-secondary control inputBtn">Water</div>
                             <div id="metalBtn" data-msgtype="24" class="btn btn-secondary control inputBtn">Metal</div>       
                             <div id="antsBtn" data-msgtype="6" class="btn btn-secondary control inputBtn">Ants!</div>     
-                            <div id="noiseBtn" data-msgtype="14"  class="btn btn-secondary control inputBtn">Blob</div>  
                         </div>
                     </div>
                 </div>
@@ -156,7 +181,7 @@
 
                             <div id="paletteBtn" data-msgtype="4" class="btn btn-secondary control inputBtn mt-1">Next Palette</div>  
 
-                            <b class="gridMiddle mt-3">Create New Palette:</b>
+                            <b class="gridLeft2 mt-3">Create New Palette:</b>
                             <div id="paletteDesigner" class="slider-container w-100"> 
                                 <div class="form-check form-check-inline">
                                     <input class="form-check-input" type="radio" name="platteType" id="inlineRadio1" value="gradient" checked>
@@ -188,6 +213,46 @@
                     </h2>
                     <div id="patterns" class="accordion-collapse collapse">
                         <div id="patternContainer" class="accordion-body gridContainer">
+                        </div>
+                    </div>
+                </div>
+
+                <div style="height: 300px;"></div>
+                <div class="text-center">
+                    <svg id="powerButton" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-battery-charging pointer" viewBox="0 0 16 16">
+                        <path d="M9.585 2.568a.5.5 0 0 1 .226.58L8.677 6.832h1.99a.5.5 0 0 1 .364.843l-5.334 5.667a.5.5 0 0 1-.842-.49L5.99 9.167H4a.5.5 0 0 1-.364-.843l5.333-5.667a.5.5 0 0 1 .616-.09z"/>
+                        <path d="M2 4h4.332l-.94 1H2a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h2.38l-.308 1H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
+                        <path d="M2 6h2.45L2.908 7.639A1.5 1.5 0 0 0 3.313 10H2V6zm8.595-2-.308 1H12a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H9.276l-.942 1H12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-1.405z"/>
+                        <path d="M12 10h-1.783l1.542-1.639c.097-.103.178-.218.241-.34V10zm0-3.354V6h-.646a1.5 1.5 0 0 1 .646.646zM16 8a1.5 1.5 0 0 1-1.5 1.5v-3A1.5 1.5 0 0 1 16 8z"/>
+                    </svg>
+                </div>
+
+                <div id="powerContainer" class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#power">
+                            Power
+                        </button>
+                    </h2>
+                    <div id="power" class="accordion-collapse collapse show">
+                        <div class="accordion-body gridContainer">
+                            <label class="gridSpan"><b>Password:</b>
+                                <input type="text" id="powerPass" class="form-control">
+                            </label>
+
+
+                            <h4 class="gridLeft mt-2 powerHide">Power Saver</h4>
+                            <div class="gridMiddle mt-2 powerHide w-100">
+                                <div class="d-flex flex-row justify-content-evenly w-100">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input patternSwitch" type="checkbox" data-pattern="16" style="width: 4em; height: 2em;">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <label id="powerSlider" class="control slider-label powerHide gridMiddle">Power Saving Level:
+                                <div data-msgtype="36" class="patternSlider" data-start="1" data-min="1" data-max="3" data-pointer="16" data-param="1"></div>              
+                            </label> 
+                            <p class="mt-2 gridSpan powerHide">Warning: if you set it to 3 (the max), you will have to power cycle the installation to get it back to normal</p>
                         </div>
                     </div>
                 </div>

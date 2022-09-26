@@ -176,6 +176,9 @@ void wsLoop() {
   }
   
   if (messageTimer.isItTime()) {
+    if (holdingPatternLockdown){
+      return;
+    }
     messageTimer.resetTimer();
     boredTimer.resetTimer();
     uint8_t ran = random8();

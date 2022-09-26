@@ -11,8 +11,17 @@ FASTLED_USING_NAMESPACE
 
 MilliTimer boredTimer(11 * 60000); //bored timer, change if no messages or controller input
 
- #include "server.h"
-//#include "relayer.h"
+uint16_t aoIndex = 0;
+uint16_t frameCount = 0;
+uint16_t stepRate = 1;
+uint8_t fadeRate = 100;
+bool controllerEnabled = true;
+bool messagingEnabled = true;
+bool holdingPatternLockdown = false;
+int launchProgress = 0;
+
+// #include "server.h"
+#include "relayer.h"
 //#include "client.h"
 
 
@@ -44,14 +53,6 @@ MilliTimer tripperTrapTimer(5 * 60000); //how long to stay in tripper trap mode
 MilliTimer batteryUpdateTimer(9*60000); //how long to wait before assuming the voltage screamer isn't coming back online
 MilliTimer frameTimer(20);
 
-uint16_t aoIndex = 0;
-uint16_t frameCount = 0;
-uint16_t stepRate = 1;
-uint8_t fadeRate = 100;
-bool controllerEnabled = true;
-bool messagingEnabled = true;
-bool holdingPatternLockdown = false;
-int launchProgress = 0;
 
 const float PHI = 1.61803398875;
 uint8_t primes[4] = {5, 3, 2, 1};
@@ -69,13 +70,13 @@ uint16_t nX(uint8_t n, int x);
 //#include "fire.h"
 //#include "metal.h"
 //#include "lamp1.h"
-#include "serverOfTheDiamondLightNetwork.h"
+//#include "serverOfTheDiamondLightNetwork.h"
 // #include "hotJam.h"
 //#include "lightPainting1.h"
 //#include "lightPainting2.h"
 //#include "lightPainting3.h"
 //#include "lightPainting4.h"
-//#include "antares1.h"
+#include "antares1.h"
 //#include "antares2.h"
 //#include "antares3.h"
 
@@ -170,8 +171,8 @@ void upset_mainState() {
     }
 
     mainState.glitter.enabled = (random8() > 180);
-    mainState.glitter.pspeed = random8();
-    mainState.glitter.plength = random8(1, 20);
+    mainState.glitter.plength = random8();
+    mainState.glitter.pspeed = random8(1, 20);
     mainState.glitter.decay = random8();
 
     mainState.rain.enabled = (random8() > 140);
@@ -210,6 +211,22 @@ void upset_mainState() {
     mainState.theVoid.decay = random8(20, 255);
 }
 
+void holdingPatternMode(uint8_t n) {
+  if (n == 0) {
+    upset_mainState();
+    holdingPatternLockdown = false;
+    controllerEnabled = true;
+  } else {
+    //go into holding pattern, disable all other patterns
+    mainState.patternStep = 0;
+    patternsOff();
+    stepRate = 1;
+    mainState.holdingPattern.enabled = true;
+    holdingPatternLockdown = true;
+    controllerEnabled = false;
+  }
+}
+
 void tripperTrapMode() {
     //wave, tail, breathe, hue=0, patternStep=0
     patternsOff();
@@ -246,7 +263,7 @@ void tranquilityMode() {
     mainState.rain.decay = 100;
     mainState.rain.pspeed = 50;
     mainState.rain.plength = stripLength/11;
-    stepRate = 6;
+    stepRate = 5;
     fadeRate = 50;
 }
 
@@ -254,7 +271,7 @@ void shootingStars() {
     patternsOff();
     setNRipples(1);
     mainState.ripple.enabled = true;
-    stepRate = 4;
+    stepRate = 3;
     fadeRate = 50;
 }
 
@@ -274,8 +291,8 @@ void tailTime() {
   mainState.tail.plength = stripLength + 5;
   mainState.tail.pspeed = 1;
   mainState.glitter.enabled = true;
-  mainState.glitter.pspeed = random8(50, 255);
-  // mainState.glitter.pspeed = (int) random(0, 2) - 1;
+  mainState.glitter.plength = random8(50, 255);
+  // mainState.glitter.plength = (int) random(0, 2) - 1;
   //  mainState.rainbow.enabled = true;
   mainState.noiseFade.enabled = true;
   mainState.noiseFade.plength = random8(1, 30);
@@ -379,7 +396,7 @@ void fireMode() {
   if (element ==  0 || element ==  2){
     mainState.fire.enabled = true;
     mainState.fire.pspeed = 30;
-    mainState.fire.decay = 30;
+    mainState.fire.decay = 20;
   } else if (element ==  4) {
     mainState.fire.enabled = true;
     mainState.fire.pspeed = 20;
@@ -396,6 +413,7 @@ void waterMode() {
   if (element ==  0 || element ==  6 || element ==  4){
     tranquilityMode();
     stepRate = 1;
+    targetPalette = OceanColors_p;
   }
 }
 
@@ -660,8 +678,8 @@ void updatePatterns() { //render the next LED state in the buffer using the curr
     } else {
       glitterMode = ColorFromPalette(currentPalette, mainState.glitter.decay, 250);
     }
-    if (random8() < mainState.glitter.pspeed) {
-      for (int i=0; i<mainState.glitter.plength; i++) {
+    if (random8() < mainState.glitter.plength) {
+      for (int i=0; i<mainState.glitter.pspeed; i++) {
         leds[ random16(num_leds) ] = glitterMode;
       }
     }
@@ -760,6 +778,19 @@ CRGB tailScale (CRGB pixel, int pos) {
   }
 }
 
+void enlightenmentCallback(uint8_t enVal) {
+  switch (enVal) {
+    case 0:
+      enlightenment.stopTimer();
+      mainState.enlightenment.enabled = false;
+      break;
+    case 1:
+      enlightenment.startTimer();
+      mainState.enlightenment.enabled = true;
+      break;
+  }
+}
+
 void enlightenmentBuildUp() {
   float progress = (float) enlightenment.elapsed() / (float) enlightenTime;
   uint8_t attainment = 0; //Sotapanna - stream-enterer
@@ -797,12 +828,12 @@ void enlightenmentAchieved() {
   uint8_t frequency = 5;                                       // controls the interval between strikes
   uint8_t flashes = 8;                                          //the upper limit of flashes per strike
   unsigned int dimmer = 1;
-  uint8_t ledstart;                                             // Starting location of a flash
-  uint8_t ledlen; // Length of a flash
+  uint16_t ledstart;                                             // Starting location of a flash
+  uint16_t ledlen; // Length of a flash
 
   for (int fl = 0; fl < 60; fl++) {
     ledstart = random16(num_leds);                               // Determine starting location of flash
-    ledlen = random8(num_leds - ledstart);                      // Determine length of flash (not to go beyond NUM_LEDS-1)
+    ledlen = random16(num_leds - ledstart);                      // Determine length of flash (not to go beyond NUM_LEDS-1)
 
     for (int flashCounter = 0; flashCounter < random8(3, flashes); flashCounter++) {
       if (flashCounter == 0) dimmer = 5;                        // the brightness of the leader is scaled down by a factor of 5
@@ -838,7 +869,6 @@ void enlightenmentAchieved() {
   }
   delay(2000);
   mainState.glitter.enabled = true;
-  glitterTimer.startTimer();
 }
 
 void ripple() {
@@ -1227,8 +1257,8 @@ void launch() {
       tranquilityMode();
       mainState.ants.enabled = true;
       mainState.glitter.enabled = true;
-      mainState.glitter.plength = 1;
-      mainState.glitter.pspeed = 255;
+      mainState.glitter.pspeed = 1;
+      mainState.glitter.plength = 255;
       glitterTimer.startTimer();
       fadeRate = 10;
       controllerEnabled = true;
@@ -1372,6 +1402,9 @@ void dontGetBored(){
 
 
 void processWSMessage(){
+  if (!controllerEnabled){
+    return;
+  }
   DeserializationError error;
   error = deserializeJson(wsMsg, wsMsgString);
   if (error) {
@@ -1518,6 +1551,9 @@ void processWSMessage(){
           Serial.println("decay");
           pat->decay = wsMsg["val"].as<int>();
         }
+        if (mainState.powerSaver.plength == 3){
+          holdingPatternMode(1);
+        }
         break;
       case 37:
         pat = patternPointers[wsMsg["pointer"].as<int>()];
@@ -1535,6 +1571,33 @@ void processWSMessage(){
       case 40:
         blender();
         break;
+      case 41:
+        enlightenmentCallback(wsMsg["val"].as<int>());
+        break;
+      case 42:
+        if (wsMsg["magnitude"].as<int>() == 0) {
+          mainState.skaters.enabled = false;
+        } else {
+          mainState.skaters.enabled = true;
+          mainState.skaters.plength = abs(wsMsg["magnitude"].as<int>());
+          mainState.skaters.pspeed = 1;
+          if (wsMsg["direction"].as<int>() == 1){
+              for (int i=0; i<nStrips; i++) {
+                stripDirection[i] = (wsMsg["magnitude"].as<int>() / abs(wsMsg["magnitude"].as<int>())) * directionLR[i];
+              }
+          } else {
+              for (int i=0; i<nStrips; i++) {
+                stripDirection[i] = (wsMsg["magnitude"].as<int>() / abs(wsMsg["magnitude"].as<int>())) * directionUD[i];
+              }
+          }
+        }
+        break;
+      case 43:
+        if (!(wsMsg["enabled"].as<bool>())){
+          upset_mainState();
+        } else if (wsMsg["primed"].as<bool>()){
+          mainState.launch.enabled = true;
+        }
 
 
    }

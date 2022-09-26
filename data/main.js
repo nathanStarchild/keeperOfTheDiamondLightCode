@@ -16,6 +16,10 @@ $(document).ready(function() {
 
     loadPatterns()
 
+    loadJoystick();
+
+    launchBiz();
+
     $(".slider").each(function(index) {
         console.log($(this).data())
         noUiSlider.create(this, {
@@ -93,10 +97,68 @@ $(document).ready(function() {
         ws.send(JSON.stringify(data));
     })
 
+    let primed = false;
+    let launchSeq = false
+    let launchTimer
+
+    $(".funSwitch").on("change", function(event) {
+        clearTimeout(launchTimer)
+        let elm = $(event.currentTarget);
+        primed = false;
+        if (!elm.prop("checked")){
+            launchSeq = $(".funSwitch:checked").length == 0;
+        } else {
+            launchSeq = launchSeq && ($(`.launch${elm.data('launch')}:checked`).length == $(`.launch${elm.data('launch')}`).length);
+            primed = launchSeq && (elm.data('launch') == 4)
+        }
+        launchTimer = setTimeout(function(){primed = false; launchSeq = false}, 10000)
+    })
+
+    $(".tripperSwitch").on('change', function(event) {
+        console.log(`primed: ${primed}`)
+        let data = {
+            'msgType': 43,
+            'primed': primed,
+            'enabled': $(event.currentTarget).prop("checked")
+        }
+        console.log(data)
+        ws.send(JSON.stringify(data));
+    })
+
     $(".caret").click(function(){
         console.log("clicked")
         $(this).toggleClass("rotated")
     });
+
+    $("#enlightenmentBtn").on("mousedown touchstart", function(event){
+        console.log("anything")
+        let b = $(event.currentTarget)
+        // b.addClass("enlightenmentPressed")
+        let data = {
+            'msgType': 41,
+            'val': 1,
+        }
+        console.log(data)
+        ws.send(JSON.stringify(data));
+    })
+
+    $("#enlightenmentBtn").on("mouseup touchend", function(event){
+        let b = $(event.currentTarget)
+        // b.removeClass("enlightenmentPressed")
+        let data = {
+            'msgType': 41,
+            'val': 0,
+        }
+        console.log(data)
+        ws.send(JSON.stringify(data));
+    })
+
+    document.getElementById('enlightenmentBtn').oncontextmenu = function(event) {
+        event.preventDefault();
+        event.stopPropagation(); // not necessary in my case, could leave in case stopImmediateProp isn't available? 
+        event.stopImmediatePropagation();
+        return false;
+    };
 
     $('#paletteSelect').on('change', function(){
         let data = {
@@ -117,6 +179,22 @@ $(document).ready(function() {
         }
         console.log(data)
         ws.send(JSON.stringify(data));
+    })
+
+
+    $("#powerContainer").hide();
+    $(".powerHide").hide();
+
+    $("#powerButton").click(function() {
+        $("#powerContainer").show();
+    })
+
+    $("#powerPass").on("input", function(){
+        if ($("#powerPass").val() == "moonCrew"){
+            $(".powerHide").show();
+        } else {
+            $(".powerHide").hide()
+        }
     })
 
     /////////////////////////////////////////////////////////////
@@ -185,7 +263,9 @@ $(document).ready(function() {
         for (const [i, c] of designPalette.entries()) {
             let tmpl = `
                 <div class="colourStopContainer d-flex flex-column justify-content-center">
-                    <div class="pt-1 text-center">^</div>
+                    <div class="text-center"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-up" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M7.646 4.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1-.708.708L8 5.707l-5.646 5.647a.5.5 0 0 1-.708-.708l6-6z"/>
+                  </svg></div>
                     <div id="colourStop-${i}" data-n="${i}" class="colourStop pointer" style="background-color: ${asRGBstring(c)};"}></div>
             `
             if (designPalette.length > 2){
@@ -366,14 +446,14 @@ $(document).ready(function() {
             "name": "glitter",
             "pointer": 3,
             "enabled": false,
-            "speed": {
+            "length": {
                 "direction": "ltr",
                 "name": "frequency",
                 "min": 20,
                 "max": 255,
                 "start": 60,
             },
-            "length": {
+            "speed": {
                 "direction": "ltr",
                 "name": "density",
                 "min": 1,
@@ -967,6 +1047,56 @@ $(document).ready(function() {
             tmpl += `</div></div>`
             $("#patternContainer").append(tmpl)
         }
+    }
+
+    ////////////////////////////////////////////////////
+    
+    // joystick
+    function loadJoystick() {
+        let lastVal = 0
+        let timer;
+        let joy = new JoyStick('joyDiv', {
+            "width": 150,
+            "height": 150,
+            "internalFillColor": "#8197b8",
+            "externalStrokeColor": "#333f50"
+            // "autoReturnToCenter": false
+        }, function(pos){
+            // console.log(pos);
+            let maxVal = Math.max(Math.abs(pos.x), Math.abs(pos.y))
+            let rev
+            let direction
+            let magnitude
+            if (Math.abs(pos.x) == maxVal) {
+                direction = 1;
+                magnitude = Math.round(pos.x/20);
+            } else {
+                direction = 2;
+                magnitude = Math.round(pos.y/20);
+            }
+            if (magnitude != lastVal){
+                lastVal = magnitude 
+                clearTimeout(timer)
+                timer = setTimeout(function(){
+                    let data = {
+                        'msgType': 42,
+                        'direction': direction,
+                        'magnitude': magnitude,
+                    }
+                    console.log(data)
+                    ws.send(JSON.stringify(data));
+                }, 50)
+            }
+        });
+
+    }
+
+    ///////////////////////////////////////////////////
+
+    //launch biz
+    function launchBiz() {
+
+
     }
 
 })
