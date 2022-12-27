@@ -20,16 +20,16 @@ bool messagingEnabled = true;
 bool holdingPatternLockdown = false;
 int launchProgress = 0;
 
-// #include "server.h"
+//#include "server.h"
 #include "relayer.h"
 //#include "client.h"
 
 
 #define   LED  2       // GPIO number of connected LED, ON ESP-12 IS GPIO2
- #define DATA1_CLOCK1 14
- #define DATA_PIN_1 14
- #define DATA2_DATA1 27
- #define DATA_PIN_2 27
+ #define DATA1_CLOCK1 14 //maybe switch to 27?
+ #define DATA_PIN_1 27
+ #define DATA2_DATA1 27 //Maybe switch to 14?
+ #define DATA_PIN_2 14
  #define DATA3_DATA2 15
  #define DATA_PIN_3 15
  #define CLOCK2 2
@@ -57,10 +57,14 @@ MilliTimer frameTimer(20);
 const float PHI = 1.61803398875;
 uint8_t primes[4] = {5, 3, 2, 1};
 uint8_t sPrimes[9] = {2, 3, 5, 7, 11, 13, 17, 19, 23};
+uint8_t pPrimes[5] = {11, 7, 5, 3, 2};
 const float fib =  1.61803;
 
 uint16_t nX(uint8_t n, int x);
 
+#include "thePyramid.h"
+//#include "djDome.h"
+//#include "dooMnBloom.h"
 //#include "theDome.h"
 //#include "outerLegs.h"
 //#include "innerLegs.h"
@@ -76,7 +80,7 @@ uint16_t nX(uint8_t n, int x);
 //#include "lightPainting2.h"
 //#include "lightPainting3.h"
 //#include "lightPainting4.h"
-#include "antares1.h"
+//#include "antares1.h"
 //#include "antares2.h"
 //#include "antares3.h"
 
@@ -103,8 +107,9 @@ void setup() {
     currentPalette = Deep_Skyblues_gp;
     targetPalette = Deep_Skyblues_gp;
     upset_mainState();
-    stepRate = 3;
+    stepRate = 1;
     doubleRainbow();
+    mainState.theVoid.enabled = true;
 }
 
 void loop(){
@@ -479,7 +484,6 @@ bool nothingIsOn() {
   return !(
     mainState.wave.enabled ||
     mainState.tail.enabled ||
-    mainState.breathe.enabled ||
     mainState.glitter.enabled ||
     mainState.crazytown.enabled ||
     mainState.enlightenment.enabled ||
@@ -803,7 +807,7 @@ void enlightenmentBuildUp() {
   if (progress > 0.75) { //Arahant - Deserving
     attainment = 3;
   }
-  uint8_t decayVal = (progress * 255 * 4);
+  uint8_t decayVal = int(progress * 255 * 4) % 255;
   if (progress >= 1) {
     //enlightenment attained!
     decayVal = 255;
@@ -820,7 +824,7 @@ void enlightenmentBuildUp() {
 void enlightenmentAchieved() {
   enlightenment.stopTimer();
   mainState.enlightenment.enabled = false;
-  fill_solid(leds, NUM_LEDS, CRGB::Black);
+  fill_solid(outLeds, NUM_LEDS, CRGB::Black);
   FastLED.show();
   delay(3000);
 
@@ -839,10 +843,16 @@ void enlightenmentAchieved() {
       if (flashCounter == 0) dimmer = 5;                        // the brightness of the leader is scaled down by a factor of 5
       else dimmer = random8(1, 3);                              // return strokes are brighter than the leader
 
-      fill_solid(leds + ledstart, ledlen, CHSV(255, 0, 255 / dimmer));
+      fill_solid(outLeds + ledstart, ledlen, CHSV(255, 0, 255 / dimmer));
+//      for (int i=ledstart; i<ledstart+ledlen; i++){
+//        outLeds[i] = CHSV(255, 0, 255 / dimmer);
+//      }
       FastLED.show();                       // Show a section of LED's
       delay(random8(2, 15));                                    // each flash only lasts 4-10 milliseconds
-      fill_solid(leds + ledstart, ledlen, CHSV(255, 0, 0));     // Clear the section of LED's
+      fill_solid(outLeds + ledstart, ledlen, CHSV(255, 0, 0));     // Clear the section of LED's
+//      for (int i=ledstart; i<ledstart+ledlen; i++){
+//        outLeds[i] = CHSV(255, 0, 0);
+//      }
       FastLED.show();
 
       if (flashCounter == 0) delay (random8(10));                       // longer delay until next flash after the leader
@@ -859,16 +869,18 @@ void enlightenmentAchieved() {
     while (fadeBase < 255) {
       fadeBase += k;
       fadeOn = ease8InOutApprox(fadeBase);
-      fill_solid(leds, NUM_LEDS, CHSV(128, 180, fadeOn));
+      fill_solid(outLeds, NUM_LEDS, CHSV(128, 180, fadeOn));
       FastLED.show();
       delay(6);
     }
-    fill_solid(leds, NUM_LEDS, CHSV(128, 180, 255));
+    fill_solid(outLeds, NUM_LEDS, CHSV(128, 180, 255));
     FastLED.show();
     delay(k * 50);
   }
   delay(2000);
   mainState.glitter.enabled = true;
+  mainState.glitter.plength = 200;
+  mainState.glitter.pspeed = 16;
 }
 
 void ripple() {
@@ -1091,14 +1103,23 @@ void poleChaserOff() {
 }
 
 void powerSaver() {
+  if (mainState.powerSaver.plength>=5){
+    return;
+  }
   static int start = 0;
   fade_video(leds, num_leds, 100);
-  if (mainState.powerSaver.plength == 2) {
-    //turn off every 7th led 
-    for (int i=start; i<num_leds; i+=7) {
-      leds[i].nscale8(0);
-    }
-  }
+//  if (mainState.powerSaver.plength == 2) {
+//    //turn off every 7th led 
+//    for (int i=start; i<num_leds; i+=7) {
+//      leds[i].nscale8(0);
+//    }
+//  }
+  for (int j = 0; j <= mainState.powerSaver.plength; j++) {
+        uint8_t inc = pPrimes[j];
+        for (int i = 0; i < num_leds; i += inc) {
+          leds[i].nscale8_video(0);
+        }
+      }
   if (mainState.patternStep % 244 == 0) {
     start = (start + 1) % 7;
   }
@@ -1341,8 +1362,26 @@ void metal(){
 }
 
 void theVoid() {
-  uint16_t pos = inoise16(mainState.patternStep * mainState.theVoid.pspeed);
+  
+  uint16_t pos = inoise16(mainState.patternStep * mainState.theVoid.pspeed * 100);
+  pos = map(pos, 0, 65535, 0, 3*num_leds);
   pos = pos % num_leds;
+  //  uint16_t pos = inoise16((uint32_t)mainState.patternStep*1000);
+  //  uint16_t t = inoise16((uint32_t)mainState.patternStep);
+  //  uint16_t tt = inoise16(1, 1, (uint32_t)mainState.patternStep);
+  //  uint16_t n1 = inoise16;
+  //  pos = pos % num_leds;
+  //  Serial.println(mainState.patternStep);
+  //  Serial.println(t);
+  //  
+  //  Serial.println(tt);
+  //  Serial.println(pos);
+  //  Serial.println();
+  //  Serial.print("patternStep:");
+  //  Serial.print(mainState.patternStep);
+  //  Serial.print(",");
+  //  Serial.print("Pos:");
+  //  Serial.println(pos);
   for (int i=0; i<mainState.theVoid.plength + mainState.theVoid.decay; i++){
     if (i < mainState.theVoid.plength){
       leds[(pos + i + num_leds) % num_leds].fadeToBlackBy(255);
@@ -1551,7 +1590,7 @@ void processWSMessage(){
           Serial.println("decay");
           pat->decay = wsMsg["val"].as<int>();
         }
-        if (mainState.powerSaver.plength == 3){
+        if (mainState.powerSaver.plength == 6){
           holdingPatternMode(1);
         }
         break;
@@ -1597,6 +1636,8 @@ void processWSMessage(){
           upset_mainState();
         } else if (wsMsg["primed"].as<bool>()){
           mainState.launch.enabled = true;
+        } else {
+          tripperTrapMode();
         }
 
 

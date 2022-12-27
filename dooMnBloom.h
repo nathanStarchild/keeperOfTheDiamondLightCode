@@ -1,21 +1,21 @@
 const uint16_t stripLength = 120;
-const uint8_t nStrips = 8;
+const uint8_t nStrips = 12;
 const uint16_t num_leds = stripLength * nStrips;
 
-#define LEDS_OUTPUT1 360
-#define LEDS_OUTPUT2 600
+#define LEDS_OUTPUT1 720
+#define LEDS_OUTPUT2 720
 #define NUM_OUTPUTS 2
-#define NUM_LEDS 960
+#define NUM_LEDS 1440
 CRGB leds[NUM_LEDS];
 CRGB oldLeds[NUM_LEDS];
 CRGB outLeds[NUM_LEDS];
 
-int directionLR[nStrips] = {1, 1, 1, 1, 1, 1, 1, 1};
-int directionUD[nStrips] = {-1, 1, -1, -1, 1, 1, 1, -1};
-int directionIO[nStrips] = {1, -1, 1, -1, 1, -1, 1, -1};
-int stripDirection[nStrips] =  {-1, 1, -1, -1, 1, 1, 1, -1};
-uint16_t audienceSpot = 3;
-uint16_t sweepSpot = 3;
+int directionLR[nStrips] = {1, 1, 1, 1, 1, 1, -1, -1, 1, 1, 1, -1};
+int directionUD[nStrips] = {1, -1, 1, -1, 1, -1, -1, 1, -1, 1, 1, -1};
+int directionIO[nStrips] = {1, -1, 1, -1, 1, -1, 1, -1, 1, -1, 1, 1};
+int stripDirection[nStrips] =  {1, -1, 1, -1, 1, -1, -1, 1, -1, 1, 1, -1};
+uint16_t audienceSpot = 1;
+uint16_t sweepSpot = 1;
 uint16_t element = 0;
 
 void elementSetup(){
@@ -24,5 +24,5 @@ void elementSetup(){
 //    FastLED.addLeds<WS2813, DATA_PIN_1, RGB>(outLeds, 0, 600); 
 //    FastLED.addLeds<WS2813, DATA_PIN_2, RGB>(outLeds, 600, 360); 
 
-    ArduinoOTA.setHostname("antares2");
+    ArduinoOTA.setHostname("dooMnBloom");
 }

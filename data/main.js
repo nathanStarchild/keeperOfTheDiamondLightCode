@@ -970,7 +970,7 @@ $(document).ready(function() {
                 "direction": "ltr",
                 "name": "speed",
                 "min": 1,
-                "max": 10,
+                "max": 20,
                 "start": 1,
             },
             "length": {
