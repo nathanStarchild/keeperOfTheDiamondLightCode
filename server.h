@@ -186,44 +186,57 @@ void wsLoop() {
       if (ran < 5) {
         sendMessage(9);
         mainState.launch.enabled = true;
+        Serial.println("launch");
       } else if (ran < 25) {
         sendMessage(14);
         sendMessage(15);
         noiseTest();
         noiseFader();
+        Serial.println("noise test noise fader");
       } else if (ran < 40) {
         sendMessage(20);
         earthMode();
+        Serial.println("earth");
       } else if (ran < 60) {
         sendMessage(21);
         fireMode();
+        Serial.println("fire");
       } else if (ran < 80) {
         sendMessage(22);
         airMode();
+        Serial.println("air");
       } else if (ran < 100) {
         sendMessage(39);
         rainbowSpiral();
+        Serial.println("spiral");
       } else if (ran < 120) {
         sendMessage(24);
         metalMode();
+        Serial.println("metal");
       } else if (ran < 140) {
         sendMessage(5);
         tripperTrapMode();
+        Serial.println("tripperTrap");
       } else if (ran < 160) {
         sendMessage(6);
         antsMode();
+        Serial.println("Ants!");
       } else if (ran < 180) {
         sendMessage(2);
         doubleRainbow();
+        Serial.println("rainbow");
       } else if (ran < 200) {
         sendMessage(40);
         blender();
+        Serial.println("blender");
       } else if (ran < 220) {
         sendMessage(3);
         tranquilityMode();
+        Serial.println("tranquility");
       } else {
         sendMessage(1);
         upset_mainState();
+        Serial.println("random");
       }
     }
   }

@@ -1040,7 +1040,7 @@ $(document).ready(function() {
             if (pattern.name == "ripple") {
                 tmpl += `
                     <label class="control slider-label">Number:
-                        <div data-msgtype="13" class="slider" data-start="5" data-min="0" data-max="10"></div>              
+                        <div data-msgtype="13" class="slider" data-start="5" data-min="1" data-max="10"></div>              
                     </label> 
                 `
             }

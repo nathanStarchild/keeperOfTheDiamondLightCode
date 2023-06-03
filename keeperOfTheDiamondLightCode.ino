@@ -20,8 +20,10 @@ bool messagingEnabled = true;
 bool holdingPatternLockdown = false;
 int launchProgress = 0;
 
-//#include "server.h"
-#include "relayer.h"
+#include "server.h"
+//#include "relayer.h"
+//#define NO_RELAYER
+bool noRelayer = true;
 //#include "client.h"
 
 
@@ -62,7 +64,10 @@ const float fib =  1.61803;
 
 uint16_t nX(uint8_t n, int x);
 
-#include "thePyramid.h"
+//#include "drumRoof.h"
+//#include "thePyramid.h"
+//#include "theTower.h"
+//#include "theMoon.h"
 //#include "djDome.h"
 //#include "dooMnBloom.h"
 //#include "theDome.h"
@@ -74,7 +79,7 @@ uint16_t nX(uint8_t n, int x);
 //#include "fire.h"
 //#include "metal.h"
 //#include "lamp1.h"
-//#include "serverOfTheDiamondLightNetwork.h"
+#include "serverOfTheDiamondLightNetwork.h"
 // #include "hotJam.h"
 //#include "lightPainting1.h"
 //#include "lightPainting2.h"
@@ -133,6 +138,7 @@ void loop(){
     }  
 
     if (nothingIsOn()) {
+        Serial.println("Nothing is on");
         shootingStars();
     }
 
@@ -1135,7 +1141,7 @@ void ants() {
     pos = leader - (i * spacing);
     if ((pos >= 0) && (pos < stripLength)) {
       for (int strip = 0; strip < nStrips; strip++) {
-        leds[nX(strip, pos)] = ColorFromPalette(currentPalette, pIdx, 150);
+        leds[nX(strip, pos)] = ColorFromPalette(currentPalette, (uint8_t) pIdx, 150);
       }
     }
   }
@@ -1504,8 +1510,9 @@ void processWSMessage(){
        fadeRate = min((uint8_t)255, fadeRate);
        break;
      case 12:
-       mainState.dimmer.plength = wsMsg["val"].as<int>();
-       mainState.dimmer.plength = min((uint8_t)10, mainState.dimmer.plength);
+      //  mainState.dimmer.plength = wsMsg["val"].as<int>();
+      //  mainState.dimmer.plength = min((uint8_t)10, mainState.dimmer.plength);
+        FastLED.setBrightness(wsMsg["val"].as<int>());
        break;
      case 13:
        setNRipples(wsMsg["val"].as<int>());
@@ -1589,6 +1596,7 @@ void processWSMessage(){
         } else {
           Serial.println("decay");
           pat->decay = wsMsg["val"].as<int>();
+          Serial.println(pat->decay);
         }
         if (mainState.powerSaver.plength == 6){
           holdingPatternMode(1);

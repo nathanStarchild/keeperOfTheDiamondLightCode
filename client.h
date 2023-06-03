@@ -42,7 +42,16 @@ void wsSetup() {
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
   
-  webSocket.begin("192.168.4.184", 82, "/");
+//  #ifdef NO_RELAYER
+  if(noRelayer){
+    webSocket.begin("192.168.4.1", 81, "/");
+    Serial.println("connecting to server");
+  } else {
+//  #else
+    webSocket.begin("192.168.4.184", 82, "/");
+    Serial.println("connecting to relayer");
+  }
+//  #endif
   webSocket.onEvent(webSocketEvent);
   Serial.println("Web socket client started");
 

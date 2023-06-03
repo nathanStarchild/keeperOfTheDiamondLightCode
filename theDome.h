@@ -19,7 +19,7 @@ uint16_t element = 0;
 
 void elementSetup(){
     FastLED.addLeds<WS2813, DATA_PIN_1, RGB>(outLeds, 0, LEDS_PER_OUTPUT); 
-    FastLED.addLeds<WS2813, DATA_PIN_2, RGB>(outLeds, LEDS_PER_OUTPUT, LEDS_PER_OUTPUT); 
+    FastLED.addLeds<WS2813, DATA_PIN_3, RGB>(outLeds, LEDS_PER_OUTPUT, LEDS_PER_OUTPUT); 
 //    FastLED.addLeds<WS2813, DATA_PIN_1, RGB>(outLeds, 0, 600); 
 //    FastLED.addLeds<WS2813, DATA_PIN_2, RGB>(outLeds, 600, 360); 
 
