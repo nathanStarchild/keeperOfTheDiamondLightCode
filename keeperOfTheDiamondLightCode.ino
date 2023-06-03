@@ -20,10 +20,10 @@ bool messagingEnabled = true;
 bool holdingPatternLockdown = false;
 int launchProgress = 0;
 
-#include "server.h"
-//#include "relayer.h"
 //#define NO_RELAYER
 bool noRelayer = true;
+ #include "server.h"
+//#include "relayer.h"
 //#include "client.h"
 
 
@@ -71,6 +71,9 @@ uint16_t nX(uint8_t n, int x);
 //#include "djDome.h"
 //#include "dooMnBloom.h"
 //#include "theDome.h"
+
+#include "tetrahedron.h"
+// #include "theDome.h"
 //#include "outerLegs.h"
 //#include "innerLegs.h"
 // #include "air.h"
