@@ -24,11 +24,36 @@ app.use(express.static(path.join(__dirname, '..', '/data')));
 //     res.send('Pi WiFi - Captive Portal');
 // })
 
+let lockState = [
+    true,
+    true,
+    true,
+    true,
+]
+
 wss.on('connection', function connection(ws) {
     ws.on('error', console.error);
   
     ws.on('message', function message(data, isBinary) {
         console.log(`got a message: ${data}`)
+        if (data == "lockState"){
+            lockState.forEach((value, index) => {
+                let dat = {
+                    "msgType": 44,
+                    "enabled": value,
+                    "lockNumber": index
+                }
+                ws.send(JSON.stringify(dat))
+            })
+            return
+        }
+
+        //from here we assume the message is a json
+        let dat = JSON.parse(data)
+        if (dat.msgType == 44){
+            lockState[dat.lockNumber] = dat.enabled
+        }
+
         //broadcast the message
         wss.clients.forEach(function each(client) {
             if (client !== ws && client.readyState === WebSocket.OPEN) {

@@ -8,10 +8,17 @@ $(document).ready(function() {
 
     var ws = new WebSocket('ws://' + window.location.hostname + ':3000/');
     ws.onmessage = function(event) { processReceivedCommand(event); };
+    ws.onopen = () => ws.send("lockState")
 
     function processReceivedCommand(evt) {
         console.log("event")
         console.log(evt.data);
+        let dat = JSON.parse(evt.data)
+        console.log(dat)
+        if (dat.msgType == 44){
+            console.log("got lockstate data")
+            setLock(dat.lockNumber, dat.enabled)
+        }
     }
 
     loadPatterns()
@@ -42,32 +49,47 @@ $(document).ready(function() {
         });
     })
 
-    $(".lock").click(function() {
-        let enabled = $(this).data('enabled')
+    function setLock(lockNumber, enabled){
+        let locks = [
+            "#stepLock",
+            "#fadeLock",
+            "#brightnessLock",
+            "#paletteLock",
+        ]
+        let elm = $(locks[lockNumber])
         if (enabled) {
-            $(this).attr("src", "lock-closed.svg")
+            elm.attr("src", "lock-open.svg")
         } else {
-            $(this).attr("src", "lock-open.svg")
+            elm.attr("src", "lock-closed.svg")
         }
-        enabled = !enabled
-        if ($(this).hasClass('sliderLock')){
-            let target = $(this).data('target')
+        if (elm.hasClass('sliderLock')){
+            let target = elm.data('target')
             let slider = $(target).get()[0].noUiSlider
             if (enabled){
                 slider.enable()
             } else {
                 slider.disable()
             }
-        } else if ($(this).hasClass('paletteLock')){
-            console.log($("#paletteSelect, #paletteBtn, #customPaletteBtn"))
+        } else if (elm.hasClass('paletteLock')){
+            //console.log($("#paletteSelect, #paletteBtn, #customPaletteBtn"))
             $("#paletteSelect, #paletteBtn, #customPaletteBtn").prop("disabled", !enabled)
         }
 
-        $(this).data('enabled', enabled)
+        elm.data('enabled', enabled)
+
+    }
+
+    $(".lock").click(function() {
+
+        let enabled = $(this).data('enabled')
+        enabled = !enabled
+        lockNumber = $(this).data("locknumber")
+
+        setLock(lockNumber, enabled)
 
         let data = {
             'msgType': 44,
-            'lockNumber': $(this).data("locknumber"),
+            'lockNumber': lockNumber,
             'enabled': enabled,
         }
         ws.send(JSON.stringify(data));
