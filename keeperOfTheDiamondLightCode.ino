@@ -28,13 +28,13 @@ bool *locks[] = {
   &fadeRateLocked,//1
   &brightnessLocked,//2
   &paletteLocked,//3
-}
+};
 
 //#define NO_RELAYER
 bool noRelayer = true;
- #include "server.h"
+// #include "server.h"
 //#include "relayer.h"
-//#include "client.h"
+#include "client.h"
 
 
 #define   LED  2       // GPIO number of connected LED, ON ESP-12 IS GPIO2
@@ -75,14 +75,14 @@ const float fib =  1.61803;
 uint16_t nX(uint8_t n, int x);
 
 //#include "drumRoof.h"
-//#include "thePyramid.h"
+#include "thePyramid.h"
 //#include "theTower.h"
 //#include "theMoon.h"
 //#include "djDome.h"
 //#include "dooMnBloom.h"
 //#include "theDome.h"
 
-#include "tetrahedron.h"
+//#include "tetrahedron.h"
 // #include "theDome.h"
 //#include "outerLegs.h"
 //#include "innerLegs.h"
@@ -92,7 +92,7 @@ uint16_t nX(uint8_t n, int x);
 //#include "fire.h"
 //#include "metal.h"
 //#include "lamp1.h"
-#include "serverOfTheDiamondLightNetwork.h"
+//#include "serverOfTheDiamondLightNetwork.h"
 // #include "hotJam.h"
 //#include "lightPainting1.h"
 //#include "lightPainting2.h"
@@ -158,14 +158,14 @@ void loop(){
 }
 
 void setStepRate(uint16_t rate) {
-  if !(stepRateLocked) {
+  if (!stepRateLocked) {
     stepRate = max((uint16_t)1, rate);
   }
 }
 
 void setFadeRate(uint16_t rate) {
-  if !(fadeRateLocked) {
-    fadeRate = max((uint8_t)1, rate);
+  if (!fadeRateLocked) {
+    fadeRate = max((uint16_t)1, rate);
   }
 }
 
@@ -550,7 +550,7 @@ bool nothingIsOn() {
 
 void nextPalette() {
   if (paletteLocked){
-    return
+    return;
   }
   paletteCycleIndex = (paletteCycleIndex + 1) % nPalettes;
   targetPalette = cyclePalettes[paletteCycleIndex];
@@ -559,7 +559,7 @@ void nextPalette() {
 
 void setPalette(int n) {
   if (paletteLocked){
-    return
+    return;
   }
   paletteCycleIndex = n % nPalettes;
   targetPalette = cyclePalettes[paletteCycleIndex];  
@@ -1454,8 +1454,8 @@ void theBlob() {
     uint8_t val = inoise8(i*mainState.noise.plength, mainState.patternStep * mainState.noise.pspeed);
     int vm = map(val, 0, 255, -80, 255+80);
     uint8_t pv = (uint8_t)min(255, max(vm, 0));
-    uint8_t bri = map((i - mainState.theBlob.plength, 0, mainState.theBlob.decay, 255, 0));
-    bri = max(0, min(255, bri));
+    uint8_t bri = map(i - mainState.theBlob.plength, 0, mainState.theBlob.decay, 255, 0);
+    bri = max((uint8_t)0, (uint8_t)min((uint8_t)255, bri));
     leds[(pos + i + num_leds) % num_leds] += ColorFromPalette(currentPalette, pv, bri);
     leds[(pos - i + num_leds) % num_leds] += ColorFromPalette(currentPalette, pv, bri);
   }
@@ -1711,7 +1711,7 @@ void processWSMessage(){
       case 44:
         lock = locks[wsMsg["lockNumber"].as<int>()];
         *lock = wsMsg["enabled"].as<bool>();
-        Serial.println(stepRateLocked)
+        Serial.println(stepRateLocked);
 
    }
   }
