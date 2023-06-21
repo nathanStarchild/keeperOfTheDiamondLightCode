@@ -6,7 +6,7 @@ $(document).ready(function() {
         enumerable: false
       });
 
-    var ws = new WebSocket('ws://' + window.location.hostname + ':81/');
+    var ws = new WebSocket('ws://' + window.location.hostname + ':3000/');
     ws.onmessage = function(event) { processReceivedCommand(event); };
 
     function processReceivedCommand(evt) {
@@ -22,7 +22,8 @@ $(document).ready(function() {
 
     $(".slider").each(function(index) {
         console.log($(this).data())
-        noUiSlider.create(this, {
+        let slider = this
+        noUiSlider.create(slider, {
             start: $(this).data("start"),
             direction: $(this).data("direction"),
             step: 1,
@@ -31,7 +32,6 @@ $(document).ready(function() {
                 'max': $(this).data("max")
             },
         })
-        let slider = this
         slider.noUiSlider.on('change', function(){
             let data = {
                 'msgType': $(slider).data("msgtype"),
@@ -40,6 +40,37 @@ $(document).ready(function() {
             console.log(data)
             ws.send(JSON.stringify(data));
         });
+    })
+
+    $(".lock").click(function() {
+        let enabled = $(this).data('enabled')
+        if (enabled) {
+            $(this).attr("src", "lock-closed.svg")
+        } else {
+            $(this).attr("src", "lock-open.svg")
+        }
+        enabled = !enabled
+        if ($(this).hasClass('sliderLock')){
+            let target = $(this).data('target')
+            let slider = $(target).get()[0].noUiSlider
+            if (enabled){
+                slider.enable()
+            } else {
+                slider.disable()
+            }
+        } else if ($(this).hasClass('paletteLock')){
+            console.log($("#paletteSelect, #paletteBtn, #customPaletteBtn"))
+            $("#paletteSelect, #paletteBtn, #customPaletteBtn").prop("disabled", !enabled)
+        }
+
+        $(this).data('enabled', enabled)
+
+        let data = {
+            'msgType': 44,
+            'lockNumber': $(this).data("locknumber"),
+            'enabled': enabled,
+        }
+        ws.send(JSON.stringify(data));
     })
 
     $(".patternSlider").each(function(index) {
@@ -897,7 +928,7 @@ $(document).ready(function() {
                 "direction": "rtl",
                 "name": "length",
                 "min": 1,
-                "max": 50,
+                "max": 70,
                 "start": 5
             },
             "decay": ""
@@ -965,6 +996,32 @@ $(document).ready(function() {
         {
             "name": "the Void",
             "pointer": 27,
+            "enabled": false,
+            "speed": {
+                "direction": "ltr",
+                "name": "speed",
+                "min": 1,
+                "max": 20,
+                "start": 1,
+            },
+            "length": {
+                "direction": "ltr",
+                "name": "length",
+                "min": 5,
+                "max": 255,
+                "start": 30
+            },
+            "decay": {
+                "direction": "ltr",
+                "name": "fringe",
+                "min": 5,
+                "max": 255,
+                "start": 30
+            }
+        },
+        {
+            "name": "the Blob",
+            "pointer": 28,
             "enabled": false,
             "speed": {
                 "direction": "ltr",

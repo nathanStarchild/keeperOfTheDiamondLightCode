@@ -91,7 +91,7 @@
                             <div id="tranquilityBtn" data-msgtype="3" class="btn btn-secondary control inputBtn">Tranquility</div>     
                             <div id="starsBtn" data-msgtype="7" class="btn btn-secondary control inputBtn">Shooting Stars</div>  
                             <div id="randomBtn" data-msgtype="1" class="btn btn-secondary control inputBtn">Random</div>    
-                            <div id="tailBtn" data-msgtype="29" class="btn btn-secondary control inputBtn">Tail Time</div> 
+                            <div id="tailBtn" data-msgtype="29" class="btn btn-secondary control inputBtn">The Blob</div> 
                             <div id="blenderBtn" data-msgtype="30" class="btn btn-secondary control inputBtn">Blender</div> 
                             <div id="flashBtn" data-msgtype="31" class="btn btn-secondary control inputBtn">Flash Grid</div> 
                         </div>
@@ -105,16 +105,24 @@
                         </button>
                     </h2>
                     <div id="globals" class="accordion-collapse collapse">
-                        <div class="d-flex flex-column justify-content-center align-items-center gap-4 py-3">
+                        <div class="lockableGrid py-3">
+                            <div></div>
                             <label class="control slider-label">Frame Rate:
-                                <div id="stepInput" data-msgtype="10" class="slider" data-start="2" data-min="1" data-max="10" data-direction="ltr"></div>              
+                                <div id="stepInput" data-msgtype="10" class="slider" data-start="2" data-min="1" data-max="10" data-direction="ltr"></div>
                             </label>    
+                            <img src="lock-open.svg" class="mt-1 lock sliderLock" data-target="#stepInput" data-enabled="true" data-locknumber="0"></img>
+
+                            <div></div>
                             <label class="control slider-label">Fade Rate:
                                 <div id="fadeInput" data-msgtype="11" class="slider" data-start="128" data-min="1" data-max="250" data-direction="rtl"></div>              
-                            </label>      
+                            </label>     
+                            <img src="lock-open.svg" class="mt-1 lock sliderLock" data-target="#fadeInput" data-enabled="true" data-locknumber="1"></img>
+                            
+                            <div></div>
                             <label class="control slider-label">Brightness:
                                 <div id="brightnessInput" data-msgtype="12" class="slider" data-start="255" data-min="1" data-max="255" data-direction="ltr"></div>              
                             </label>  
+                            <img src="lock-open.svg" class="mt-1 lock sliderLock" data-target="#brightnessInput" data-enabled="true" data-locknumber="2"></img>
                         </div>
                     </div>
                 </div>
@@ -145,6 +153,9 @@
                     </h2>
                     <div id="palettes" class="accordion-collapse collapse">
                         <div class="accordion-body gridContainer">
+                            <div class="lockContainer">
+                                <img src="lock-open.svg" class="mt-1 lock paletteLock" data-enabled="true" data-locknumber="3"></img>
+                            </div>
 
                             <div class="select-container">
                                 <label><b>Select Palette:</b>
@@ -179,7 +190,7 @@
                                 </label>
                             </div>
 
-                            <div id="paletteBtn" data-msgtype="4" class="btn btn-secondary control inputBtn mt-1">Next Palette</div>  
+                            <button id="paletteBtn" data-msgtype="4" class="btn btn-secondary control inputBtn mt-1">Next Palette</button>  
 
                             <b class="gridLeft2 mt-3">Create New Palette:</b>
                             <div id="paletteDesigner" class="slider-container w-100"> 
@@ -197,7 +208,7 @@
                                     <div class="wheel d-flex flex-row justify-content-center pt-3" id="colorWheelDemo"></div>
                                 </div>  
                             </div>
-                            <div id="customPaletteBtn" data-msgtype="35" class="btn btn-secondary control inputDiv palBtn">Send</div>
+                            <button id="customPaletteBtn" data-msgtype="35" class="btn btn-secondary control inputDiv palBtn">Send</button>
 
                         </div>
 

@@ -39,6 +39,7 @@ typedef struct patternState {
   pattern fire;
   pattern metal;
   pattern theVoid;
+  pattern theBlob;
 };
 
 // wave length 1 to 10
@@ -74,6 +75,7 @@ patternState mainState = {
   {false, 120, 5, 55}, //fire
   {false, 120, 15, 55}, //metal
   {false, 1, 30, 30}, //theVoid
+  {false, 1, 30, 30}, //theBlob
   };
 
 pattern *patternPointers[] = {
@@ -105,4 +107,5 @@ pattern *patternPointers[] = {
   &mainState.fire,//25
   &mainState.metal,//26
   &mainState.theVoid,//27
+  &mainState.theBlob,//28
 };

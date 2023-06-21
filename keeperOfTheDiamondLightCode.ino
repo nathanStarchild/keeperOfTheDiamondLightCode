@@ -19,6 +19,16 @@ bool controllerEnabled = true;
 bool messagingEnabled = true;
 bool holdingPatternLockdown = false;
 int launchProgress = 0;
+bool stepRateLocked = false;
+bool fadeRateLocked = false;
+bool brightnessLocked = false;
+bool paletteLocked = false;
+bool *locks[] = {
+  &stepRateLocked,//0
+  &fadeRateLocked,//1
+  &brightnessLocked,//2
+  &paletteLocked,//3
+}
 
 //#define NO_RELAYER
 bool noRelayer = true;
@@ -114,10 +124,9 @@ void setup() {
     currentBlending = LINEARBLEND;
     currentPalette = Deep_Skyblues_gp;
     targetPalette = Deep_Skyblues_gp;
-    upset_mainState();
     stepRate = 1;
     doubleRainbow();
-    mainState.theVoid.enabled = true;
+    mainState.noiseFade.enabled = false;
 }
 
 void loop(){
@@ -148,6 +157,18 @@ void loop(){
 //    dontGetBored();
 }
 
+void setStepRate(uint16_t rate) {
+  if !(stepRateLocked) {
+    stepRate = max((uint16_t)1, rate);
+  }
+}
+
+void setFadeRate(uint16_t rate) {
+  if !(fadeRateLocked) {
+    fadeRate = max((uint8_t)1, rate);
+  }
+}
+
 void blendFrames(){
   uint8_t ratio;
   if (stepRate > 1) {
@@ -170,9 +191,9 @@ void upset_mainState() {
     //add faderate
     nextPalette();
     patternsOff();
-    fadeRate = random8(10, 240);
+    setFadeRate(random8(10, 240));
         //  stepRate = max(1, random8(0, 15) - 10);
-    stepRate = random8(2, 8);
+    setStepRate(random8(2, 8));
 
     mainState.hue = 0;
     mainState.patternStep = 0;
@@ -223,6 +244,11 @@ void upset_mainState() {
     mainState.theVoid.plength = random8(20, 255);
     mainState.theVoid.pspeed = random8(1, 10);
     mainState.theVoid.decay = random8(20, 255);
+
+    mainState.theBlob.enabled = (random8() > 90);
+    mainState.theBlob.plength = random8(20, 255);
+    mainState.theBlob.pspeed = random8(1, 10);
+    mainState.theBlob.decay = random8(20, 255);
 }
 
 void holdingPatternMode(uint8_t n) {
@@ -246,7 +272,7 @@ void tripperTrapMode() {
     patternsOff();
     mainState.hue = 0;
     mainState.patternStep = 0;
-    stepRate = random8(1, 5);
+    setStepRate(random8(1, 5));
 
     mainState.wave.enabled = true; //wave is now for tripper trap mode only
     mainState.wave.plength = random8(1, 5);
@@ -277,23 +303,23 @@ void tranquilityMode() {
     mainState.rain.decay = 100;
     mainState.rain.pspeed = 50;
     mainState.rain.plength = stripLength/11;
-    stepRate = 5;
-    fadeRate = 50;
+    setStepRate(5);
+    setFadeRate(50);
 }
 
 void shootingStars() {
     patternsOff();
     setNRipples(1);
     mainState.ripple.enabled = true;
-    stepRate = 3;
-    fadeRate = 50;
+    setStepRate(3);
+    setFadeRate(50);
 }
 
 void rippleGeddon() {
     patternsOff();
     mainState.ripple.enabled = true;
-    stepRate = 7;
-    fadeRate = 20;
+    setStepRate(7);
+    setFadeRate(20);
     setNRipples(9);
 //    targetPalette = Alive_And_Kicking_gp;  
     nextPalette();
@@ -311,8 +337,12 @@ void tailTime() {
   mainState.noiseFade.enabled = true;
   mainState.noiseFade.plength = random8(1, 30);
   mainState.noiseFade.pspeed = random8(1, 10);
-  stepRate = 2;
-  fadeRate = 10;
+  mainState.theBlob.enabled = true;
+  mainState.theBlob.plength = random8(10, 255);
+  mainState.theBlob.pspeed = random8(1, 20);
+  mainState.theBlob.decay = random8(20, 255);
+  setStepRate(2);
+  setFadeRate(10);
   nextPalette();
 }
 
@@ -329,8 +359,8 @@ void blender() {
   mainState.theVoid.plength = random8(20, 255);
   mainState.theVoid.decay = random8(20, 255);
   mainState.theVoid.pspeed = random8(1, 10);
-  stepRate = 3;
-  fadeRate = 20;
+  setStepRate(3);
+  setFadeRate(20);
   nextPalette();
 }
 
@@ -340,15 +370,15 @@ void doubleRainbow() {
   mainState.noiseFade.enabled = true;
   mainState.noiseFade.plength = random8(1, 30);
   mainState.noiseFade.pspeed = random8(1, 10);
-  stepRate = 4;
-  fadeRate = 100;
+  setStepRate(4);
+  setFadeRate(100);
 }
 
 void rainbowSpiral() {
   patternsOff();
   targetPalette = Sleep_Deprevation_gp;
   mainState.spiral.enabled = true;
-  stepRate = 4;
+  setStepRate(4);
 }
 
 void flashGrid() {
@@ -361,7 +391,7 @@ void flashGrid() {
   mainState.noiseFade.enabled = true;
   mainState.noiseFade.plength = random8(1, 30);
   mainState.noiseFade.pspeed = random8(1, 10);
-  stepRate = 2;
+  setStepRate(2);
   nextPalette();
 }
 
@@ -371,8 +401,8 @@ void antsMode() {
       mainState.ants.plength = 20;
       mainState.ants.pspeed = 8;
       mainState.ants.decay = 150;
-      stepRate = 2;
-      fadeRate = 100;
+      setStepRate(2);
+      setFadeRate(100);
 }
 
 void noiseTest() {
@@ -390,7 +420,7 @@ void noiseFader() {
 
 void earthMode() {
   targetPalette = ForestColors_p;
-  stepRate = 5;
+  setStepRate(5);
   patternsOff();
   if (element ==  0 || element ==  6 || element ==  1){
     mainState.noise.enabled = true;
@@ -450,14 +480,14 @@ void metalMode() {
 void airMode() {
   targetPalette = air_gp;
   stepRate = 2;
-  fadeRate = 120;
+  setFadeRate(120);
   patternsOff();
   if (element ==  0 || element ==  6 || element ==  3){
     mainState.air.enabled = true;
     mainState.air.pspeed = random8(2, 7);
     mainState.air.plength = random8(1, 10);
     stepRate = 6;
-    fadeRate = 120;
+    setFadeRate(120);
   }
 }
 
@@ -487,6 +517,7 @@ void patternsOff() {
   mainState.fire.enabled = false;
   mainState.metal.enabled = false;
   mainState.theVoid.enabled = false;
+  mainState.theBlob.enabled = false;
 }
 
 bool nothingIsOn() {
@@ -512,17 +543,24 @@ bool nothingIsOn() {
     mainState.noise.enabled ||
     mainState.air.enabled ||
     mainState.fire.enabled ||
-    mainState.metal.enabled
+    mainState.metal.enabled ||
+    mainState.theBlob.enabled
   );
 }
 
 void nextPalette() {
+  if (paletteLocked){
+    return
+  }
   paletteCycleIndex = (paletteCycleIndex + 1) % nPalettes;
   targetPalette = cyclePalettes[paletteCycleIndex];
   Serial.printf("palette: %d\n", paletteCycleIndex);
 }
 
 void setPalette(int n) {
+  if (paletteLocked){
+    return
+  }
   paletteCycleIndex = n % nPalettes;
   targetPalette = cyclePalettes[paletteCycleIndex];  
 }
@@ -658,10 +696,6 @@ void updatePatterns() { //render the next LED state in the buffer using the curr
     rain();
   }
 
-  if (mainState.skaters.enabled) {
-    skaters();
-  }
-
   if (mainState.houseLights.enabled) {
     houseLights();
   }
@@ -670,21 +704,6 @@ void updatePatterns() { //render the next LED state in the buffer using the curr
     paletteDesignDisplay();
   }
   
-  if (mainState.tail.enabled) {
-    //speed has direction
-    //length is how often a tail
-    if (mainState.tail.pspeed >= 0) {
-      tailPos = ( ((mainState.patternStep * mainState.tail.pspeed) ) %  mainState.tail.plength);
-    }
-    else {
-      tailPos = ( (((int)abs(65535 - mainState.patternStep) * (int)abs(mainState.tail.pspeed)) ) % mainState.tail.plength);
-    }
-    //    tailPos = ( ((mainState.patternStep * mainState.tail.pspeed) ) %  mainState.tail.plength);
-    for (i = 0; i < num_leds; i++) {
-      leds[i] = tailScale(leds[i] , abs(tailPos - (i %  mainState.tail.plength)));
-    }
-  }
-
   if (mainState.glitter.enabled) {
     if (mainState.glitter.decay == 0) {
       glitterMode = CRGB::Black;
@@ -701,6 +720,29 @@ void updatePatterns() { //render the next LED state in the buffer using the curr
   if (mainState.metal.enabled) {
     metal();
   }
+
+  if (mainState.theBlob.enabled) {
+    theBlob();
+  }
+
+  if (mainState.skaters.enabled) {
+    skaters();
+  }
+
+  if (mainState.tail.enabled) {
+    //speed has direction
+    //length is how often a tail
+    if (mainState.tail.pspeed >= 0) {
+      tailPos = ( ((mainState.patternStep * mainState.tail.pspeed) ) %  mainState.tail.plength);
+    }
+    else {
+      tailPos = ( (((int)abs(65535 - mainState.patternStep) * (int)abs(mainState.tail.pspeed)) ) % mainState.tail.plength);
+    }
+    //    tailPos = ( ((mainState.patternStep * mainState.tail.pspeed) ) %  mainState.tail.plength);
+    for (i = 0; i < num_leds; i++) {
+      leds[i] = tailScale(leds[i] , abs(tailPos - (i %  mainState.tail.plength)));
+    }
+  }
   
   if (mainState.breathe.enabled) {
     //speed is tempo
@@ -716,13 +758,10 @@ void updatePatterns() { //render the next LED state in the buffer using the curr
     poleChaserOff();
   }
 
-  if (mainState.powerSaver.enabled) {
-    powerSaver();
-  }
 
-  if (audienceSpot == 7) { //dim the guardian costume
-    fade_video(leds, num_leds, 100);
-  }
+  // if (audienceSpot == 7) { //dim the guardian costume
+  //   fade_video(leds, num_leds, 100);
+  // }
 
   if (mainState.noiseFade.enabled) {
     noiseFade();
@@ -732,11 +771,11 @@ void updatePatterns() { //render the next LED state in the buffer using the curr
     theVoid();
   }
 
-  if (mainState.dimmer.enabled || true) {//dimmer
-  //  if (true) {
-    fade_video(leds, num_leds, mainState.dimmer.plength * 25);
-  //    fade_video(leds, num_leds, 150);
-  }
+  // if (mainState.dimmer.enabled || true) {//dimmer
+  // //  if (true) {
+  //   fade_video(leds, num_leds, mainState.dimmer.plength * 25);
+  // //    fade_video(leds, num_leds, 150);
+  // }
 
   if (mainState.enlightenment.enabled) {
     enlightenmentBuildUp();
@@ -762,11 +801,15 @@ void updatePatterns() { //render the next LED state in the buffer using the curr
     launch();
   }
 
-  if (false) {
-    paletteFill();
+  if (mainState.powerSaver.enabled) {
+    powerSaver();
   }
 
-  //   alwaysOn();
+  // if (false) {
+  //   paletteFill();
+  // }
+
+  alwaysOn();
 
   //  Serial.printf("%d - %d\n", frameCount, mainState.patternStep);
 
@@ -1402,6 +1445,22 @@ void theVoid() {
   }
 }
 
+void theBlob() {
+  
+  uint16_t pos = inoise16(mainState.patternStep * mainState.theVoid.pspeed * 100);
+  pos = map(pos, 0, 65535, 0, 3*num_leds);
+  pos = pos % num_leds;
+  for (int i=0; i<mainState.theBlob.plength + mainState.theBlob.decay; i++){
+    uint8_t val = inoise8(i*mainState.noise.plength, mainState.patternStep * mainState.noise.pspeed);
+    int vm = map(val, 0, 255, -80, 255+80);
+    uint8_t pv = (uint8_t)min(255, max(vm, 0));
+    uint8_t bri = map((i - mainState.theBlob.plength, 0, mainState.theBlob.decay, 255, 0));
+    bri = max(0, min(255, bri));
+    leds[(pos + i + num_leds) % num_leds] += ColorFromPalette(currentPalette, pv, bri);
+    leds[(pos - i + num_leds) % num_leds] += ColorFromPalette(currentPalette, pv, bri);
+  }
+}
+
 uint16_t nX(uint8_t n, int x) {
   uint16_t i;
   n = min(n, nStrips);
@@ -1472,6 +1531,7 @@ void processWSMessage(){
   uint8_t paletteArray[48] = {};
   uint8_t bleep;
   pattern *pat;
+  bool *lock;
   if (mtype) {
     Serial.printf(" of msgType %i\n", mtype);
     boredTimer.resetTimer();
@@ -1504,13 +1564,10 @@ void processWSMessage(){
        mainState.launch.enabled = true;
        break;
      case 10:
-       stepRate = wsMsg["val"].as<int>();
-       stepRate = max((uint16_t)1, stepRate);
+       setStepRate(wsMsg["val"].as<int>());
        break;
      case 11:
-       fadeRate = wsMsg["val"].as<int>();
-       fadeRate = max((uint8_t)1, fadeRate);
-       fadeRate = min((uint8_t)255, fadeRate);
+       setFadeRate(wsMsg["val"].as<int>());
        break;
      case 12:
       //  mainState.dimmer.plength = wsMsg["val"].as<int>();
@@ -1650,7 +1707,11 @@ void processWSMessage(){
         } else {
           tripperTrapMode();
         }
-
+        break;
+      case 44:
+        lock = locks[wsMsg["lockNumber"].as<int>()];
+        *lock = wsMsg["enabled"].as<bool>();
+        Serial.println(stepRateLocked)
 
    }
   }
