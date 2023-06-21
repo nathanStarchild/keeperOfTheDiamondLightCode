@@ -23,7 +23,7 @@ void WiFiStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info){
   Serial.print("WiFi lost connection. Reason: ");
 //  Serial.println(info.disconnected.reason);
   Serial.println("Trying to Reconnect");
-  WiFi.begin("keeperOfTheDiamondLights", "enlighten");
+  WiFi.begin("diamondLightNetwork");
 }
 
 void wsSetup() {
@@ -31,7 +31,7 @@ void wsSetup() {
   WiFi.disconnect();
   WiFi.mode(WIFI_STA);
   WiFi.onEvent(WiFiStationDisconnected, ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
-  WiFi.begin("keeperOfTheDiamondLights", "enlighten");
+  WiFi.begin("diamondLightNetwork");
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
@@ -43,14 +43,14 @@ void wsSetup() {
   Serial.println(WiFi.localIP());
   
 //  #ifdef NO_RELAYER
-  if(noRelayer){
-    webSocket.begin("192.168.4.1", 81, "/");
+  // if(noRelayer){
+    webSocket.begin("200.200.200.1", 80, "/");
     Serial.println("connecting to server");
-  } else {
-//  #else
-    webSocket.begin("192.168.4.184", 82, "/");
-    Serial.println("connecting to relayer");
-  }
+//   } else {
+// //  #else
+//     webSocket.begin("192.168.4.184", 82, "/");
+//     Serial.println("connecting to relayer");
+//   }
 //  #endif
   webSocket.onEvent(webSocketEvent);
   Serial.println("Web socket client started");
@@ -59,7 +59,7 @@ void wsSetup() {
   // ArduinoOTA.setHostname("myesp32");
 
   // No authentication by default
-  // ArduinoOTA.setPassword("admin");
+  ArduinoOTA.setPassword("antares");
   ArduinoOTA
     .onStart([]() {
       String type;
