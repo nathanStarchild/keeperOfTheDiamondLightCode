@@ -1,26 +1,28 @@
-const uint16_t stripLength = 120;
-const uint8_t nStrips = 8;
+const uint16_t stripLength = 114;
+const uint8_t nStrips = 15;
 const uint16_t num_leds = stripLength * nStrips;
 
-#define LEDS_OUTPUT1 360
-#define LEDS_OUTPUT2 600
-#define NUM_OUTPUTS 2
-#define NUM_LEDS 960
+#define LEDS_OUTPUT1 stripLength * 4
+#define LEDS_OUTPUT2 stripLength * 6
+#define LEDS_OUTPUT3 stripLength * 5
+#define NUM_OUTPUTS 3
+#define NUM_LEDS stripLength * nStrips
 CRGB leds[NUM_LEDS];
 CRGB oldLeds[NUM_LEDS];
 CRGB outLeds[NUM_LEDS];
 
-int directionLR[nStrips] = {1, 1, 1, 1, 1, 1, 1, 1};
-int directionUD[nStrips] = {-1, 1, -1, -1, 1, 1, 1, -1};
-int directionIO[nStrips] = {1, -1, 1, -1, 1, -1, 1, -1};
-int stripDirection[nStrips] =  {-1, 1, -1, -1, 1, 1, 1, -1};
+int directionLR[nStrips] = {1, 1, 1, 1, 1, 1, 1, 1, 1, -1, 1, 1, 1, 1, 1};
+int directionUD[nStrips] = {1, -1, 1, -1, 1, -1, 1, -1, -1, 1, -1, 1, -1, 1, -1};
+int directionIO[nStrips] = {1, -1, 1, -1, 1, -1, 1, -1, 1, 1, 1, 1, 1, 1, 1};
+int stripDirection[nStrips] =  {1, -1, 1, -1, 1, -1, 1, -1, -1, 1, -1, 1, -1, 1, -1};
 uint16_t audienceSpot = 3;
 uint16_t sweepSpot = 3;
 uint16_t element = 0;
 
 void elementSetup(){
     FastLED.addLeds<WS2813, DATA_PIN_1, RGB>(outLeds, 0, LEDS_OUTPUT1); 
-    FastLED.addLeds<WS2813, DATA_PIN_3, RGB>(outLeds, LEDS_OUTPUT1, LEDS_OUTPUT2); 
+    FastLED.addLeds<WS2813, DATA_PIN_2, RGB>(outLeds, LEDS_OUTPUT1, LEDS_OUTPUT2); 
+    FastLED.addLeds<WS2813, DATA_PIN_3, RGB>(outLeds, LEDS_OUTPUT1 + LEDS_OUTPUT2, LEDS_OUTPUT3); 
 //    FastLED.addLeds<WS2813, DATA_PIN_1, RGB>(outLeds, 0, 600); 
 //    FastLED.addLeds<WS2813, DATA_PIN_2, RGB>(outLeds, 600, 360); 
 
