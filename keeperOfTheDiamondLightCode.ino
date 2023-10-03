@@ -43,6 +43,7 @@ bool noRelayer = true;
  #define DATA2_DATA1 27 //Maybe switch to 14?
  #define DATA_PIN_2 14
  #define DATA3_DATA2 15
+ #define DATA2_3PIN 15
  #define DATA_PIN_3 15
  #define CLOCK2 2
 
@@ -75,7 +76,7 @@ const float fib =  1.61803;
 uint16_t nX(uint8_t n, int x);
 
 //#include "drumRoof.h"
-#include "thePyramid.h"
+//#include "thePyramid.h"
 //#include "theTower.h"
 //#include "theMoon.h"
 //#include "djDome.h"
@@ -98,9 +99,12 @@ uint16_t nX(uint8_t n, int x);
 //#include "lightPainting2.h"
 //#include "lightPainting3.h"
 //#include "lightPainting4.h"
-//#include "antares1.h"
+//#include "lightPainting5.h"
+// #include "antares1.h"
 //#include "antares2.h"
 //#include "antares3.h"
+// #include "miniPyramid.h"
+#include "moonBeam.h"
 
 //CRGB leds[NUM_LEDS];
 //CRGB oldLeds[NUM_LEDS];
@@ -125,8 +129,11 @@ void setup() {
     currentPalette = Deep_Skyblues_gp;
     targetPalette = Deep_Skyblues_gp;
     stepRate = 1;
-    doubleRainbow();
-    mainState.noiseFade.enabled = false;
+    patternsOff();
+    // doubleRainbow();
+    // mainState.noiseFade.enabled = false;
+    // mainState.tail.enabled = true;
+//    mainState.noise2D.enabled = true;
 }
 
 void loop(){
@@ -154,7 +161,7 @@ void loop(){
         shootingStars();
     }
 
-//    dontGetBored();
+    // dontGetBored();
 }
 
 void setStepRate(uint16_t rate) {
@@ -544,7 +551,8 @@ bool nothingIsOn() {
     mainState.air.enabled ||
     mainState.fire.enabled ||
     mainState.metal.enabled ||
-    mainState.theBlob.enabled
+    mainState.theBlob.enabled ||
+    mainState.noise2D.enabled
   );
 }
 
@@ -648,6 +656,10 @@ void updatePatterns() { //render the next LED state in the buffer using the curr
 
   if (mainState.noise.enabled) {
     noisePattern();
+  }
+
+  if (mainState.noise2D.enabled) {
+    noise2DPattern();
   }
 
   if (mainState.air.enabled) {
@@ -1044,31 +1056,37 @@ void paletteFill() {
   }
 }
 
+struct raindrop {
+  uint16_t position = 0;
+  uint8_t speed = 0;
+};
+raindrop drops[30*nStrips] = {};
+
 void rain() {
-  static uint16_t dropPosition[30] = {0};
-  static uint8_t dropSpeed[30] = {0};
   static uint16_t lastStep = mainState.patternStep;
   mainState.rain.plength = max((uint8_t) 3, mainState.rain.plength);
   //  fadeToBlackBy(leds, num_leds, 100);
-  for (int nDrop = 0; nDrop < mainState.rain.plength; nDrop++) {
-    if (dropSpeed[nDrop] == 0) {
-      dropSpeed[nDrop] = random8(3, mainState.rain.pspeed);
-    }
-    if (dropPosition[nDrop] == 0) {
-      dropPosition[nDrop] = max(1, stripLength - random8(1, 11));
-    }
-    if (mainState.patternStep != lastStep) {
-      if (mainState.patternStep % dropSpeed[nDrop] == 0) {
-        dropPosition[nDrop]--;
+  for (int strip = 0; strip < nStrips; strip++) {
+    for (int nDrop = 0; nDrop < mainState.rain.plength; nDrop++) {
+      int idx = nDrop + strip * mainState.rain.plength;
+      if (drops[idx].speed == 0) {
+        drops[idx].speed = random8(3, mainState.rain.pspeed);
       }
-    }
-    //    uint8_t pos = ease8InOutApprox(dropPosition[nDrop]);
-    //    uint8_t pos = map(dropPosition[nDrop], 0, 255, 0, stripLength-1);
-    uint16_t pos = dropPosition[nDrop];
-    for (int strip = 0; strip < nStrips; strip++) {
-      int i = nX(strip, pos);
-      leds[i] += ColorFromPalette(currentPalette, nDrop * 15, mainState.rain.decay);
-    }
+      if (drops[idx].position == 0) {
+        drops[idx].position = max(1, stripLength - random8(1, 11));
+      }
+      if (mainState.patternStep != lastStep) {
+        if (mainState.patternStep % drops[idx].speed == 0) {
+          drops[idx].position--;
+        }
+      }
+      //    uint8_t pos = ease8InOutApprox(dropPosition[nDrop]);
+      //    uint8_t pos = map(dropPosition[nDrop], 0, 255, 0, stripLength-1);
+      // uint16_t pos = dropPosition[nDrop];
+      
+        // int i = nX(strip, pos);
+        leds[nX(strip, drops[idx].position)] += ColorFromPalette(currentPalette, (nDrop * 17) % 256, mainState.rain.decay);
+      }
   }
   lastStep = mainState.patternStep;
 }
@@ -1209,14 +1227,23 @@ void Fire2012(){
     // Step 2.  Heat from each cell drifts 'up' and diffuses a little
     for (int s=0; s<nStrips; s++){
       for( int k= stripLength - 1; k >= 2; k--) {
-        heat[nX(s, k)] = (heat[nX(s, k - 1)] + heat[nX(s, k - 2)] + heat[nX(s, k - 2)] ) / 3;
+//        byte coeff = heat[nX(s, k - 1)] + heat[nX(s, k - 2)] + heat[nX(s, k - 2)];
+//        byte denom = 3;
+        if (s == nStrips - 1) {
+          heat[nX(s, k)] = (3 * (heat[nX(s, k - 1)] + heat[nX(s, k - 2)] + heat[nX(s, k - 2)]) + heat[nX(s - 1, k - 1)] + heat[nX(s - 1, k - 2)] + heat[nX(s - 1, k - 2)]) / 12;
+        } else if (s == 0) {
+          heat[nX(s, k)] = (3 * (heat[nX(s, k - 1)] + heat[nX(s, k - 2)] + heat[nX(s, k - 2)]) + heat[nX(s + 1, k - 1)] + heat[nX(s + 1, k - 2)] + heat[nX(s + 1, k - 2)]) / 12;
+        } else {
+          heat[nX(s, k)] = (5 * (heat[nX(s, k - 1)] + heat[nX(s, k - 2)] + heat[nX(s, k - 2)]) + heat[nX(s - 1, k - 1)] + heat[nX(s - 1, k - 2)] + heat[nX(s - 1, k - 2)]+ heat[nX(s + 1, k - 1)] + heat[nX(s + 1, k - 2)] + heat[nX(s + 1, k - 2)]) / 21;
+        }
+       
       }
     }
     
     // Step 3.  Randomly ignite new 'sparks' of heat near the bottom
     for (int s=0; s<nStrips; s++){
       if( random8() < mainState.fire.pspeed ) {
-        int y = random8(int(stripLength/3));
+        int y = random8(int(stripLength/6));
         heat[nX(s, y)] = qadd8( heat[nX(s, y)], random8(160,255) );
       }
     }
@@ -1383,6 +1410,20 @@ void noisePattern() {
   }
 }
 
+void noise2DPattern() {
+  int spacing = 4;
+  for (int i=0; i<nStrips; i++) {
+    for (int j=0; j<stripLength; j++) {
+      uint8_t val = inoise8(i*spacing*mainState.noise2D.plength, j*mainState.noise2D.plength, mainState.patternStep * mainState.noise2D.pspeed);
+
+      int vm = map(val, 0, 255, -80, 255+80);
+      uint8_t pv = (uint8_t)min(255, max(vm, 0));
+      leds[nX(i, j)] = ColorFromPalette(currentPalette, pv, 255);
+    }
+
+  }
+}
+
 void noiseFade() {
   for (int i=0; i<num_leds; i++) {
   //    uint8_t val = (uint8_t) max((int8_t) 0, (int8_t) (1.2*inoise8(i*mainState.noiseFade.plength*2, mainState.patternStep * mainState.noiseFade.pspeed)-20));
@@ -1475,34 +1516,53 @@ uint16_t nX(uint8_t n, int x) {
 }
 
 void dontGetBored(){
-  Serial.println("Bored!");
   
   if (boredTimer.isItTime()) {
+    Serial.println("Bored!");
     boredTimer.resetTimer();
     if (!mainState.launch.enabled){
-      if (random8() > 200) {
-        earthMode();
-      } else if (random8() > 200) {
-        fireMode();
-      } else if (random8() > 200) {
-//        airMode();
-        fireMode();
-      } else if (random8() > 200) {
-//        waterMode();
-        fireMode();
-      } else if (random8() > 200) {
-        metalMode();
-      } else if (random8() > 210) {
-        doubleRainbow();
-      } else if (random8() > 210) {
-        tranquilityMode();
-      } else if (random8() > 210) {
-        tripperTrapMode();
-      } else if (random8() > 210) {
-        antsMode();
-      } else if (random8() > 200) {
-        upset_mainState();
-      }
+      uint8_t ran = random8();
+        if (ran < 5) {
+          mainState.launch.enabled = true;
+          Serial.println("launch");
+        } else if (ran < 25) {
+          noiseTest();
+          noiseFader();
+          Serial.println("noise test noise fader");
+        } else if (ran < 40) {
+          earthMode();
+          Serial.println("earth");
+        } else if (ran < 60) {
+          fireMode();
+          Serial.println("fire");
+        } else if (ran < 80) {
+          airMode();
+          Serial.println("air");
+        } else if (ran < 100) {
+          rainbowSpiral();
+          Serial.println("spiral");
+        } else if (ran < 120) {
+          metalMode();
+          Serial.println("metal");
+        } else if (ran < 140) {
+          tripperTrapMode();
+          Serial.println("tripperTrap");
+        } else if (ran < 160) {
+          antsMode();
+          Serial.println("Ants!");
+        } else if (ran < 180) {
+          doubleRainbow();
+          Serial.println("rainbow");
+        } else if (ran < 200) {
+          blender();
+          Serial.println("blender");
+        } else if (ran < 220) {
+          tranquilityMode();
+          Serial.println("tranquility");
+        } else {
+          upset_mainState();
+          Serial.println("random");
+        }
     }
   }
 }
