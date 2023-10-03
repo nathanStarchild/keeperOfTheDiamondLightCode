@@ -2,7 +2,7 @@ const express = require('express');
 const path = require('path');
 const { createServer } = require('http');
 
-const { WebSocketServer } = require('ws');
+const { WebSocketServer, WebSocket } = require('ws');
 const app = express();
 const port = 3000;
 
@@ -10,6 +10,8 @@ var hostName = 'antarean.pyramid';
 
 const server = createServer(app);
 const wss = new WebSocketServer({ server });
+
+let boredTimer;
 
 // app.use((req, res, next) => {
 //     if (req.get('host') != hostName) {
@@ -30,6 +32,65 @@ let lockState = [
     true,
     true,
 ]
+
+function broadcast(data, isBinary, from) {
+    wss.clients.forEach(function each(client) {
+        if (client !== from && client.readyState === WebSocket.OPEN) {
+            client.send(data, { binary: isBinary });
+        }
+    });
+}
+
+function dontGetBored(){ 
+    let ran = Math.random();
+    let msgType = 0;
+    if (ran < 5/256) {
+        msgType = 9
+        //launch
+      } else if (ran < 25/256) {
+        msgType = 14
+        //noise
+      } else if (ran < 40/256) {
+        msgType = 20
+        // Serial.println("earth");
+      } else if (ran < 60/256) {
+        msgType = 21
+        // Serial.println("fire");
+      } else if (ran < 80/256) {
+        msgType = 22
+        // Serial.println("air");
+      } else if (ran < 100/256) {
+        msgType = 39
+        // Serial.println("spiral");
+      } else if (ran < 120/256) {
+        msgType = 24
+        // Serial.println("metal");
+      } else if (ran < 140/256) {
+        msgType = 5
+        // Serial.println("tripperTrap");
+      } else if (ran < 160/256) {
+        msgType = 6
+        // Serial.println("Ants!");
+      } else if (ran < 180/256) {
+        msgType = 2
+        // Serial.println("rainbow");
+      } else if (ran < 200/256) {
+        msgType = 40
+        // Serial.println("blender");
+      } else if (ran < 220/256) {
+        msgType = 3
+        // Serial.println("tranquility");
+      } else {
+        msgType = 1
+        // Serial.println("random");
+      }
+      let dat = {
+          "msgType": msgType,
+      }
+      broadcast(data, false, null)
+}
+
+boredTimer = setInterval(dontGetBored, 7 * 1000 * 60)
 
 wss.on('connection', function connection(ws) {
     ws.on('error', console.error);
@@ -52,14 +113,13 @@ wss.on('connection', function connection(ws) {
         let dat = JSON.parse(data)
         if (dat.msgType == 44){
             lockState[dat.lockNumber] = dat.enabled
+        } else {
+            clearInterval(boredTimer);
+            boredTimer = setInterval(dontGetBored, 7 * 1000 * 60)
         }
 
         //broadcast the message
-        wss.clients.forEach(function each(client) {
-            if (client !== ws && client.readyState === WebSocket.OPEN) {
-                client.send(data, { binary: isBinary });
-            }
-        });
+        broadcast(data, isBinary, ws)
     });
 });
 
