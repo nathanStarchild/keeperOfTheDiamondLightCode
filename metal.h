@@ -19,7 +19,7 @@ uint16_t sweepSpot = 2;
 uint16_t element = 5;
 
 void elementSetup(){
-    FastLED.addLeds<WS2813, DATA_PIN_1, RGB>(outLeds, 0, LEDS_PER_OUTPUT); 
+    FastLED.addLeds<WS2813, DATA_PIN_2, RGB>(outLeds, 0, LEDS_PER_OUTPUT); 
     
     ArduinoOTA.setHostname("metal");
 }

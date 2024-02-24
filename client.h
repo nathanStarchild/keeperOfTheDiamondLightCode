@@ -14,29 +14,28 @@ String wsMsgString;
 bool inbox = false;
 uint32_t loopCounter = 0;
 
+MilliTimer tryToConnectTimer(1 * 60000); //bored timer, change if no messages or controller input
+
 
 void webSocketEvent(WStype_t type, uint8_t * payload, size_t length);
 void processWSMessage();
 
 void WiFiStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info){
-  Serial.println("Disconnected from WiFi access point");
-  Serial.print("WiFi lost connection. Reason: ");
-//  Serial.println(info.disconnected.reason);
-  Serial.println("Trying to Reconnect");
-  WiFi.begin("diamondLightNetwork");
+  alone = true;
+  if (tryToConnectTimer.isItTime()) {
+    Serial.println("tryin to connect");
+    WiFi.begin("diamondLightNetwork");
+    tryToConnectTimer.resetTimer();
+  } 
+//  Serial.println("Disconnected from WiFi access point");
+////  Serial.print("WiFi lost connection. Reason: ");
+////  Serial.println(info.disconnected.reason);
+//  Serial.println("Trying to Reconnect");
+//  WiFi.begin("diamondLightNetwork");
 }
 
-void wsSetup() {
-
-  WiFi.disconnect();
-  WiFi.mode(WIFI_STA);
-  WiFi.onEvent(WiFiStationDisconnected, ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
-  WiFi.begin("diamondLightNetwork");
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-   
+void WiFiGotIP(WiFiEvent_t event, WiFiEventInfo_t info){
+  alone = false;
   Serial.println("");
   Serial.println("WiFi connected");
   Serial.println("IP address: ");
@@ -57,6 +56,21 @@ void wsSetup() {
 
   // Hostname defaults to esp3232-[MAC]
   // ArduinoOTA.setHostname("myesp32");
+
+
+  ArduinoOTA.begin();
+  Serial.println("arduino OTA started");
+
+}
+
+void wsSetup() {
+
+  WiFi.disconnect();
+  WiFi.mode(WIFI_STA);
+  WiFi.onEvent(WiFiStationDisconnected, ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
+//  WiFi.onEvent(WiFiStationConnected,ARDUINO_EVENT_WIFI_STA_CONNECTED);
+  WiFi.onEvent(WiFiGotIP, ARDUINO_EVENT_WIFI_STA_GOT_IP);
+  WiFi.begin("diamondLightNetwork");
 
   // No authentication by default
   ArduinoOTA.setPassword("antares");
@@ -85,14 +99,30 @@ void wsSetup() {
       else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
       else if (error == OTA_END_ERROR) Serial.println("End Failed");
     });
-
-  ArduinoOTA.begin();
-
-
+  // int retries = 0;
+  // while (WiFi.status() != WL_CONNECTED && retries < 20) {
+  //   delay(500);
+  //   Serial.print(".");
+  //   retries ++;
+  // }
+  // if (WiFi.status() == WL_CONNECTED){
+  //   wifiConnected();
+  // }
 }
 
 void wsLoop() {
     loopCounter++;
+
+    if(alone) {
+//      if (tryToConnectTimer.isItTime()) {
+//        Serial.println("tryin to connect");
+//        WiFi.begin("diamondLightNetwork");
+//        tryToConnectTimer.resetTimer();
+//      } 
+      return;
+
+    }
+
     ArduinoOTA.handle();
 
   if (loopCounter % 4 == 0){

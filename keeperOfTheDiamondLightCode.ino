@@ -30,6 +30,9 @@ bool *locks[] = {
   &paletteLocked,//3
 };
 
+
+bool alone = true;
+
 //#define NO_RELAYER
 bool noRelayer = true;
 // #include "server.h"
@@ -73,6 +76,7 @@ uint8_t sPrimes[9] = {2, 3, 5, 7, 11, 13, 17, 19, 23};
 uint8_t pPrimes[5] = {11, 7, 5, 3, 2};
 const float fib =  1.61803;
 
+
 uint16_t nX(uint8_t n, int x);
 
 //#include "drumRoof.h"
@@ -85,6 +89,8 @@ uint16_t nX(uint8_t n, int x);
 
 //#include "tetrahedron.h"
 // #include "theDome.h"
+
+//Five Elements Orrery
 //#include "outerLegs.h"
 //#include "innerLegs.h"
 // #include "air.h"
@@ -92,6 +98,8 @@ uint16_t nX(uint8_t n, int x);
 //#include "earth.h"
 //#include "fire.h"
 //#include "metal.h"
+
+
 //#include "lamp1.h"
 //#include "serverOfTheDiamondLightNetwork.h"
 // #include "hotJam.h"
@@ -100,11 +108,21 @@ uint16_t nX(uint8_t n, int x);
 //#include "lightPainting3.h"
 //#include "lightPainting4.h"
 //#include "lightPainting5.h"
+// #include "miniPyramid.h"
+//#include "moonBeam.h"
+//#include "hexBase.h"
+//#include "christmas.h"
+//#include "tarpPalace.h"
+#include "theRafters.h"
+
+//Antarean Pyramid
 // #include "antares1.h"
 //#include "antares2.h"
 //#include "antares3.h"
-// #include "miniPyramid.h"
-#include "moonBeam.h"
+// #include "antaresTop.h"
+//#include "octahedron.h"
+//#include "hexBase.h"
+//#include "hexBaseFull.h"
 
 //CRGB leds[NUM_LEDS];
 //CRGB oldLeds[NUM_LEDS];
@@ -130,9 +148,9 @@ void setup() {
     targetPalette = Deep_Skyblues_gp;
     stepRate = 1;
     patternsOff();
-    // doubleRainbow();
+    doubleRainbow();
     // mainState.noiseFade.enabled = false;
-    // mainState.tail.enabled = true;
+    mainState.tail.enabled = true;
 //    mainState.noise2D.enabled = true;
 }
 
@@ -161,7 +179,9 @@ void loop(){
         shootingStars();
     }
 
-    // dontGetBored();
+    if (alone) {
+      dontGetBored();
+    }
 }
 
 void setStepRate(uint16_t rate) {

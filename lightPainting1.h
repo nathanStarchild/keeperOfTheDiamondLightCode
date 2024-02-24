@@ -22,6 +22,7 @@ void elementSetup(){
 //    FastLED.addLeds<WS2813, DATA_PIN_1, RGB>(outLeds, 0, LEDS_PER_OUTPUT); 
     //LED type, data pin, clock pin, rgb order
     FastLED.addLeds<APA102, DATA2_DATA1, DATA1_CLOCK1, BGR>(outLeds, LEDS_PER_OUTPUT);
+    FastLED.setMaxPowerInVoltsAndMilliamps(5,3000);
     
     ArduinoOTA.setHostname("lightPainting1");
 }
