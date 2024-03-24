@@ -109,11 +109,12 @@ uint16_t nX(uint8_t n, int x);
 //#include "lightPainting4.h"
 //#include "lightPainting5.h"
 // #include "miniPyramid.h"
-//#include "moonBeam.h"
+#include "moonBeam.h"
 //#include "hexBase.h"
 //#include "christmas.h"
 //#include "tarpPalace.h"
-#include "theRafters.h"
+//#include "theRafters.h"
+//#include "roller.h"
 
 //Antarean Pyramid
 // #include "antares1.h"
