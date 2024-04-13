@@ -1066,6 +1066,40 @@ $(document).ready(function() {
                 "max": 255,
                 "start": 30
             }
+        },
+        {
+            "name": "noise2D",
+            "pointer": 29,
+            "enabled": false,
+            "speed": {
+                "direction": "ltr",
+                "name": "speed",
+                "min": 1,
+                "max": 30,
+                "start": 2,
+            },
+            "length": {
+                "direction": "rtl",
+                "name": "length",
+                "min": 1,
+                "max": 70,
+                "start": 5
+            },
+            "decay": ""
+        },
+        {
+            "name": "Pi",
+            "pointer": 30,
+            "enabled": false,
+            "speed": "",
+            "length": "",
+            "decay": {
+                "direction": "ltr",
+                "name": "colour",
+                "min": 0,
+                "max": 255,
+                "start": 30
+            }
         }
         // {
         //     "name": "metal",

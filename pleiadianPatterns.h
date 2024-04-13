@@ -41,6 +41,7 @@ typedef struct patternState {
   pattern theVoid;
   pattern theBlob;
   pattern noise2D;
+  pattern pi;
 };
 
 // wave length 1 to 10
@@ -78,6 +79,7 @@ patternState mainState = {
   {false, 1, 30, 30}, //theVoid
   {false, 1, 30, 30}, //theBlob
   {false, 5, 15, 250}, //noise2D
+  {false, 5, 15, 250}, //noise2D
   };
 
 pattern *patternPointers[] = {
@@ -111,4 +113,5 @@ pattern *patternPointers[] = {
   &mainState.theVoid,//27
   &mainState.theBlob,//28
   &mainState.noise2D,//29
+  &mainState.pi,//30
 };

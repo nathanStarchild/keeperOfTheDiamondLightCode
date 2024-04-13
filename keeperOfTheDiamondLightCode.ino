@@ -79,6 +79,8 @@ const float fib =  1.61803;
 
 uint16_t nX(uint8_t n, int x);
 
+uint8_t stripSpacing = 4;
+
 //#include "drumRoof.h"
 //#include "thePyramid.h"
 //#include "theTower.h"
@@ -108,8 +110,8 @@ uint16_t nX(uint8_t n, int x);
 //#include "lightPainting3.h"
 //#include "lightPainting4.h"
 //#include "lightPainting5.h"
-// #include "miniPyramid.h"
-#include "moonBeam.h"
+ #include "miniPyramid.h"
+//#include "moonBeam.h"
 //#include "hexBase.h"
 //#include "christmas.h"
 //#include "tarpPalace.h"
@@ -546,6 +548,8 @@ void patternsOff() {
   mainState.metal.enabled = false;
   mainState.theVoid.enabled = false;
   mainState.theBlob.enabled = false;
+  mainState.noise2D.enabled = false;
+  mainState.pi.enabled = false;
 }
 
 bool nothingIsOn() {
@@ -573,7 +577,8 @@ bool nothingIsOn() {
     mainState.fire.enabled ||
     mainState.metal.enabled ||
     mainState.theBlob.enabled ||
-    mainState.noise2D.enabled
+    mainState.noise2D.enabled ||
+    mainState.pi.enabled
   );
 }
 
@@ -756,6 +761,10 @@ void updatePatterns() { //render the next LED state in the buffer using the curr
 
   if (mainState.theBlob.enabled) {
     theBlob();
+  }
+
+  if (mainState.pi.enabled) {
+    pi();
   }
 
   if (mainState.skaters.enabled) {
@@ -1435,7 +1444,7 @@ void noise2DPattern() {
   int spacing = 4;
   for (int i=0; i<nStrips; i++) {
     for (int j=0; j<stripLength; j++) {
-      uint8_t val = inoise8(i*spacing*mainState.noise2D.plength, j*mainState.noise2D.plength, mainState.patternStep * mainState.noise2D.pspeed);
+      uint8_t val = inoise8(i*stripSpacing*mainState.noise2D.plength, j*mainState.noise2D.plength, mainState.patternStep * mainState.noise2D.pspeed);
 
       int vm = map(val, 0, 255, -80, 255+80);
       uint8_t pv = (uint8_t)min(255, max(vm, 0));
@@ -1521,6 +1530,24 @@ void theBlob() {
     leds[(pos + i + num_leds) % num_leds] += ColorFromPalette(currentPalette, pv, bri);
     leds[(pos - i + num_leds) % num_leds] += ColorFromPalette(currentPalette, pv, bri);
   }
+}
+
+void pi() {
+  static int count = 0;
+  if (count > stripLength * 2){
+    fadeToBlackBy(leds, NUM_LEDS, 255);
+  }
+  int n = round(map(random8, 0, 255, 0 num_leds));
+  int x = n % stripLength;
+  int y = stripSpacing * n / stripLength;
+  float dist = sqrt(pow((float) x, 2) + pow((float) y, 2));
+  CRGB col = ColorFromPalette(currentPalette, mainState.pi.decay, 255)
+  if (dist > stripLength){
+    col = -col;
+  }
+  leds[n] = col;
+  count++;
+
 }
 
 uint16_t nX(uint8_t n, int x) {

@@ -92,15 +92,15 @@ void Spiraliser::restartIt() {
 }
 
 void Spiraliser::draw(float xIn, float yIn, float s, uint8_t c) { 
-  uint8_t spacing = 4;
-  int minX = max(0, int(xIn + (nStrips * spacing / 2) - s));
-  int maxX = min(nStrips * spacing, int(xIn + (nStrips * spacing / 2) + s));
+  // uint8_t spacing = 4;
+  int minX = max(0, int(xIn + (nStrips * stripSpacing / 2) - s));
+  int maxX = min(nStrips * stripSpacing, int(xIn + (nStrips * stripSpacing / 2) + s));
   int minY = max(0, int(yIn + (stripLength / 2) - s));
   int maxY = min(int(stripLength), int(yIn + (stripLength / 2) + s));
   for (int X=minX; X<=maxX; X++) {
-    if (X % spacing == 0) {
+    if (X % stripSpacing == 0) {
       for (int Y=minY; Y<=maxY; Y++) {
-        int idx = nX(X/spacing, Y);
+        int idx = nX(X/stripSpacing, Y);
         leds[idx] = ColorFromPalette(currentPalette, c, 255);
       }
     }

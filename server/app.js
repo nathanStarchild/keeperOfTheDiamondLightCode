@@ -113,9 +113,13 @@ wss.on('connection', function connection(ws) {
         let dat = JSON.parse(data)
         if (dat.msgType == 44){
             lockState[dat.lockNumber] = dat.enabled
+        } else if (dat.msgType == 45) {
+          clearInterval(boredTimer);
+        } else if (dat.msgType == 46) {
+          boredTimer = setInterval(dontGetBored, 7 * 1000 * 60)
         } else {
-            clearInterval(boredTimer);
-            boredTimer = setInterval(dontGetBored, 7 * 1000 * 60)
+          clearInterval(boredTimer);
+          boredTimer = setInterval(dontGetBored, 7 * 1000 * 60)
         }
 
         //broadcast the message
