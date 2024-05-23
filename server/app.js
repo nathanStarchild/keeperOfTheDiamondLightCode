@@ -42,6 +42,7 @@ function broadcast(data, isBinary, from) {
 }
 
 function dontGetBored(){ 
+  console.log("bored")
     let ran = Math.random();
     let msgType = 0;
     if (ran < 5/256) {
@@ -87,7 +88,7 @@ function dontGetBored(){
       let dat = {
           "msgType": msgType,
       }
-      broadcast(data, false, null)
+      broadcast(JSON.stringify(dat), false, null)
 }
 
 boredTimer = setInterval(dontGetBored, 7 * 1000 * 60)
@@ -114,8 +115,10 @@ wss.on('connection', function connection(ws) {
         if (dat.msgType == 44){
             lockState[dat.lockNumber] = dat.enabled
         } else if (dat.msgType == 45) {
+          console.log("get bored")
           clearInterval(boredTimer);
         } else if (dat.msgType == 46) {
+          console.log("get bored")
           boredTimer = setInterval(dontGetBored, 7 * 1000 * 60)
         } else {
           clearInterval(boredTimer);
