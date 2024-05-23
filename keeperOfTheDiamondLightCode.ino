@@ -105,12 +105,13 @@ uint8_t stripSpacing = 4;
 //#include "lamp1.h"
 //#include "serverOfTheDiamondLightNetwork.h"
 // #include "hotJam.h"
-//#include "lightPainting1.h"
+#include "lightPainting1.h"
 //#include "lightPainting2.h"
 //#include "lightPainting3.h"
 //#include "lightPainting4.h"
 //#include "lightPainting5.h"
- #include "miniPyramid.h"
+// #include "miniPyramid.h"
+//#include "piCostume.h"
 //#include "moonBeam.h"
 //#include "hexBase.h"
 //#include "christmas.h"
@@ -851,7 +852,7 @@ void updatePatterns() { //render the next LED state in the buffer using the curr
   //   paletteFill();
   // }
 
-  alwaysOn();
+  //  alwaysOn();
 
   //  Serial.printf("%d - %d\n", frameCount, mainState.patternStep);
 
@@ -1534,15 +1535,25 @@ void theBlob() {
 
 void pi() {
   static int count = 0;
-  if (count > stripLength * 2){
-    fadeToBlackBy(leds, NUM_LEDS, 255);
+  int gap = 2;
+//  if (count > stripLength * 5){
+//    fadeToBlackBy(leds, NUM_LEDS, 255);
+//    count = 0;
+//  }
+  int n = map(random8(), 0, 255, 0, num_leds);
+  int strip = n / stripLength;
+  float y = strip * stripSpacing;
+  float x = n % stripLength;
+  if (x >= stripLength - gap) {
+    y += 0.5 + ((int) x % (stripLength - gap));
   }
-  int n = round(map(random8, 0, 255, 0 num_leds));
-  int x = n % stripLength;
-  int y = stripSpacing * n / stripLength;
+  x = min(x, float(stripLength - gap));
+  if (stripDirection[strip] == -1){
+    x = stripLength - gap - x;
+  }
   float dist = sqrt(pow((float) x, 2) + pow((float) y, 2));
-  CRGB col = ColorFromPalette(currentPalette, mainState.pi.decay, 255)
-  if (dist > stripLength){
+  CRGB col = ColorFromPalette(currentPalette, mainState.pi.decay, 255);
+  if (dist > (stripLength - gap)){
     col = -col;
   }
   leds[n] = col;
@@ -1820,6 +1831,9 @@ void processWSMessage(){
         lock = locks[wsMsg["lockNumber"].as<int>()];
         *lock = wsMsg["enabled"].as<bool>();
         Serial.println(stepRateLocked);
+        Serial.println(fadeRateLocked);
+        Serial.println(brightnessLocked);
+        Serial.println(paletteLocked);
 
    }
   }
