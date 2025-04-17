@@ -149,7 +149,7 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
       Serial.printf("[WSc] Connected to url: %s\n", payload);
 
       // send message to server when Connected
-      // webSocket.sendTXT("Connected");
+       webSocket.sendTXT("lockState");
       break;
 
     case WStype_TEXT:

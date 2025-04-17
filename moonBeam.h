@@ -21,7 +21,7 @@ uint16_t element = 0;
 void elementSetup(){
 //    FastLED.addLeds<WS2813, DATA_PIN_1, RGB>(outLeds, 0, LEDS_PER_OUTPUT); 
     //LED type, data pin, clock pin, rgb order
-    FastLED.addLeds<WS2812B, DATA2_3PIN, GRB>(outLeds, LEDS_PER_OUTPUT);
+    FastLED.addLeds<WS2812B, DATA2_DATA1, GRB>(outLeds, LEDS_PER_OUTPUT);
     
     ArduinoOTA.setHostname("moonBeam");
 }

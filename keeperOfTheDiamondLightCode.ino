@@ -101,15 +101,18 @@ uint8_t stripSpacing = 4;
 //#include "fire.h"
 //#include "metal.h"
 
+// Lyrelight
+//#include "lyrelightRoof.h"
+
 
 //#include "lamp1.h"
 //#include "serverOfTheDiamondLightNetwork.h"
 // #include "hotJam.h"
-#include "lightPainting1.h"
+//#include "lightPainting1.h"
 //#include "lightPainting2.h"
 //#include "lightPainting3.h"
 //#include "lightPainting4.h"
-//#include "lightPainting5.h"
+#include "lightPainting5.h"
 // #include "miniPyramid.h"
 //#include "piCostume.h"
 //#include "moonBeam.h"
@@ -118,6 +121,8 @@ uint8_t stripSpacing = 4;
 //#include "tarpPalace.h"
 //#include "theRafters.h"
 //#include "roller.h"
+//#include "aerials1.h"
+//#include "aerials2.h"
 
 //Antarean Pyramid
 // #include "antares1.h"
@@ -127,6 +132,15 @@ uint8_t stripSpacing = 4;
 //#include "octahedron.h"
 //#include "hexBase.h"
 //#include "hexBaseFull.h"
+//#include "tester.h"
+//#include "bigPyramid.h"
+//#include "bigBase.h"
+//#include "antares_v4_a.h"
+//#include "antares_v4_b.h"
+//#include "antares_v4_c.h"
+
+//#include "strangerWall.h"
+//#include "strangerRoof.h"
 
 //CRGB leds[NUM_LEDS];
 //CRGB oldLeds[NUM_LEDS];
@@ -497,14 +511,18 @@ void metalMode() {
   stepRate = 1;
   patternsOff();
   if (element ==  0 || element ==  5){
+    mainState.ripple.enabled = true;
     mainState.metal.enabled = true;
-    mainState.metal.pspeed = num_leds / 10;
+//    mainState.metal.pspeed = num_leds / 10;
+    mainState.metal.pspeed = 80;
     mainState.metal.plength = 150;
     stepRate = 4;
   } else if (element ==  6) {
     mainState.glitter.enabled = true;
     mainState.spiral.enabled = true;
     mainState.ripple.enabled = true;
+  } else {
+    mainState.spiral.enabled = true;
   }
 }
 
@@ -751,7 +769,8 @@ void updatePatterns() { //render the next LED state in the buffer using the curr
     }
     if (random8() < mainState.glitter.plength) {
       for (int i=0; i<mainState.glitter.pspeed; i++) {
-        leds[ random16(num_leds) ] = glitterMode;
+        leds[ random16(num_leds) ] = ColorFromPalette(currentPalette, random8(), 250);
+//        leds[ random16(num_leds) ] = glitterMode;
       }
     }
   }
@@ -1228,15 +1247,16 @@ void powerSaver() {
 
 void ants() {
   static int leader = 0;
-  static int8_t pIdx = mainState.ants.decay;
+//  static int8_t pIdx = mainState.ants.decay;
   uint8_t nAnts = mainState.ants.plength;
   uint8_t spacing = mainState.ants.pspeed;
   int pos;
   for (int i=0; i<nAnts; i++) {
+    uint8_t pIdx = map(i, 0, nAnts, 0, 255);
     pos = leader - (i * spacing);
     if ((pos >= 0) && (pos < stripLength)) {
       for (int strip = 0; strip < nStrips; strip++) {
-        leds[nX(strip, pos)] = ColorFromPalette(currentPalette, (uint8_t) pIdx, 150);
+        leds[nX(strip, pos)] = ColorFromPalette(currentPalette, pIdx, 150);
       }
     }
   }
@@ -1287,6 +1307,7 @@ void Fire2012(){
 }
 
 void launch() {
+  
   static int sweepProgress = 0;
   static int sweepBase = 32;
   static int onFor = 72*6;
@@ -1477,10 +1498,12 @@ void air() {
 }
 
 void metal(){  
+//  leds[10] = CHSV(120, 180, 255);
   for (int i=0; i<mainState.metal.pspeed; i++){
+//    leds[i] = ColorFromPalette(currentPalette, random8(), 250);
     if (random8() < mainState.metal.plength) {
       uint16_t r = random16(num_leds);
-      leds[nX(random8(nStrips), random8(stripLength))] = ColorFromPalette(currentPalette, random8(), 250);
+      leds[nX(random8(nStrips), random8((uint8_t)stripLength))] = ColorFromPalette(currentPalette, random8(), 250);
     }
   }
 }
@@ -1680,6 +1703,7 @@ void processWSMessage(){
        mainState.houseLights.enabled = !mainState.houseLights.enabled;
        break;
      case 9:
+       setStepRate(1);
        mainState.launch.enabled = true;
        break;
      case 10:
@@ -1829,7 +1853,7 @@ void processWSMessage(){
         break;
       case 44:
         lock = locks[wsMsg["lockNumber"].as<int>()];
-        *lock = wsMsg["enabled"].as<bool>();
+        *lock = !wsMsg["enabled"].as<bool>();
         Serial.println(stepRateLocked);
         Serial.println(fadeRateLocked);
         Serial.println(brightnessLocked);
