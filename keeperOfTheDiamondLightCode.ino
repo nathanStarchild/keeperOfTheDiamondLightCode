@@ -35,9 +35,9 @@ bool alone = true;
 
 //#define NO_RELAYER
 bool noRelayer = true;
-// #include "server.h"
+ #include "server.h"
 //#include "relayer.h"
-#include "client.h"
+//#include "client.h"
 
 
 #define   LED  2       // GPIO number of connected LED, ON ESP-12 IS GPIO2
@@ -67,7 +67,7 @@ MilliTimer paletteCycleTimer(5 * 60000); // how often to move to the next palett
 MilliTimer testingTimer(10000);
 MilliTimer tripperTrapTimer(5 * 60000); //how long to stay in tripper trap mode
 MilliTimer batteryUpdateTimer(9*60000); //how long to wait before assuming the voltage screamer isn't coming back online
-MilliTimer frameTimer(20);
+MilliTimer frameTimer(22);
 
 
 const float PHI = 1.61803398875;
@@ -112,7 +112,7 @@ uint8_t stripSpacing = 4;
 //#include "lightPainting2.h"
 //#include "lightPainting3.h"
 //#include "lightPainting4.h"
-#include "lightPainting5.h"
+//#include "lightPainting5.h"
 // #include "miniPyramid.h"
 //#include "piCostume.h"
 //#include "moonBeam.h"
@@ -129,7 +129,7 @@ uint8_t stripSpacing = 4;
 //#include "antares2.h"
 //#include "antares3.h"
 // #include "antaresTop.h"
-//#include "octahedron.h"
+#include "octahedron.h"
 //#include "hexBase.h"
 //#include "hexBaseFull.h"
 //#include "tester.h"
@@ -138,6 +138,8 @@ uint8_t stripSpacing = 4;
 //#include "antares_v4_a.h"
 //#include "antares_v4_b.h"
 //#include "antares_v4_c.h"
+//#include "theBase_b.h"
+//#include "antares_octa.h"
 
 //#include "strangerWall.h"
 //#include "strangerRoof.h"
@@ -176,10 +178,15 @@ void loop(){
     wsLoop();
 
     if ( frameTimer.isItTime()) {
-        blendFrames();
-        FastLED.show();
-        mainState.stale = true;
-        frameTimer.resetTimer();
+      frameTimer.resetTimer();
+//    if ( true ) {
+//        glitchPixel(LEDS_OUTPUT1 + 72);
+//    }
+      blendFrames();
+      FastLED.show();
+      mainState.stale = true;
+//        uint32_t el = frameTimer.elapsed();
+//        Serial.println(el);
     }
 
     if (mainState.stale) {
@@ -871,7 +878,7 @@ void updatePatterns() { //render the next LED state in the buffer using the curr
   //   paletteFill();
   // }
 
-  //  alwaysOn();
+    alwaysOn();
 
   //  Serial.printf("%d - %d\n", frameCount, mainState.patternStep);
 
@@ -894,6 +901,10 @@ CRGB tailScale (CRGB pixel, int pos) {
       return (pixel);
       break;
   }
+}
+
+void glitchPixel(uint16_t n){
+  leds[n] = CRGB::Black;
 }
 
 void enlightenmentCallback(uint8_t enVal) {
@@ -1037,14 +1048,14 @@ void blendwave() {
   static CRGB clr1;
   static CRGB clr2;
   static uint8_t blendSpeed;
-  static uint8_t loc1;
+  static uint16_t loc1;
   static uint8_t loc2;
   static uint8_t ran1;
   static uint8_t ran2;
   blendSpeed = beatsin8(6, 0, 255);
   clr1 = blend(CHSV(beatsin8(3, 0, 255), 255, 255), CHSV(beatsin8(4, 0, 255), 255, 255), blendSpeed); //TODO get colour from palette instead
   clr2 = blend(CHSV(beatsin8(4, 0, 255), 255, 255), CHSV(beatsin8(3, 0, 255), 255, 255), blendSpeed);
-  loc1 = beatsin8(10, 0, num_leds - 1);
+  loc1 = beatsin16(10, 0, num_leds - 1);
   fill_gradient_RGB(leds, 0, clr2, loc1, clr1);
   fill_gradient_RGB(leds, loc1, clr2, num_leds - 1, clr1);
 } // blendwave()

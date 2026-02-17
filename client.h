@@ -113,19 +113,19 @@ void wsSetup() {
 void wsLoop() {
     loopCounter++;
 
-    if(alone) {
-//      if (tryToConnectTimer.isItTime()) {
-//        Serial.println("tryin to connect");
-//        WiFi.begin("diamondLightNetwork");
-//        tryToConnectTimer.resetTimer();
-//      } 
-      return;
-
-    }
+//    if(alone) {
+////      if (tryToConnectTimer.isItTime()) {
+////        Serial.println("tryin to connect");
+////        WiFi.begin("diamondLightNetwork");
+////        tryToConnectTimer.resetTimer();
+////      } 
+//      return;
+//
+//    }
 
     ArduinoOTA.handle();
 
-  if (loopCounter % 4 == 0){
+  if (loopCounter % 2 == 0){
     webSocket.loop();
   }
 

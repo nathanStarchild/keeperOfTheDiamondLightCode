@@ -26,5 +26,5 @@ void elementSetup(){
 //    FastLED.addLeds<WS2813, DATA_PIN_1, RGB>(outLeds, 0, 600); 
 //    FastLED.addLeds<WS2813, DATA_PIN_2, RGB>(outLeds, 600, 360); 
 
-    ArduinoOTA.setHostname("bigPyramid");
+    ArduinoOTA.setHostname("antares_v3");
 }

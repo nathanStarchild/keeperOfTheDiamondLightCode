@@ -14,8 +14,8 @@
 #include <FS.h>
 
 DNSServer dnsServer;
-AsyncWebServer server(80);
-WebSocketsServer webSocketsServer = WebSocketsServer(81);
+AsyncWebServer server(81);
+WebSocketsServer webSocketsServer = WebSocketsServer(80);
 DynamicJsonDocument wsMsg(1024);
 String wsMsgString;
 
@@ -46,7 +46,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
 void processWSMessage();
 
 
-IPAddress apIP(8, 8, 8, 8);
+IPAddress apIP(200, 200, 200, 1);
 IPAddress netMsk(255, 255, 255, 0);
 
 class CaptiveRequestHandler : public AsyncWebHandler {
@@ -110,8 +110,9 @@ void wsSetup() {
   WiFi.disconnect();
 //  WiFi.mode(WIFI_OFF);
   WiFi.mode(WIFI_AP);
-//  WiFi.softAPConfig(apIP, apIP, netMsk);
-  WiFi.softAP("keeperOfTheDiamondLights", "enlighten", 1, false, 8);
+  WiFi.softAPConfig(apIP, apIP, netMsk);
+  WiFi.softAP("diamondLightNetwork");
+//  WiFi.softAP("keeperOfTheDiamondLights", "enlighten", 1, false, 8);
   Serial.println(WiFi.softAPIP());
   server.serveStatic("/", SPIFFS, "/", "max-age=86400").setDefaultFile("index.html");
   

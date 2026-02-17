@@ -11,10 +11,10 @@ CRGB leds[NUM_LEDS];
 CRGB oldLeds[NUM_LEDS];
 CRGB outLeds[NUM_LEDS];
 
-int directionLR[nStrips] = {-1, -1, -1, -1, -1, -1};
-int directionUD[nStrips] = {-1, 1, -1, 1, -1, 1};
+int directionLR[nStrips] = {1, 1, 1, 1, 1, 1};
+int directionUD[nStrips] = {1, -1, 1, -1, 1, -1};
 int directionIO[nStrips] = {1, -1, 1, -1, 1, -1};
-int stripDirection[nStrips] =  {-1, 1, -1, 1, -1, 1};
+int stripDirection[nStrips] = {1, -1, 1, -1, 1, -1};
 uint16_t audienceSpot = 3;
 uint16_t sweepSpot = 3;
 uint16_t element = 0;
