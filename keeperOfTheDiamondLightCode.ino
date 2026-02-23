@@ -33,28 +33,35 @@ bool *locks[] = {
 
 bool alone = true;
 
+
+
+ #define   LED  2       // GPIO number of connected LED, ON ESP-12 IS GPIO2
+  #define DATA1_CLOCK1 14 //maybe switch to 27?
+  #define DATA_PIN_1 27
+  #define DATA2_DATA1 27 //Maybe switch to 14?
+  #define DATA_PIN_2 14
+  #define DATA3_DATA2 15
+  #define DATA2_3PIN 15
+  #define DATA_PIN_3 15
+  #define CLOCK2 2
+
+//// //for esp8266 
+//#define ESP8266 true
+//#define FASTLED_ESP8266_D1_PIN_ORDER
+//
+////- APA102C
+////#define DATA_PIN 14
+////#define CLOCK_PIN 13
+//
+////- WS2812
+//#define DATA_PIN_1 4
+
+
 //#define NO_RELAYER
 bool noRelayer = true;
- #include "server.h"
+//  #include "server.h"
 //#include "relayer.h"
-//#include "client.h"
-
-
-#define   LED  2       // GPIO number of connected LED, ON ESP-12 IS GPIO2
- #define DATA1_CLOCK1 14 //maybe switch to 27?
- #define DATA_PIN_1 27
- #define DATA2_DATA1 27 //Maybe switch to 14?
- #define DATA_PIN_2 14
- #define DATA3_DATA2 15
- #define DATA2_3PIN 15
- #define DATA_PIN_3 15
- #define CLOCK2 2
-
-// //for esp8266
-//#define DATA_PIN 14
-//#define CLOCK_PIN 13
-
-// #define FASTLED_ESP8266_D1_PIN_ORDER
+#include "client.h"
 
 
 const uint16_t enlightenTime = 60000; //ms
@@ -115,7 +122,7 @@ uint8_t stripSpacing = 4;
 //#include "lightPainting5.h"
 // #include "miniPyramid.h"
 //#include "piCostume.h"
-//#include "moonBeam.h"
+#include "moonBeam.h"
 //#include "hexBase.h"
 //#include "christmas.h"
 //#include "tarpPalace.h"
@@ -129,7 +136,7 @@ uint8_t stripSpacing = 4;
 //#include "antares2.h"
 //#include "antares3.h"
 // #include "antaresTop.h"
-#include "octahedron.h"
+// #include "octahedron.h"
 //#include "hexBase.h"
 //#include "hexBaseFull.h"
 //#include "tester.h"
@@ -143,6 +150,9 @@ uint8_t stripSpacing = 4;
 
 //#include "strangerWall.h"
 //#include "strangerRoof.h"
+
+// Mardi Gras
+//#include "esp8266Test.h"
 
 //CRGB leds[NUM_LEDS];
 //CRGB oldLeds[NUM_LEDS];
@@ -158,6 +168,7 @@ Spiraliser spiral;
 
 void setup() {
     Serial.begin(9600);
+    Serial.println("hello");
     elementSetup();
     wsSetup();
 
@@ -170,7 +181,7 @@ void setup() {
     patternsOff();
     doubleRainbow();
     // mainState.noiseFade.enabled = false;
-    mainState.tail.enabled = true;
+//    mainState.blendwave.enabled = true;
 //    mainState.noise2D.enabled = true;
 }
 

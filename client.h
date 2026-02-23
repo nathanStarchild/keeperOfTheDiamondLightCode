@@ -1,4 +1,9 @@
-#include <WiFi.h>
+#ifdef ESP8266
+  #include <ESP8266WiFi.h>
+#else
+  #include <WiFi.h>
+#endif
+
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 
@@ -19,22 +24,121 @@ MilliTimer tryToConnectTimer(1 * 60000); //bored timer, change if no messages or
 
 void webSocketEvent(WStype_t type, uint8_t * payload, size_t length);
 void processWSMessage();
+#ifdef ESP8266
+WiFiEventHandler stationConnectedHandler;
+void WiFiGotIP(const WiFiEventStationModeGotIP& event);
+WiFiEventHandler stationDisconnectedHandler;
+void WiFiStationDisconnected(const WiFiEventStationModeDisconnected& event);
+#else
+void WiFiStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info);
+void WiFiGotIP(WiFiEvent_t event, WiFiEventInfo_t info);
+#endif
 
-void WiFiStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info){
-  alone = true;
-  if (tryToConnectTimer.isItTime()) {
-    Serial.println("tryin to connect");
-    WiFi.begin("diamondLightNetwork");
-    tryToConnectTimer.resetTimer();
-  } 
-//  Serial.println("Disconnected from WiFi access point");
-////  Serial.print("WiFi lost connection. Reason: ");
-////  Serial.println(info.disconnected.reason);
-//  Serial.println("Trying to Reconnect");
-//  WiFi.begin("diamondLightNetwork");
+
+void wsSetup() {
+
+  WiFi.disconnect();
+  WiFi.mode(WIFI_STA);
+  WiFi.setAutoReconnect(false);
+  WiFi.begin("diamondLightNetwork");
+  #ifdef ESP8266
+  stationConnectedHandler = WiFi.onStationModeGotIP(&WiFiGotIP);
+  stationDisconnectedHandler = WiFi.onStationModeDisconnected(&WiFiStationDisconnected);
+  #else
+  WiFi.onEvent(WiFiStationDisconnected, ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
+//  WiFi.onEvent(WiFiStationConnected,ARDUINO_EVENT_WIFI_STA_CONNECTED);
+  WiFi.onEvent(WiFiGotIP, ARDUINO_EVENT_WIFI_STA_GOT_IP);
+  #endif
+
+  // No authentication by default
+  ArduinoOTA.setPassword("antares");
+  ArduinoOTA.onStart([]() {
+      String type;
+      if (ArduinoOTA.getCommand() == U_FLASH)
+        type = "sketch";
+      else // U_SPIFFS
+        type = "filesystem";
+
+      // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
+      Serial.println("Start updating " + type);
+    });
+  ArduinoOTA.onEnd([]() {
+      Serial.println("\nEnd");
+    });
+  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
+      Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+    });
+  ArduinoOTA.onError([](ota_error_t error) {
+      Serial.printf("Error[%u]: ", error);
+      if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
+      else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
+      else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
+      else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
+      else if (error == OTA_END_ERROR) Serial.println("End Failed");
+    });
+   int retries = 0;
+   while (WiFi.status() != WL_CONNECTED && retries < 20) {
+     delay(500);
+     Serial.print(".");
+     retries ++;
+   }
+   if (WiFi.status() != WL_CONNECTED){
+     Serial.println("Couldn't connect to network");
+     alone = true;
+   }
 }
 
+void wsLoop() {
+    loopCounter++;
+
+    if(alone) {
+      if (tryToConnectTimer.isItTime()) {
+        Serial.println("tryin to connect");
+        WiFi.begin("diamondLightNetwork");
+        tryToConnectTimer.resetTimer();
+      } 
+      return;
+
+    }
+
+    ArduinoOTA.handle();
+
+  if (loopCounter % 2 == 0){
+    webSocket.loop();
+  }
+
+  if (inbox) {
+    processWSMessage();
+    inbox = false;
+  }
+
+}
+
+#ifdef ESP8266
+void WiFiStationDisconnected(const WiFiEventStationModeDisconnected& event) {
+#else
+void WiFiStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info){
+#endif
+    alone = true;
+    webSocket.disconnect();
+//    if (tryToConnectTimer.isItTime()) {
+//      Serial.println("tryin to connect");
+//      WiFi.begin("diamondLightNetwork");
+//      tryToConnectTimer.resetTimer();
+//    } 
+  //  Serial.println("Disconnected from WiFi access point");
+  ////  Serial.print("WiFi lost connection. Reason: ");
+  ////  Serial.println(info.disconnected.reason);
+  //  Serial.println("Trying to Reconnect");
+  //  WiFi.begin("diamondLightNetwork");
+  }
+
+
+#ifdef ESP8266
+void WiFiGotIP(const WiFiEventStationModeGotIP& event) {
+#else
 void WiFiGotIP(WiFiEvent_t event, WiFiEventInfo_t info){
+#endif
   alone = false;
   Serial.println("");
   Serial.println("WiFi connected");
@@ -62,82 +166,10 @@ void WiFiGotIP(WiFiEvent_t event, WiFiEventInfo_t info){
   Serial.println("arduino OTA started");
 
 }
+//#endif
 
-void wsSetup() {
-
-  WiFi.disconnect();
-  WiFi.mode(WIFI_STA);
-  WiFi.onEvent(WiFiStationDisconnected, ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
-//  WiFi.onEvent(WiFiStationConnected,ARDUINO_EVENT_WIFI_STA_CONNECTED);
-  WiFi.onEvent(WiFiGotIP, ARDUINO_EVENT_WIFI_STA_GOT_IP);
-  WiFi.begin("diamondLightNetwork");
-
-  // No authentication by default
-  ArduinoOTA.setPassword("antares");
-  ArduinoOTA
-    .onStart([]() {
-      String type;
-      if (ArduinoOTA.getCommand() == U_FLASH)
-        type = "sketch";
-      else // U_SPIFFS
-        type = "filesystem";
-
-      // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
-      Serial.println("Start updating " + type);
-    })
-    .onEnd([]() {
-      Serial.println("\nEnd");
-    })
-    .onProgress([](unsigned int progress, unsigned int total) {
-      Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
-    })
-    .onError([](ota_error_t error) {
-      Serial.printf("Error[%u]: ", error);
-      if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
-      else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
-      else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
-      else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
-      else if (error == OTA_END_ERROR) Serial.println("End Failed");
-    });
-  // int retries = 0;
-  // while (WiFi.status() != WL_CONNECTED && retries < 20) {
-  //   delay(500);
-  //   Serial.print(".");
-  //   retries ++;
-  // }
-  // if (WiFi.status() == WL_CONNECTED){
-  //   wifiConnected();
-  // }
-}
-
-void wsLoop() {
-    loopCounter++;
-
-//    if(alone) {
-////      if (tryToConnectTimer.isItTime()) {
-////        Serial.println("tryin to connect");
-////        WiFi.begin("diamondLightNetwork");
-////        tryToConnectTimer.resetTimer();
-////      } 
-//      return;
-//
-//    }
-
-    ArduinoOTA.handle();
-
-  if (loopCounter % 2 == 0){
-    webSocket.loop();
-  }
-
-  if (inbox) {
-    processWSMessage();
-    inbox = false;
-  }
-
-}
 
 void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
-
   DeserializationError error;
 
   switch (type) {
