@@ -1,3 +1,6 @@
+#define ESP8266 true
+#include "pinDefinitions.h"
+
 const uint16_t stripLength = 100;
 const uint8_t nStrips = 1;
 const uint16_t num_leds = stripLength * nStrips;

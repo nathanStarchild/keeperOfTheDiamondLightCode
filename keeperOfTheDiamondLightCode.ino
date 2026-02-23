@@ -30,32 +30,7 @@ bool *locks[] = {
   &paletteLocked,//3
 };
 
-
 bool alone = true;
-
-
-
- #define   LED  2       // GPIO number of connected LED, ON ESP-12 IS GPIO2
-  #define DATA1_CLOCK1 14 //maybe switch to 27?
-  #define DATA_PIN_1 27
-  #define DATA2_DATA1 27 //Maybe switch to 14?
-  #define DATA_PIN_2 14
-  #define DATA3_DATA2 15
-  #define DATA2_3PIN 15
-  #define DATA_PIN_3 15
-  #define CLOCK2 2
-
-//// //for esp8266 
-//#define ESP8266 true
-//#define FASTLED_ESP8266_D1_PIN_ORDER
-//
-////- APA102C
-////#define DATA_PIN 14
-////#define CLOCK_PIN 13
-//
-////- WS2812
-//#define DATA_PIN_1 4
-
 
 //#define NO_RELAYER
 bool noRelayer = true;
@@ -63,30 +38,9 @@ bool noRelayer = true;
 //#include "relayer.h"
 #include "client.h"
 
+// Mardi Gras
+#include "esp8266Test.h"
 
-const uint16_t enlightenTime = 60000; //ms
-MilliTimer offline_pattern(3 * 60000); //1000 seconds
-//MilliTimer boredTimer(11 * 60000); //bored timer, change if no messages or controller input
-MilliTimer glitterTimer(10000); //how long glitter runs for
-MilliTimer enlightenment(enlightenTime); //enlightenment button hold time
-MilliTimer paletteBlendTimer(100); //how often to perform palette blending steps when moving to new palette
-MilliTimer paletteCycleTimer(5 * 60000); // how often to move to the next palette
-MilliTimer testingTimer(10000);
-MilliTimer tripperTrapTimer(5 * 60000); //how long to stay in tripper trap mode
-MilliTimer batteryUpdateTimer(9*60000); //how long to wait before assuming the voltage screamer isn't coming back online
-MilliTimer frameTimer(22);
-
-
-const float PHI = 1.61803398875;
-uint8_t primes[4] = {5, 3, 2, 1};
-uint8_t sPrimes[9] = {2, 3, 5, 7, 11, 13, 17, 19, 23};
-uint8_t pPrimes[5] = {11, 7, 5, 3, 2};
-const float fib =  1.61803;
-
-
-uint16_t nX(uint8_t n, int x);
-
-uint8_t stripSpacing = 4;
 
 //#include "drumRoof.h"
 //#include "thePyramid.h"
@@ -122,7 +76,7 @@ uint8_t stripSpacing = 4;
 //#include "lightPainting5.h"
 // #include "miniPyramid.h"
 //#include "piCostume.h"
-#include "moonBeam.h"
+// #include "moonBeam.h"
 //#include "hexBase.h"
 //#include "christmas.h"
 //#include "tarpPalace.h"
@@ -151,12 +105,31 @@ uint8_t stripSpacing = 4;
 //#include "strangerWall.h"
 //#include "strangerRoof.h"
 
-// Mardi Gras
-//#include "esp8266Test.h"
 
-//CRGB leds[NUM_LEDS];
-//CRGB oldLeds[NUM_LEDS];
-//CRGB outLeds[NUM_LEDS];
+const uint16_t enlightenTime = 60000; //ms
+MilliTimer offline_pattern(3 * 60000); //1000 seconds
+//MilliTimer boredTimer(11 * 60000); //bored timer, change if no messages or controller input
+MilliTimer glitterTimer(10000); //how long glitter runs for
+MilliTimer enlightenment(enlightenTime); //enlightenment button hold time
+MilliTimer paletteBlendTimer(100); //how often to perform palette blending steps when moving to new palette
+MilliTimer paletteCycleTimer(5 * 60000); // how often to move to the next palette
+MilliTimer testingTimer(10000);
+MilliTimer tripperTrapTimer(5 * 60000); //how long to stay in tripper trap mode
+MilliTimer batteryUpdateTimer(9*60000); //how long to wait before assuming the voltage screamer isn't coming back online
+MilliTimer frameTimer(22);
+
+
+const float PHI = 1.61803398875;
+uint8_t primes[4] = {5, 3, 2, 1};
+uint8_t sPrimes[9] = {2, 3, 5, 7, 11, 13, 17, 19, 23};
+uint8_t pPrimes[5] = {11, 7, 5, 3, 2};
+const float fib =  1.61803;
+
+
+uint16_t nX(uint8_t n, int x);
+
+uint8_t stripSpacing = 4;
+
 
 #include "rippler.h"
 const uint8_t nRipples = 10;
