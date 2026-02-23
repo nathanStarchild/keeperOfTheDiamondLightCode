@@ -1,3 +1,5 @@
+#include "pinDefinitions.h"
+
 //b2
 const uint16_t stripLength = 65;
 const uint8_t nStrips = 5;

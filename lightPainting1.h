@@ -1,4 +1,6 @@
 //b3
+#include "pinDefinitions.h"
+
 const uint16_t stripLength = 20;
 const uint8_t nStrips = 7;
 const uint16_t num_leds = stripLength * nStrips;
