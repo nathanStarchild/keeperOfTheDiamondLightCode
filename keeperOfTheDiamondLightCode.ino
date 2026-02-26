@@ -1372,7 +1372,7 @@ void launch() {
       mainState.dimmer.plength = 1;
       sweepProgress = 0;
       targetPalette = CloudColors_p;
-      if (sweepSpot == 6) {
+      if (sweepSpot == 99) {
         fadeRate = 150;
         mainState.breathe.enabled = true;
         mainState.breathe.pspeed = 30;
@@ -1381,13 +1381,13 @@ void launch() {
         mainState.ants.pspeed = 6;
       }
     } else if (sweepBase > 0) {
-      if (sweepSpot != 6) {
+      if (sweepSpot != 99) {
         if ((sweepProgress >= sweepRate * sweepSpot) && (sweepProgress < (sweepRate * sweepSpot) + onFor)) {
           houseLights();
         }
       }
       sweepProgress++;
-      if (sweepProgress == sweepRate * 6) {
+      if (sweepProgress == sweepRate * 12) {
         onFor = 3;
         fadeRate = min(fadeRate + 10, 255);
         sweepProgress = 0;

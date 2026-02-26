@@ -25,7 +25,7 @@ int directionIO[nStrips] = {1};
 int stripDirection[nStrips] =  {1};
 int stripZ[nStrips] = {1}
 uint16_t audienceSpot = 1;
-uint16_t sweepSpot = 1;
+uint16_t sweepSpot = NUMBER + 3;
 uint16_t element = 0;
 
 void elementSetup(){
