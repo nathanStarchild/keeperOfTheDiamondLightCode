@@ -33,12 +33,18 @@ let lockState = [
     true,
 ]
 
-function broadcast(data, isBinary, from) {
-    wss.clients.forEach(function each(client) {
-        if (client !== from && client.readyState === WebSocket.OPEN) {
-            client.send(data, { binary: isBinary });
-        }
-    });
+async function broadcast(data, isBinary, from) {
+  const clients = [...wss.clients]
+
+  for (let i = 0; i < clients.length; i++) {
+    const client = clients[i]
+
+    if (client !== from && client.readyState === WebSocket.OPEN) {
+      client.send(data, { binary: isBinary })
+    }
+
+    if (i % 8 === 0) await new Promise(r => setImmediate(r))
+  }
 }
 
 function dontGetBored(){ 
@@ -118,7 +124,8 @@ wss.on('connection', function connection(ws) {
           console.log("get bored")
           clearInterval(boredTimer);
         } else if (dat.msgType == 46) {
-          console.log("get bored")
+          console.log("don't get bored")
+          clearInterval(boredTimer);
           boredTimer = setInterval(dontGetBored, 7 * 1000 * 60)
         } else {
           clearInterval(boredTimer);
