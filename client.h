@@ -38,6 +38,7 @@ uint32_t pingInterval = 60000;
 MilliTimer pingTimer(pingInterval);
 
 uint64_t offsetMs = 0;        // smoothed server offset
+bool firstOffset = true;
 uint64_t lastPingT0 = 0;
 bool pingOutstanding = false;
 #define PING_MSG_TYPE = 999
@@ -46,6 +47,9 @@ bool pingOutstanding = false;
 
 void webSocketEvent(WStype_t type, uint8_t * payload, size_t length);
 void processWSMessage();
+void sendPing();
+void handlePong(uint64_t t0, uint64_t serverTime);
+
 #ifdef ESP8266
 WiFiEventHandler stationConnectedHandler;
 void WiFiGotIP(const WiFiEventStationModeGotIP& event);
@@ -190,6 +194,7 @@ void WiFiGotIP(const WiFiEventStationModeGotIP& event) {
 void WiFiGotIP(WiFiEvent_t event, WiFiEventInfo_t info){
 #endif
   alone = false;
+  firstOffset = true;
   Serial.println("");
   Serial.println("WiFi connected");
   Serial.println("IP address: ");
@@ -231,7 +236,8 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
       Serial.printf("[WSc] Connected to url: %s\n", payload);
 
       // send message to server when Connected
-       webSocket.sendTXT("lockState");
+      sendPing()
+      webSocket.sendTXT("lockState");
       break;
 
     case WStype_TEXT:
@@ -332,11 +338,17 @@ void handlePong(uint64_t t0, uint64_t serverTime) {
     - (int64_t)now
     + (int64_t)(rtt / 2);
 
-  // snap if huge jump
-  if (llabs(newOffset - (int64_t)offsetMs) > 100) {
+  if (firstOffset) {
+    // take first pong as absolute offset, no smoothing
     offsetMs = newOffset;
+    firstOffset = false;
   } else {
-    // smooth
-    offsetMs = (int64_t)(offsetMs * 0.9 + newOffset * 0.1);
+    // snap if huge jump
+    if (llabs(newOffset - (int64_t)offsetMs) > 100) {
+      offsetMs = newOffset;
+    } else {
+      // smooth
+      offsetMs = (int64_t)(offsetMs * 0.9 + newOffset * 0.1);
+    }
   }
 }
