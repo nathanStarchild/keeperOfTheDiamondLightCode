@@ -1840,8 +1840,13 @@ void processWSMessage(){
         }
         break;
       case 44:
-        lock = locks[wsMsgReady["lockNumber"].as<int>()];
-        *lock = !wsMsgReady["enabled"].as<bool>();
+        for (JsonObject lock_i : doc["locks"].as<JsonArray>()) {
+            lock = locks[lock_i["lockNumber"].as<int>()];
+            *lock = !lock_i["lockState"].as<bool>();
+        }
+
+        // lock = locks[wsMsgReady["lockNumber"].as<int>()];
+        // *lock = !wsMsgReady["enabled"].as<bool>();
         Serial.println(stepRateLocked);
         Serial.println(fadeRateLocked);
         Serial.println(brightnessLocked);

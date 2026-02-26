@@ -32,6 +32,14 @@ let lockState = [
     true,
     true,
 ]
+lockState.forEach((value, index) => {
+    let dat = {
+        "msgType": 44,
+        "enabled": value,
+        "lockNumber": index
+    }
+    console.log(JSON.stringify(dat))
+})
 
 async function broadcast(data, isBinary, from) {
   const clients = [...wss.clients]
@@ -113,16 +121,21 @@ wss.on('connection', function connection(ws) {
   
     ws.on('message', function message(data, isBinary) {
         console.log(`got a message: ${data}`)
-        if (data == "lockState"){
-            lockState.forEach((value, index) => {
-                let dat = {
-                    "msgType": 44,
-                    "enabled": value,
-                    "lockNumber": index
-                }
-                ws.send(JSON.stringify(dat))
-            })
-            return
+        if (data === "lockState") {
+            // Build an array of lock objects
+            const locks = lockState.map((value, index) => ({
+                lockNumber: index,
+                lockState: value
+            }));
+
+            // Send a single message containing all locks
+            const msg = {
+                msgType: 44,
+                locks: locks
+            };
+
+            ws.send(JSON.stringify(msg));
+            return;
         }
 
         //from here we assume the message is a json
