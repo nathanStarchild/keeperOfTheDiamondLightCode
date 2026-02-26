@@ -41,14 +41,16 @@ uint64_t offsetMs = 0;        // smoothed server offset
 bool firstOffset = true;
 uint64_t lastPingT0 = 0;
 bool pingOutstanding = false;
-#define PING_MSG_TYPE = 999
-#define PONG_MSG_TYPE = 998
+#define PING_MSG_TYPE = 999;
+#define PONG_MSG_TYPE = 998;
+#define ROLE_MSG_TYPE = 997;
 
 
 void webSocketEvent(WStype_t type, uint8_t * payload, size_t length);
 void processWSMessage();
 void sendPing();
 void handlePong(uint64_t t0, uint64_t serverTime);
+void sendRole();
 
 #ifdef ESP8266
 WiFiEventHandler stationConnectedHandler;
@@ -236,7 +238,10 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
       Serial.printf("[WSc] Connected to url: %s\n", payload);
 
       // send message to server when Connected
-      sendPing()
+      #ifdef ROLE
+      sendRole();
+      #endif
+      sendPing();
       webSocket.sendTXT("lockState");
       break;
 
@@ -306,6 +311,20 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
     //      break;
   }
 }
+
+#ifdef ROLE
+void sendRole() {
+
+  char buf[128];
+  snprintf(buf, sizeof(buf),
+    "{\"msgType\":%d,\"role\":\"%s\"}",
+    ROLE_MSG_TYPE,
+    ROLE
+  );
+
+  ws.sendTXT(buf);
+}
+#endif
 
 void sendPing() {
   if (pingOutstanding) return;   // don't overlap

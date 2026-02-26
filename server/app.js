@@ -55,6 +55,22 @@ async function broadcast(data, isBinary, from) {
   }
 }
 
+async function sendToRole(data, isBinary, role) {
+  const clients = [...wss.clients]
+  let count = 0
+
+  for (let i = 0; i < clients.length; i++) {
+    const client = clients[i]
+
+    if (client !== from && client.readyState === WebSocket.OPEN && client.role === role) {
+      client.send(data, { binary: isBinary })
+      count += 1
+    }
+
+    if (count % 8 === 0) await new Promise(r => setImmediate(r))
+  }
+}
+
 function dontGetBored(){ 
   console.log("bored")
     let ran = Math.random();
@@ -143,6 +159,11 @@ wss.on('connection', function connection(ws) {
         //ping
         if (dat.msgType == 999 && typeof msg.t0 !== 'undefined'){
           sendPong(ws, dat.t0)
+          return
+        }
+        if (dat.msgType == 997) {
+          ws.role = dat.role
+          return
         }
         if (dat.msgType == 44){
             lockState[dat.lockNumber] = dat.enabled
