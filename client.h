@@ -16,10 +16,26 @@ WebSocketsClient webSocket;
 DynamicJsonDocument wsMsg(1024);
 String wsMsgString;
 
-bool inbox = false;
-uint32_t loopCounter = 0;
+MilliTimer tryToConnectTimer(1 * 60000);
 
-MilliTimer tryToConnectTimer(1 * 60000); //bored timer, change if no messages or controller input
+bool inbox = false;
+#define MAX_PENDING_MESSAGES 4
+struct PendingMessage {
+  StaticJsonDocument<1024> doc;  // Store parsed JSON directly
+  uint64_t startTime;
+};
+
+PendingMessage pendingMessages[MAX_PENDING_MESSAGES];
+uint8_t pendingMessageCount = 0;
+
+uint32_t pingInterval = 60000;
+MilliTimer pingTimer(pingInterval);
+
+uint64_t offsetMs = 0;        // smoothed server offset
+uint64_t lastPingT0 = 0;
+bool pingOutstanding = false;
+#define PING_MSG_TYPE = 999
+#define PONG_MSG_TYPE = 998
 
 
 void webSocketEvent(WStype_t type, uint8_t * payload, size_t length);
@@ -40,6 +56,7 @@ void wsSetup() {
   WiFi.disconnect();
   WiFi.mode(WIFI_STA);
   WiFi.setAutoReconnect(false);
+  WiFi.setSleep(false);
   WiFi.begin("diamondLightNetwork");
   #ifdef ESP8266
   stationConnectedHandler = WiFi.onStationModeGotIP(&WiFiGotIP);
@@ -89,7 +106,6 @@ void wsSetup() {
 }
 
 void wsLoop() {
-    loopCounter++;
 
     if(alone) {
       if (tryToConnectTimer.isItTime()) {
@@ -103,13 +119,38 @@ void wsLoop() {
 
     ArduinoOTA.handle();
 
-  if (loopCounter % 2 == 0){
     webSocket.loop();
+
+  // Check for pending messages that are ready to execute
+  if (pendingMessageCount > 0) {
+    uint64_t now = (uint64_t)millis();
+    for (uint8_t i = 0; i < pendingMessageCount; i++) {
+      if (pendingMessages[i].startTime <= now) {
+        // Copy the JSON document to wsMsg and serialize to string
+        wsMsg = pendingMessages[i].doc;
+        wsMsgString = "";
+        serializeJson(wsMsg, wsMsgString);
+        inbox = true;
+        Serial.printf("Executing pending message (startTime: %llu)\n", pendingMessages[i].startTime);
+        
+        // Shift remaining messages down
+        for (uint8_t j = i; j < pendingMessageCount - 1; j++) {
+          pendingMessages[j] = pendingMessages[j + 1];
+        }
+        pendingMessageCount--;
+        break;  // Process one per loop iteration
+      }
+    }
   }
 
   if (inbox) {
     processWSMessage();
     inbox = false;
+  }
+
+  if (pingTimer.isItTime()) {
+    webSocket.sendTXT("ping");
+    pingTimer.setInterval(pingInterval + random(-5000, 5000)); //also resets the timer
   }
 
 }
@@ -201,9 +242,43 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
       } else {
         Serial.print("we got a json!");
         wsMsgString = "";
-        serializeJson(wsMsg, wsMsgString);
         serializeJson(wsMsg, Serial);
-        inbox = true;
+
+        if (wsMsg["msgType"] == PONG_MSG_TYPE) {
+          uint64_t t0 = wsMsg["t0"];
+          uint64_t serverTime = wsMsg["serverTime"];
+          handlePong(t0, serverTime);
+          return;
+        }
+
+        // Check if message has a startTime
+        if (wsMsg.containsKey("startTime")) {
+          uint64_t startTime = wsMsg["startTime"];
+          uint64_t startLocal = startTime - offsetMs;
+          uint64_t now = (uint64_t)millis();
+          
+          if (startLocal <= now) {
+            // Execute immediately
+            serializeJson(wsMsg, wsMsgString);
+            inbox = true;
+          } else {
+            // Queue for later
+            if (pendingMessageCount < MAX_PENDING_MESSAGES) {
+              // Copy the parsed JSON document directly
+              pendingMessages[pendingMessageCount].doc = wsMsg;
+              pendingMessages[pendingMessageCount].startTime = startLocal;
+              pendingMessageCount++;
+              Serial.printf("Queued message for startLocal: %llu (count: %d)\n", startLocal, pendingMessageCount);
+            } else {
+              Serial.println("ERROR: Pending message buffer full!");
+            }
+          }
+        } else {
+          // No startTime, execute immediately
+          serializeJson(wsMsg, wsMsgString);
+          inbox = true;
+        }
+
         // messageTimer.resetTimer();
       }
       break;
@@ -215,5 +290,45 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
     //      // send message to client
     //      // webSocketsServer.sendBIN(num, payload, lenght);
     //      break;
+  }
+}
+
+void sendPing() {
+  if (pingOutstanding) return;   // don't overlap
+
+  lastPingT0 = (uint64_t)millis();
+  pingOutstanding = true;
+
+  char buf[128];
+  snprintf(buf, sizeof(buf),
+    "{\"msgType\":%d,\"t0\":%llu}",
+    PING_MSG_TYPE,
+    lastPingT0
+  );
+
+  ws.sendTXT(buf);
+}
+
+void handlePong(uint64_t t0, uint64_t serverTime) {
+  uint64_t now = (uint64_t)millis();
+
+  if (!pingOutstanding) return;
+  if (t0 != lastPingT0) return;   // stale pong
+
+  pingOutstanding = false;
+
+  uint64_t rtt = now - t0;
+
+  int64_t newOffset =
+      (int64_t)serverTime
+    - (int64_t)now
+    + (int64_t)(rtt / 2);
+
+  // snap if huge jump
+  if (llabs(newOffset - (int64_t)offsetMs) > 100) {
+    offsetMs = newOffset;
+  } else {
+    // smooth
+    offsetMs = (int64_t)(offsetMs * 0.9 + newOffset * 0.1);
   }
 }
