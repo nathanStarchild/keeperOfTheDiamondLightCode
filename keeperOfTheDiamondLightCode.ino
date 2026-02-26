@@ -111,7 +111,7 @@ MilliTimer offline_pattern(3 * 60000); //1000 seconds
 //MilliTimer boredTimer(11 * 60000); //bored timer, change if no messages or controller input
 MilliTimer glitterTimer(10000); //how long glitter runs for
 MilliTimer enlightenment(enlightenTime); //enlightenment button hold time
-MilliTimer paletteBlendTimer(100); //how often to perform palette blending steps when moving to new palette
+MilliTimer paletteBlendTimer(22); //how often to perform palette blending steps when moving to new palette
 MilliTimer paletteCycleTimer(5 * 60000); // how often to move to the next palette
 MilliTimer testingTimer(10000);
 MilliTimer tripperTrapTimer(5 * 60000); //how long to stay in tripper trap mode
@@ -167,6 +167,9 @@ void loop(){
 //        glitchPixel(LEDS_OUTPUT1 + 72);
 //    }
       blendFrames();
+      #ifdef LEDS_PER_PIXEL
+      computeWashPixels();
+      #endif
       FastLED.show();
       mainState.stale = true;
 //        uint32_t el = frameTimer.elapsed();
@@ -221,6 +224,49 @@ void blendFrames(){
     }
   }
 }
+
+CRGB averageColour(CRGB *ledsIn, int count) {
+    int32_t x = 0, y = 0;       // hue vector sum
+    uint32_t sumV = 0;
+    uint32_t sumS = 0;
+
+    for (int i = 0; i < count; i++) {
+        CHSV hsv = rgb2hsv_approximate(ledsIn[i]);
+
+        // convert hue to angle in radians
+        float angle = (hsv.h / 255.0f) * 2.0f * PI;
+        x += cosf(angle) * 256;  // scale to integer-ish
+        y += sinf(angle) * 256;
+
+        sumV += hsv.v;
+        sumS += hsv.s;
+    }
+
+    // compute average hue
+    float avgAngle = atan2f((float)y, (float)x);
+    if (avgAngle < 0) avgAngle += 2.0f * PI; // keep positive
+
+    CHSV avgHSV;
+    avgHSV.h = (uint8_t)((avgAngle / (2.0f * PI)) * 255.0f);
+    avgHSV.v = sumV / count;
+    avgHSV.s = sumS / count; // or 255 for full saturation
+
+    CRGB avgRGB;
+    hsv2rgb_rainbow(avgHSV, avgRGB);
+    return avgRGB;
+}
+
+#ifdef LEDS_PER_PIXEL
+void computeWashPixels() {
+    int numWashes = NUM_LEDS / LEDS_PER_PIXEL;
+    for (int i = 0; i < numWashes; i++) {
+        targetLeds[i] = averageColorFast(
+            &leds[i * LEDS_PER_PIXEL],  // pointer to chunk start
+            LEDS_PER_PIXEL
+        );
+    }
+}
+#endif
 
 void upset_mainState() {
     //randomise wave, tail, breathe, hue=0, patternStep=0
