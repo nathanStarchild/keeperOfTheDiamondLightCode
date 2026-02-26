@@ -11,6 +11,12 @@
 #include <WebSocketsClient.h>
 #include <ArduinoJson.h>
 
+#define SSID "queerBurners"
+#define WIFI_KEY "nextyearwasbetter"
+#define WS_SERVER "192.168.0.10"
+#define WS_PORT 80
+#define WS_PATH "/"
+
 
 WebSocketsClient webSocket;
 StaticJsonDocument<300> wsMsgIncoming;
@@ -57,14 +63,19 @@ void wsSetup() {
   WiFi.mode(WIFI_STA);
   WiFi.setAutoReconnect(false);
   WiFi.setSleep(false);
-  WiFi.begin("diamondLightNetwork");
-  #ifdef ESP8266
-  stationConnectedHandler = WiFi.onStationModeGotIP(&WiFiGotIP);
-  stationDisconnectedHandler = WiFi.onStationModeDisconnected(&WiFiStationDisconnected);
+  #ifdef WIFI_KEY
+    WiFi.begin(SSID, WIFI_KEY);
   #else
-  WiFi.onEvent(WiFiStationDisconnected, ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
-//  WiFi.onEvent(WiFiStationConnected,ARDUINO_EVENT_WIFI_STA_CONNECTED);
-  WiFi.onEvent(WiFiGotIP, ARDUINO_EVENT_WIFI_STA_GOT_IP);
+    WiFi.begin(SSID);
+  #endif
+
+  #ifdef ESP8266
+    stationConnectedHandler = WiFi.onStationModeGotIP(&WiFiGotIP);
+    stationDisconnectedHandler = WiFi.onStationModeDisconnected(&WiFiStationDisconnected);
+  #else
+    WiFi.onEvent(WiFiStationDisconnected, ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
+    //  WiFi.onEvent(WiFiStationConnected,ARDUINO_EVENT_WIFI_STA_CONNECTED);
+    WiFi.onEvent(WiFiGotIP, ARDUINO_EVENT_WIFI_STA_GOT_IP);
   #endif
 
   // No authentication by default
@@ -94,7 +105,7 @@ void wsSetup() {
       else if (error == OTA_END_ERROR) Serial.println("End Failed");
     });
    int retries = 0;
-   while (WiFi.status() != WL_CONNECTED && retries < 20) {
+   while (WiFi.status() != WL_CONNECTED && retries < 10) {
      delay(500);
      Serial.print(".");
      retries ++;
@@ -186,7 +197,7 @@ void WiFiGotIP(WiFiEvent_t event, WiFiEventInfo_t info){
   
 //  #ifdef NO_RELAYER
   // if(noRelayer){
-    webSocket.begin("200.200.200.1", 80, "/");
+    webSocket.begin(WS_SERVER, WS_PORT, WS_PATH);
     Serial.println("connecting to server");
 //   } else {
 // //  #else
