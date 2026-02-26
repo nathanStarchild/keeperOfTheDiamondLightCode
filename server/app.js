@@ -99,6 +99,15 @@ function dontGetBored(){
 
 boredTimer = setInterval(dontGetBored, 7 * 1000 * 60)
 
+function sendPong(ws, t0){
+  let dat = {
+    "msgType": 998,
+    "t0": t0,
+    "serverTime": Date.now()
+  }
+  ws.send(JSON.stringify(dat))
+}
+
 wss.on('connection', function connection(ws) {
     ws.on('error', console.error);
   
@@ -118,6 +127,10 @@ wss.on('connection', function connection(ws) {
 
         //from here we assume the message is a json
         let dat = JSON.parse(data)
+        //ping
+        if (dat.msgType == 999 && typeof msg.t0 !== 'undefined'){
+          sendPong(ws, dat.t0)
+        }
         if (dat.msgType == 44){
             lockState[dat.lockNumber] = dat.enabled
         } else if (dat.msgType == 45) {
