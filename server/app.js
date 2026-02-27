@@ -59,27 +59,38 @@ async function broadcastNew(data, isBinary, from) {
 function broadcast(data, isBinary, from) {
     let sentCount = 0;
     let totalClients = wss.clients.size;
-    console.log(`Broadcasting to ${totalClients} clients. Data: ${data}`);
+    console.log(`\n=== BROADCAST FUNCTION CALLED ===`);
+    console.log(`Total clients in wss.clients: ${totalClients}`);
+    console.log(`Data to send: ${data}`);
+    console.log(`From client: ${from ? 'yes' : 'none'}`);
     
     wss.clients.forEach(function each(client, index) {
         const clientInfo = {
             role: client.role || 'none',
             readyState: client.readyState,
+            readyStateName: ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'][client.readyState],
             remoteAddress: client._socket ? client._socket.remoteAddress : 'N/A',
             remotePort: client._socket ? client._socket.remotePort : 'N/A',
             isSender: client === from
         };
         
+        console.log(`\nClient ${index + 1}/${totalClients}:`, clientInfo);
+        
         // if (client !== from && client.readyState === WebSocket.OPEN) {
         if (client.readyState === WebSocket.OPEN) {
-            client.send(data, { binary: false });
-            sentCount++;
-            console.log(`Sent to client ${sentCount}/${totalClients}:`, clientInfo);
+            try {
+                client.send(data, { binary: false });
+                sentCount++;
+                console.log(`  ✓ Successfully sent to this client`);
+            } catch (err) {
+                console.log(`  ✗ Error sending to this client:`, err.message);
+            }
         } else {
-            console.log(`Skipped client:`, clientInfo);
+            console.log(`  ✗ Skipped (readyState: ${clientInfo.readyStateName})`);
         }
     });
-    console.log(`Broadcast complete: ${sentCount} clients received message`);
+    console.log(`\nBroadcast complete: ${sentCount}/${totalClients} clients received message`);
+    console.log(`=================================\n`);
 }
 
 async function sendToRole(data, isBinary, role) {
