@@ -172,10 +172,10 @@ wss.on('connection', function connection(ws) {
           sendPong(ws, dat.t0)
           return
         }
-        if (dat.msgType == 997) {
-          ws.role = dat.role
-          return
-        }
+        // if (dat.msgType == 997) {
+        //   ws.role = dat.role
+        //   return
+        // }
         if (dat.msgType == 44){
             lockState[dat.lockNumber] = dat.enabled
         } else if (dat.msgType == 45) {
