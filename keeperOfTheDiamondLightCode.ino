@@ -109,7 +109,8 @@ bool noRelayer = true;
 
 
 const uint16_t enlightenTime = 60000; //ms
-MilliTimer zoomTimer(3 * 1000); //1000 seconds
+#define ZOOM_INTERVAL 3000
+MilliTimer zoomTimer(ZOOM_INTERVAL); //1000 seconds
 //MilliTimer boredTimer(11 * 60000); //bored timer, change if no messages or controller input
 MilliTimer glitterTimer(10000); //how long glitter runs for
 MilliTimer enlightenment(enlightenTime); //enlightenment button hold time
@@ -645,7 +646,7 @@ void airMode() {
   }
 }
 
-void zoomToColor(uint8_t col_idx){
+void zoomToColour(uint8_t col_idx){
   patternsOff();
   mainState.rainbowZoom.enabled = true;
   mainState.rainbowZoom.plength = 40;
@@ -1591,7 +1592,7 @@ void rainbowZoom() {
   }
 
   // update values
-  uint8_t progress = map(zoomTimer.elapsed, 0, zoomTimer.interval, 50, 1);
+  uint8_t progress = map(zoomTimer.elapsed(), 0, ZOOM_INTERVAL, 50, 1);
   if (zoomTimer.isItTime()){
     mg_random();
   }
