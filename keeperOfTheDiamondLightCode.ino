@@ -1561,7 +1561,7 @@ void Fire2012(){
 void launch() {
   
   static int sweepProgress = 0;
-  static int sweepBase = 32;
+  static int sweepBase = 16;
   static int onFor = 72*6;
   static bool phase2 = false;
   static int phase2Progress = 0;
@@ -2156,9 +2156,10 @@ void processWSMessage(){
       case 51:
         mg_noise_party();
         break;
-      case 53:
+      case 52:
         mg_blob();
         break;
+      case 53:  
         mg_random();
         break;
    }
