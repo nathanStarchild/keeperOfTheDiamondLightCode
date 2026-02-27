@@ -446,7 +446,7 @@ void mg_random() {
 void mg_noise_party() {
   #ifdef ROLE
   if (strcmp(ROLE, "burnBarrels") == 0) {
-    return
+    return;
   }
   #endif
   patternsOff();
@@ -466,7 +466,7 @@ void mg_noise_party() {
 void mg_blob() {
   #ifdef ROLE
   if (strcmp(ROLE, "burnBarrels") == 0) {
-    return
+    return;
   }
   #endif
   patternsOff();
@@ -530,7 +530,7 @@ void tranquilityMode() {
   #ifdef ROLE
   if (strcmp(ROLE, "burnBarrels") == 0) {
     fireMode();
-    return
+    return;
   }
   #endif
     patternsOff();
@@ -549,7 +549,7 @@ void shootingStars() {
   #ifdef ROLE
   if (strcmp(ROLE, "burnBarrels") == 0) {
     fireMode();
-    return
+    return;
   }
   #endif
     patternsOff();
@@ -612,7 +612,7 @@ void doubleRainbow() {
   #ifdef ROLE
   if (strcmp(ROLE, "burnBarrels") == 0) {
     fireMode();
-    return
+    return;
   }
   #endif
   patternsOff();
@@ -649,7 +649,7 @@ void antsMode() {
   #ifdef ROLE
   if (strcmp(ROLE, "burnBarrels") == 0) {
     fireMode();
-    return
+    return;
   }
   #endif
       patternsOff();
