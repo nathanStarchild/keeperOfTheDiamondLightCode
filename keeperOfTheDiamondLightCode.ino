@@ -2162,6 +2162,13 @@ void processWSMessage(){
       case 53:  
         mg_random();
         break;
+      case 54:  
+        enlightenmentAchieved();
+        returnTimer.startTimer();
+        break;
+      case 55:  
+        returnTimer.startTimer();
+        break;
    }
   }
 }
