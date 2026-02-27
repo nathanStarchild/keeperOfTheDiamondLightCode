@@ -124,7 +124,8 @@ $(document).ready(function() {
     $(".inputBtn").click(function(event) {
         console.log($(event.currentTarget))
         let data = {
-            'msgType': $(event.currentTarget).data("msgtype")
+            'msgType': $(event.currentTarget).data("msgtype"),
+            'startTime': Date.now() + 5000
         }
         console.log(data)
         ws.send(JSON.stringify(data));
@@ -134,7 +135,8 @@ $(document).ready(function() {
         console.log($(event.currentTarget))
         let data = {
             'msgType': $(event.currentTarget).data("msgtype"),
-            'value': $(event.currentTarget).data("value")
+            'value': $(event.currentTarget).data("value"),
+            'startTime': Date.now() + 50
         }
         console.log(data)
         ws.send(JSON.stringify(data));
@@ -144,7 +146,8 @@ $(document).ready(function() {
         console.log($(event.currentTarget))
         let data = {
             'msgType': $(event.currentTarget).data("msgtype"),
-            'pointer': $(event.currentTarget).data("pattern")
+            'pointer': $(event.currentTarget).data("pattern"),
+            'startTime': Date.now() + 50
         }
         console.log(data)
         ws.send(JSON.stringify(data));
