@@ -109,7 +109,7 @@ bool noRelayer = true;
 
 
 const uint16_t enlightenTime = 60000; //ms
-#define ZOOM_INTERVAL 3000
+#define ZOOM_INTERVAL 5000
 MilliTimer zoomTimer(ZOOM_INTERVAL); //1000 seconds
 //MilliTimer boredTimer(11 * 60000); //bored timer, change if no messages or controller input
 MilliTimer glitterTimer(10000); //how long glitter runs for
@@ -647,13 +647,14 @@ void airMode() {
 }
 
 void zoomToColour(uint8_t col_idx){
+  // currentPalette = mg_palettes[col_idx];
+  // targetPalette = mg_palettes[col_idx];
+  set_mg_palette(col_idx);
   patternsOff();
   mainState.rainbowZoom.enabled = true;
   mainState.rainbowZoom.plength = 40;
-  mainState.rainbowZoom.pspeed = 5;
+  mainState.rainbowZoom.pspeed = 0;
   mainState.rainbowZoom.decay = principleHue[col_idx];
-  currentPalette = mg_palettes[col_idx];
-  targetPalette = mg_palettes[col_idx];
   zoomTimer.resetTimer();  
 }
 
@@ -745,6 +746,14 @@ void setPalette(int n) {
   }
   paletteCycleIndex = n % nPalettes;
   targetPalette = cyclePalettes[paletteCycleIndex];  
+}
+
+void set_mg_palette(int n) {
+  // if (paletteLocked){
+  //   return;
+  // }
+  paletteCycleIndex = n % n_mg_palettes;
+  targetPalette = mg_palettes[paletteCycleIndex];
 }
 
 void addRipple() {
@@ -1580,19 +1589,24 @@ void rainbow() {
 }
 
 void rainbowZoom() {
-  //length is how many times the leds span more than 24
-  // ie length=1 means the patterns spans 24 indices,length=255 means the span is 24*255.
+  //length is how many times the leds span more than 12
+  // ie length=1 means the patterns spans 12 indices,length=255 means the span is 12*255.
   // speed is how fast it scrolls
   //decay is centre index
+  uint8_t brightness = 255;
+  if (paletteCycleIndex = 2){
+    brightness = 20;
+  }
   for (int i=0; i<NUM_LEDS; i++) {
-    uint16_t pal_idx = map(i, 0, num_leds-1, 0, mainState.rainbowZoom.plength * 24);
+    uint16_t pal_idx = map(i, 0, num_leds-1, 0, mainState.rainbowZoom.plength * 12);
     uint8_t hue = (pal_idx + mainState.rainbowZoom.decay) % 256;
     uint16_t led_idx = (i + mainState.patternStep * mainState.rainbowZoom.pspeed) % num_leds;
-    leds[led_idx] = ColorFromPalette(RainbowColors_p, hue, 255);
+    leds[led_idx] = ColorFromPalette(RainbowColors_p, hue, brightness);
   }
 
   // update values
-  uint8_t progress = map(zoomTimer.elapsed(), 0, ZOOM_INTERVAL, 50, 1);
+  uint8_t progress = max(1, (int)map(zoomTimer.elapsed(), 0, ZOOM_INTERVAL - 2000, 200, 1));
+  mainState.rainbowZoom.plength = progress;
   if (zoomTimer.isItTime()){
     mg_random();
   }
@@ -2023,9 +2037,9 @@ void processWSMessage(){
         break;
       case 50:
         #ifdef NUMBER
-        if (NUMBER != wsMsg["col_idx"].as<int>()){
+        if (NUMBER != wsMsg["value"].as<int>()){
         #endif
-          zoomToColour(wsMsg["col_idx"].as<int>());
+          zoomToColour(wsMsg["value"].as<int>());
         #ifdef NUMBER
         }
         #endif

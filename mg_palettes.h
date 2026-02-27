@@ -3,8 +3,8 @@ DEFINE_GRADIENT_PALETTE( participation_gp ) {
     0,   40,  0, 20,
     64, 180, 20,120,
     102, 64, 1, 34,
-   220,100, 10,56,
-   225,255,120,200,
+   220,200, 0,55,
+   225,95,19,40,
    230, 90, 0, 67,
     255, 98, 2, 73,
 };
@@ -14,7 +14,7 @@ DEFINE_GRADIENT_PALETTE( radicalSelfExpression_gp ) {
     0,   0, 40, 40,
     64,  0,120,100,
    128,  0,200,170,
-   192, 60,255,220,
+   192, 0,133,122,
    255,180,255,255
 };
 
@@ -92,7 +92,7 @@ DEFINE_GRADIENT_PALETTE( civicResponsibility_gp ) {
     0,  20,  0, 40,
     64, 80,  0,120,
     98, 143, 0, 255,
-   128,160, 40,200,
+   128,121, 0,134,
    192,58,20,97,
    255,127,0,255
 };
@@ -101,100 +101,12 @@ DEFINE_GRADIENT_PALETTE( civicResponsibility_gp ) {
 DEFINE_GRADIENT_PALETTE( communalEffort_gp ) {
     0,   8,  2, 24,
     64, 12,  0,20,
-   128, 31, 9,84,
+   128, 42, 0,213,
    192,59,18,89,
+   210, 98, 0, 157,
    255,75,0,130
 };
 
-// 0 — Pink — Participation (dusty magenta → neon bloom)
-DEFINE_GRADIENT_PALETTE( participation_dusty_gp ) {
-    0,   30,  5, 15,
-    64, 120, 20, 80,
-   128,220, 60,160,
-   192,255,120,200,
-   255,255,210,230
-};
-
-// 1 — Turquoise — Radical Self Expression (sea glass → neon aqua)
-DEFINE_GRADIENT_PALETTE( radicalSelfExpression_dusty_gp ) {
-    0,   5, 40, 35,
-    64,  0,120,100,
-   128, 20,200,170,
-   192, 80,255,220,
-   255,200,255,255
-};
-
-// 2 — Brown — Leave No Trace (earth → sunlit dust)
-DEFINE_GRADIENT_PALETTE( leaveNoTrace_dusty_gp ) {
-    0,  25, 12,  5,
-    64, 70, 40, 20,
-   128,140, 90, 50,
-   192,200,150, 90,
-   255,255,220,170
-};
-
-// 3 — Red — Radical Inclusion (ember → neon flame)
-DEFINE_GRADIENT_PALETTE( radicalInclusion_dusty_gp ) {
-    0,  35,  5,  5,
-    64,140, 10, 10,
-   128,255, 40, 20,
-   192,255,120, 60,
-   255,255,200,160
-};
-
-// 4 — Orange — Gifting (dust sunset → neon amber)
-DEFINE_GRADIENT_PALETTE( gifting_dusty_gp ) {
-    0,  35, 15,  5,
-    64,150, 60, 15,
-   128,255,130, 20,
-   192,255,190, 80,
-   255,255,235,170
-};
-
-// 5 — Yellow — Decommodification (warm gold → pale neon)
-DEFINE_GRADIENT_PALETTE( decommodification_dusty_gp ) {
-    0,  55, 40,  5,
-    64,170,140, 10,
-   128,255,210, 40,
-   192,255,245,120,
-   255,255,255,210
-};
-
-// 6 — Green — Radical Self Reliance (sage → neon lime)
-DEFINE_GRADIENT_PALETTE( radicalSelfReliance_dusty_gp ) {
-    0,  10, 45, 10,
-    64, 40,130, 40,
-   128,100,210, 80,
-   192,170,255,140,
-   255,230,255,200
-};
-
-// 7 — Blue — Immediacy (night → electric sky)
-DEFINE_GRADIENT_PALETTE( immediacy_dusty_gp ) {
-    0,   5, 10, 45,
-    64, 20, 60,140,
-   128, 60,140,255,
-   192,140,200,255,
-   255,220,240,255
-};
-
-// 8 — Violet — Civic Responsibility (plum → neon lavender)
-DEFINE_GRADIENT_PALETTE( civicResponsibility_dusty_gp ) {
-    0,  25,  5, 45,
-    64,100, 20,140,
-   128,180, 80,220,
-   192,230,150,255,
-   255,255,220,255
-};
-
-// 9 — Indigo — Communal Effort (cosmic → glowing indigo)
-DEFINE_GRADIENT_PALETTE( communalEffort_dusty_gp ) {
-    0,   5,  5, 70,
-    64, 40, 20,150,
-   128,100, 80,230,
-   192,180,160,255,
-   255,240,230,255
-};
 
 
 const uint8_t n_mg_palettes = 10;
@@ -210,17 +122,19 @@ const TProgmemRGBGradientPalettePtr mg_palettes[n_mg_palettes] = {
   immediacy_gp,
   civicResponsibility_gp,
   communalEffort_gp,
+//   Sunset_Real_gp,
+//   Dusk_Finds_Us_gp,
 };
 
 uint8_t principleHue[10] = {
  235, // Pink
- 150, // Turquoise
-  20, // Brown
+ 135, // Turquoise
+  5, // Brown
    0, // Red
-  32, // Orange
-  64, // Yellow
- 128, // Green
- 192, // Blue
- 224, // Violet
- 208  // Indigo
+  18, // Orange
+  52, // Yellow
+ 105, // Green
+ 164, // Blue
+ 206, // Violet
+ 176  // Indigo
 };
