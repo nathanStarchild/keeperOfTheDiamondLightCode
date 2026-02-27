@@ -49,6 +49,7 @@ async function broadcast(data, isBinary, from) {
 
     if (client !== from && client.readyState === WebSocket.OPEN) {
       client.send(data, { binary: isBinary })
+      console.log(`sending to ${client}`)
     }
 
     if (i % 8 === 0) await new Promise(r => setImmediate(r))
