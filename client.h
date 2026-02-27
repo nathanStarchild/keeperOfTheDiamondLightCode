@@ -42,7 +42,7 @@ uint8_t pendingMessageCount = 0;
 uint32_t pingInterval = 60000;
 MilliTimer pingTimer(pingInterval);
 
-uint64_t offsetMs = 0;        // smoothed server offset
+int64_t offsetMs = 0;        // smoothed server offset (can be negative)
 bool firstOffset = true;
 uint64_t lastPingT0 = 0;
 bool pingOutstanding = false;
@@ -306,10 +306,11 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
         // Check if message has a startTime
         if (wsMsg.containsKey("startTime")) {
           uint64_t startTime = wsMsg["startTime"];
-          uint64_t startLocal = startTime - offsetMs;
+          // Convert server time to local ESP time
+          int64_t startLocal = (int64_t)startTime - offsetMs;
           uint64_t now = (uint64_t)millis();
           
-          if (startLocal <= now) {
+          if (startLocal <= (int64_t)now) {
             // Execute immediately
 //            size_t n = min(length, (size_t)(MAX_MSG_LEN - 1));
 //            memcpy(wsMsgString, payload, n);
@@ -335,7 +336,7 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
               serializeJson(wsMsg, pendingMessages[pendingMessageCount].msgString);
               pendingMessages[pendingMessageCount].startTime = startLocal;
               pendingMessageCount++;
-              Serial.printf("Queued message for startLocal: %llu (count: %d)\n", startLocal, pendingMessageCount);
+              Serial.printf("Queued message for startLocal: %llu, current local: %llu (count: %d)\n", startLocal, now, pendingMessageCount);
             } else {
               Serial.println("ERROR: Pending message buffer full!");
             }
@@ -397,34 +398,45 @@ void sendPing() {
 }
 
 void handlePong(uint64_t t0, uint64_t serverTime) {
-
-  Serial.println("got a pong");
   uint64_t now = (uint64_t)millis();
 
-  if (!pingOutstanding) return;
-  if (t0 != lastPingT0) return;   // stale pong
+  // Validate pong
+  if (!pingOutstanding) {
+    Serial.println("Ignoring pong (no ping outstanding)");
+    return;
+  }
+  if (t0 != lastPingT0) {
+    Serial.println("Ignoring stale pong");
+    return;
+  }
 
   pingOutstanding = false;
 
+  // Calculate round-trip time
   uint64_t rtt = now - t0;
+  
+  // Calculate offset: how much to add to ESP millis() to get server time
+  // Compensate for half the round-trip time (assume symmetric network delay)
+  int64_t newOffset = (int64_t)serverTime - (int64_t)now + (int64_t)(rtt / 2);
 
-  int64_t newOffset =
-      (int64_t)serverTime
-    - (int64_t)now
-    + (int64_t)(rtt / 2);
+  Serial.printf("Pong received: t0=%llu, now=%llu, serverTime=%llu, rtt=%llu\n", 
+                t0, now, serverTime, rtt);
 
   if (firstOffset) {
-    // take first pong as absolute offset, no smoothing
+    // First pong: take as absolute offset, no smoothing
     offsetMs = newOffset;
     firstOffset = false;
+    Serial.printf("First offset set: %lld ms\n", offsetMs);
   } else {
-    // snap if huge jump
-    if (llabs(newOffset - (int64_t)offsetMs) > 100) {
+    // Check for large jumps (> 100ms)
+    int64_t delta = llabs(newOffset - offsetMs);
+    if (delta > 100) {
+      Serial.printf("Large offset jump detected (%lld ms), snapping\n", delta);
       offsetMs = newOffset;
     } else {
-      // smooth
+      // Smooth the offset with exponential moving average (90% old, 10% new)
       offsetMs = (int64_t)(offsetMs * 0.9 + newOffset * 0.1);
     }
+    Serial.printf("Offset adjusted: %lld ms (delta: %lld ms)\n", offsetMs, newOffset - offsetMs);
   }
-  Serial.printf("offset: %11u\n", offsetMs);
 }

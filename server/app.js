@@ -11,6 +11,12 @@ var hostName = 'antarean.pyramid';
 const server = createServer(app);
 const wss = new WebSocketServer({ server });
 
+const serverStartTime = Date.now();
+
+function serverTime() {
+  return Date.now() - serverStartTime
+}
+
 let boredTimer;
 
 // app.use((req, res, next) => {
@@ -166,7 +172,7 @@ function sendPong(ws, t0){
   let dat = {
     "msgType": 998,
     "t0": t0,
-    "serverTime": Date.now()
+    "serverTime": serverTime()
   }
   ws.send(JSON.stringify(dat))
 }
@@ -233,12 +239,21 @@ wss.on('connection', function connection(ws) {
           boredTimer = setInterval(dontGetBored, 7 * 1000 * 60)
         }
 
+        if (typeof dat.delay !== 'undefined') {
+          dat.startTime = serverTime() + dat.delay
+          //remove the delay property since it's not needed by the clients
+          delete dat.delay
+        }
+
+        let dataOut = JSON.stringify(dat)
+
         //broadcast the message
         console.log(`\n=== About to broadcast ===`);
         console.log(`Original sender: ${ws.role || 'unknown'}`);
-        console.log(`Message: ${data}`);
+        console.log(`Message in: ${data}`);
+        console.log(`Message out: ${dataOut}`);
         console.log(`========================\n`);
-        broadcast(data, isBinary, ws)
+        broadcast(dataOut, isBinary, ws)
     });
     
     ws.on('close', function close() {

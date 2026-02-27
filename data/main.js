@@ -125,7 +125,7 @@ $(document).ready(function() {
         console.log($(event.currentTarget))
         let data = {
             'msgType': $(event.currentTarget).data("msgtype"),
-            'startTime': Date.now() + 5000
+            'delay': 5000
         }
         console.log(data)
         ws.send(JSON.stringify(data));
@@ -136,7 +136,7 @@ $(document).ready(function() {
         let data = {
             'msgType': $(event.currentTarget).data("msgtype"),
             'value': $(event.currentTarget).data("value"),
-            'startTime': Date.now() + 50
+            'delay': 5000
         }
         console.log(data)
         ws.send(JSON.stringify(data));
@@ -147,7 +147,7 @@ $(document).ready(function() {
         let data = {
             'msgType': $(event.currentTarget).data("msgtype"),
             'pointer': $(event.currentTarget).data("pattern"),
-            'startTime': Date.now() + 50
+            'delay': 5000
         }
         console.log(data)
         ws.send(JSON.stringify(data));
