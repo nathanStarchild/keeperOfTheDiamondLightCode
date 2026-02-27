@@ -10,6 +10,8 @@ $(document).ready(function() {
     ws.onmessage = function(event) { processReceivedCommand(event); };
     ws.onopen = () => ws.send("lockState")
 
+    const syncDelay = 100
+
     function processReceivedCommand(evt) {
         console.log("event")
         console.log(evt.data);
@@ -115,6 +117,7 @@ $(document).ready(function() {
                 'pointer': $(slider).data("pointer"),
                 'param': $(slider).data("param"),
                 'val': slider.noUiSlider.get(),
+                'delay': syncDelay
             };
             console.log(data)
             ws.send(JSON.stringify(data));
@@ -125,7 +128,7 @@ $(document).ready(function() {
         console.log($(event.currentTarget))
         let data = {
             'msgType': $(event.currentTarget).data("msgtype"),
-            'delay': 5000
+            'delay': syncDelay
         }
         console.log(data)
         ws.send(JSON.stringify(data));
@@ -136,7 +139,7 @@ $(document).ready(function() {
         let data = {
             'msgType': $(event.currentTarget).data("msgtype"),
             'value': $(event.currentTarget).data("value"),
-            'delay': 5000
+            'delay': syncDelay
         }
         console.log(data)
         ws.send(JSON.stringify(data));
@@ -147,7 +150,7 @@ $(document).ready(function() {
         let data = {
             'msgType': $(event.currentTarget).data("msgtype"),
             'pointer': $(event.currentTarget).data("pattern"),
-            'delay': 5000
+            'delay': syncDelay
         }
         console.log(data)
         ws.send(JSON.stringify(data));
@@ -187,7 +190,8 @@ $(document).ready(function() {
         let data = {
             'msgType': 43,
             'primed': primed,
-            'enabled': $(event.currentTarget).prop("checked")
+            'enabled': $(event.currentTarget).prop("checked"),
+            'delay': syncDelay
         }
         console.log(data)
         ws.send(JSON.stringify(data));
@@ -205,6 +209,7 @@ $(document).ready(function() {
         let data = {
             'msgType': 41,
             'val': 1,
+            'delay': syncDelay
         }
         console.log(data)
         ws.send(JSON.stringify(data));
@@ -216,6 +221,7 @@ $(document).ready(function() {
         let data = {
             'msgType': 41,
             'val': 0,
+            'delay': syncDelay
         }
         console.log(data)
         ws.send(JSON.stringify(data));
@@ -232,6 +238,7 @@ $(document).ready(function() {
         let data = {
             'msgType': $(this).data("msgtype"),
             'val': $(this).val(),
+            'delay': syncDelay
         };
         console.log(data)
         ws.send(JSON.stringify(data));
