@@ -128,6 +128,16 @@ $(document).ready(function() {
         ws.send(JSON.stringify(data));
     })
 
+    $(".valueBtn").click(function(event) {
+        console.log($(event.currentTarget))
+        let data = {
+            'msgType': $(event.currentTarget).data("msgtype"),
+            'value': $(event.currentTarget).data("value")
+        }
+        console.log(data)
+        ws.send(JSON.stringify(data));
+    })
+
     $(".soloBtn").click(function(event) {
         console.log($(event.currentTarget))
         let data = {
@@ -249,6 +259,28 @@ $(document).ready(function() {
             $(".powerHide").hide()
         }
     })
+
+
+    /////////////////////////////////////////////////////////////
+    // Mardi Gras Biz
+    function loadMGColours() {
+        let cols = [
+            "Pink",
+            "Turquoise",
+            "Brown",
+            "Red",
+            "Orange",
+            "Yellow",
+            "Green",
+            "Blue",
+            "Violet",
+            "Indigo",
+        ]
+        for (const i in cols) {
+            let tmpl = `<div data-msgtype="50" data-value="${i}" class="btn btn-secondary control valueBtn">${cols[i]}</div>`
+            $("#mgColsContainer").append(tmpl)
+        }
+    }
 
     /////////////////////////////////////////////////////////////
     // Custom Palette Biz

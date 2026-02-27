@@ -109,7 +109,7 @@ bool noRelayer = true;
 
 
 const uint16_t enlightenTime = 60000; //ms
-MilliTimer offline_pattern(3 * 60000); //1000 seconds
+MilliTimer zoomTimer(3 * 1000); //1000 seconds
 //MilliTimer boredTimer(11 * 60000); //bored timer, change if no messages or controller input
 MilliTimer glitterTimer(10000); //how long glitter runs for
 MilliTimer enlightenment(enlightenTime); //enlightenment button hold time
@@ -336,6 +336,66 @@ void upset_mainState() {
     mainState.theVoid.decay = random8(20, 255);
 
     mainState.theBlob.enabled = (random8() > 90);
+    mainState.theBlob.plength = random8(20, 255);
+    mainState.theBlob.pspeed = random8(1, 10);
+    mainState.theBlob.decay = random8(20, 255);
+}
+
+void mg_random() {
+    //randomise wave, tail, breathe, hue=0, patternStep=0
+    //add faderate
+    patternsOff();
+    setFadeRate(random8(10, 240));
+        //  stepRate = max(1, random8(0, 15) - 10);
+    setStepRate(random8(1, 4));
+
+    mainState.hue = 0;
+    mainState.patternStep = 0;
+
+    mainState.tail.enabled = (random8() > 180);
+    mainState.tail.plength = random(20, 120);
+    mainState.tail.pspeed = random(0, 6) - 3;
+    if (mainState.tail.pspeed == 0) {
+        mainState.tail.pspeed = 1;
+    }
+
+    mainState.glitter.enabled = (random8() > 180);
+    mainState.glitter.plength = random8();
+    mainState.glitter.pspeed = random8(1, 20);
+    mainState.glitter.decay = random8();
+
+    mainState.rain.enabled = (random8() > 140);
+    mainState.rain.plength = random8(3, 30);
+    mainState.rain.pspeed = random8(10, 50);
+
+    mainState.ripple.enabled = (random8() > 160);
+    setNRipples(random8(1, nRipples));
+
+    mainState.blendwave.enabled =  (random8() > 196);
+
+    mainState.ants.enabled = (random8() > 156);
+    mainState.ants.pspeed = ((random8(0, 33)) % 21) + 1;
+    mainState.ants.plength = random8(1, 57);
+    mainState.glitter.decay = random8();
+
+    #ifndef ESP8266
+    mainState.spiral.enabled = (random8() > 200);
+    #endif
+        
+    mainState.noise.enabled = (random8() > 200);
+    mainState.noise.plength = random8(1, 50);
+    mainState.noise.pspeed = random8(1, 10);
+    
+    mainState.noiseFade.enabled = (random8() > 200);
+    mainState.noiseFade.plength = random8(1, 50);
+    mainState.noiseFade.pspeed = random8(1, 20);
+
+    mainState.theVoid.enabled = (random8() > 100);
+    mainState.theVoid.plength = random8(20, 255);
+    mainState.theVoid.pspeed = random8(1, 10);
+    mainState.theVoid.decay = random8(20, 255);
+
+    mainState.theBlob.enabled = (random8() > 199);
     mainState.theBlob.plength = random8(20, 255);
     mainState.theBlob.pspeed = random8(1, 10);
     mainState.theBlob.decay = random8(20, 255);
@@ -583,6 +643,17 @@ void airMode() {
     stepRate = 6;
     setFadeRate(120);
   }
+}
+
+void zoomToColor(uint8_t col_idx){
+  patternsOff();
+  mainState.rainbowZoom.enabled = true;
+  mainState.rainbowZoom.plength = 40;
+  mainState.rainbowZoom.pspeed = 5;
+  mainState.rainbowZoom.decay = principleHue[col_idx];
+  currentPalette = mg_palettes[col_idx];
+  targetPalette = mg_palettes[col_idx];
+  zoomTimer.resetTimer();  
 }
 
 void patternsOff() {
@@ -1512,12 +1583,18 @@ void rainbowZoom() {
   // ie length=1 means the patterns spans 24 indices,length=255 means the span is 24*255.
   // speed is how fast it scrolls
   //decay is centre index
-    for (int i=0; i<NUM_LEDS; i++) {
-      uint16_t pal_idx = map(i, 0, num_leds-1, 0, mainState.rainbowZoom.plength * 24);
-      uint8_t hue = (pal_idx + mainState.rainbowZoom.decay) % 256;
-      uint16_t led_idx = (i + mainState.patternStep * mainState.rainbowZoom.pspeed) % num_leds;
-      leds[led_idx] = ColorFromPalette(RainbowColors_p, hue, 255);
-    }
+  for (int i=0; i<NUM_LEDS; i++) {
+    uint16_t pal_idx = map(i, 0, num_leds-1, 0, mainState.rainbowZoom.plength * 24);
+    uint8_t hue = (pal_idx + mainState.rainbowZoom.decay) % 256;
+    uint16_t led_idx = (i + mainState.patternStep * mainState.rainbowZoom.pspeed) % num_leds;
+    leds[led_idx] = ColorFromPalette(RainbowColors_p, hue, 255);
+  }
+
+  // update values
+  uint8_t progress = map(zoomTimer.elapsed, 0, zoomTimer.interval, 50, 1);
+  if (zoomTimer.isItTime()){
+    mg_random();
+  }
 }
 
 void noisePattern() {
@@ -1942,7 +2019,16 @@ void processWSMessage(){
         Serial.println(fadeRateLocked);
         Serial.println(brightnessLocked);
         Serial.println(paletteLocked);
-
+        break;
+      case 50:
+        #ifdef NUMBER
+        if (NUMBER != wsMsg["col_idx"].as<int>()){
+        #endif
+          zoomToColour(wsMsg["col_idx"].as<int>());
+        #ifdef NUMBER
+        }
+        #endif
+        break;
    }
   }
 }
