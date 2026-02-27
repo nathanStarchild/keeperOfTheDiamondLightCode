@@ -58,7 +58,8 @@ async function broadcastNew(data, isBinary, from) {
 
 function broadcast(data, isBinary, from) {
     wss.clients.forEach(function each(client) {
-        if (client !== from && client.readyState === WebSocket.OPEN) {
+        // if (client !== from && client.readyState === WebSocket.OPEN) {
+        if (client.readyState === WebSocket.OPEN) {
             client.send(data, { binary: isBinary });
             console.log("sent")
         }
