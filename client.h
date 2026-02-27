@@ -22,15 +22,18 @@
 
 
 WebSocketsClient webSocket;
-StaticJsonDocument<300> wsMsgIncoming;
-StaticJsonDocument<300> wsMsgReady;
+
+#define MAX_MSG_LEN 400
+DynamicJsonDocument wsMsg(1024);
+char wsMsgString[MAX_MSG_LEN];
 
 MilliTimer tryToConnectTimer(1 * 60000);
 
 bool inbox = false;
-#define MAX_PENDING_MESSAGES 4
+#define MAX_PENDING_MESSAGES 2
 struct PendingMessage {
-  StaticJsonDocument<300> doc;  // Store parsed JSON directly
+  char msgString[MAX_MSG_LEN];
+  size_t length; 
   uint64_t startTime;
 };
 
@@ -114,7 +117,7 @@ void wsSetup() {
       else if (error == OTA_END_ERROR) Serial.println("End Failed");
     });
    int retries = 0;
-   while (WiFi.status() != WL_CONNECTED && retries < 10) {
+   while (WiFi.status() != WL_CONNECTED && retries < 20) {
      delay(500);
      Serial.print(".");
      retries ++;
@@ -146,8 +149,9 @@ void wsLoop() {
     uint64_t now = (uint64_t)millis();
     for (uint8_t i = 0; i < pendingMessageCount; i++) {
       if (pendingMessages[i].startTime <= now) {
-        // Copy the JSON document to wsMsgReady
-        wsMsgReady = pendingMessages[i].doc;
+        size_t n = min(pendingMessages[i].length, MAX_MSG_LEN - 1);
+        memcpy(wsMsgString, pendingMessages[i].msgString, n);
+        wsMsgString[n] = '\0';
         inbox = true;
         Serial.printf("Executing pending message (startTime: %llu)\n", pendingMessages[i].startTime);
         
@@ -167,7 +171,7 @@ void wsLoop() {
   }
 
   if (pingTimer.isItTime()) {
-    webSocket.sendTXT("ping");
+    sendPing();
     pingTimer.setInterval(pingInterval + random(-5000, 5000)); //also resets the timer
   }
 
@@ -263,8 +267,9 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
         Serial.print(F("deserializeJson() failed: "));
         Serial.println(error.f_str());
       } else {
-        Serial.print("we got a json!");
+        Serial.print("we got a json! ");
         serializeJson(wsMsgIncoming, Serial);
+        Serial.print("\n");
 
         if (wsMsgIncoming["msgType"] == PONG_MSG_TYPE) {
           uint64_t t0 = wsMsgIncoming["t0"];
@@ -281,13 +286,17 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
           
           if (startLocal <= now) {
             // Execute immediately
-            wsMsgReady = wsMsgIncoming;
+            size_t n = min(length, MAX_MSG_LEN - 1);
+            memcpy(wsMsgString, payload, n);
+            wsMsgString[n] = '\0';
             inbox = true;
           } else {
             // Queue for later
             if (pendingMessageCount < MAX_PENDING_MESSAGES) {
-              // Copy the parsed JSON document directly
-              pendingMessages[pendingMessageCount].doc = wsMsgIncoming;
+              size_t n = min(length, MAX_MSG_LEN - 1);
+              memcpy(pendingMessages[pendingMessageCount].msgString, payload, n);
+              pendingMessages[pendingMessageCount].msgString[n] = '\0';
+              pendingMessages[pendingMessageCount].length = n;
               pendingMessages[pendingMessageCount].startTime = startLocal;
               pendingMessageCount++;
               Serial.printf("Queued message for startLocal: %llu (count: %d)\n", startLocal, pendingMessageCount);
@@ -297,7 +306,9 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
           }
         } else {
           // No startTime, execute immediately
-          wsMsgReady = wsMsgIncoming;
+          size_t n = min(length, MAX_MSG_LEN - 1);
+          memcpy(wsMsgString, payload, n);
+          wsMsgString[n] = '\0';
           inbox = true;
         }
 
@@ -346,6 +357,8 @@ void sendPing() {
 }
 
 void handlePong(uint64_t t0, uint64_t serverTime) {
+
+  Serial.println("got a pong");
   uint64_t now = (uint64_t)millis();
 
   if (!pingOutstanding) return;
@@ -373,4 +386,5 @@ void handlePong(uint64_t t0, uint64_t serverTime) {
       offsetMs = (int64_t)(offsetMs * 0.9 + newOffset * 0.1);
     }
   }
+  Serial.printf("offset: %11u\n", offsetMs);
 }

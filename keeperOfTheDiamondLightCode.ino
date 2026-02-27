@@ -1696,12 +1696,18 @@ void processWSMessage(){
   if (!controllerEnabled){
     return;
   }
+  DeserializationError error;
+  error = deserializeJson(wsMsg, wsMsgString);
+  if (error) {
+    Serial.print(F("deserializeJson() failed: "));
+    Serial.println(error.f_str());
+    return;
+  }
   Serial.print("Processing JSON message: ");
-  serializeJson(wsMsgReady, Serial);
 
-  uint8_t mtype = wsMsgReady["msgType"].as<int>();
+  uint8_t mtype = wsMsg["msgType"].as<int>();
     //  Serial.println("that json again is:");
-    //  serializeJson(wsMsgReady, Serial);
+    //  serializeJson(wsMsg, Serial);
 
   JsonArray paletteArrayTmp;
   
@@ -1742,18 +1748,18 @@ void processWSMessage(){
        mainState.launch.enabled = true;
        break;
      case 10:
-       setStepRate(wsMsgReady["val"].as<int>());
+       setStepRate(wsMsg["val"].as<int>());
        break;
      case 11:
-       setFadeRate(wsMsgReady["val"].as<int>());
+       setFadeRate(wsMsg["val"].as<int>());
        break;
      case 12:
-      //  mainState.dimmer.plength = wsMsgReady["val"].as<int>();
+      //  mainState.dimmer.plength = wsMsg["val"].as<int>();
       //  mainState.dimmer.plength = min((uint8_t)10, mainState.dimmer.plength);
-        FastLED.setBrightness(wsMsgReady["val"].as<int>());
+        FastLED.setBrightness(wsMsg["val"].as<int>());
        break;
      case 13:
-       setNRipples(wsMsgReady["val"].as<int>());
+       setNRipples(wsMsg["val"].as<int>());
        break;
      case 14:
        noiseTest();
@@ -1762,16 +1768,16 @@ void processWSMessage(){
        noiseFader();
        break;
      case 16:
-       mainState.noise.plength = wsMsgReady["val"].as<int>();
+       mainState.noise.plength = wsMsg["val"].as<int>();
        break;
      case 17:
-       mainState.noise.pspeed = wsMsgReady["val"].as<int>();
+       mainState.noise.pspeed = wsMsg["val"].as<int>();
        break;
      case 18:
-       mainState.noiseFade.plength = wsMsgReady["val"].as<int>();
+       mainState.noiseFade.plength = wsMsg["val"].as<int>();
        break;
      case 19:
-       mainState.noiseFade.pspeed = wsMsgReady["val"].as<int>();
+       mainState.noiseFade.pspeed = wsMsg["val"].as<int>();
        break;
      case 20:
        earthMode();
@@ -1789,10 +1795,10 @@ void processWSMessage(){
        metalMode();
        break;
      case 25:
-       mainState.air.plength = wsMsgReady["val"].as<int>();
+       mainState.air.plength = wsMsg["val"].as<int>();
        break;
      case 26:
-       mainState.air.pspeed = wsMsgReady["val"].as<int>();
+       mainState.air.pspeed = wsMsg["val"].as<int>();
        break;
      case 28:
        rippleGeddon();
@@ -1807,16 +1813,16 @@ void processWSMessage(){
        flashGrid();
        break;
      case 32:
-       mainState.fire.decay = wsMsgReady["val"].as<int>();
+       mainState.fire.decay = wsMsg["val"].as<int>();
        break;
      case 33:
-       mainState.fire.pspeed = wsMsgReady["val"].as<int>();
+       mainState.fire.pspeed = wsMsg["val"].as<int>();
        break;
       case 34:
-        setPalette(wsMsgReady["val"].as<int>());
+        setPalette(wsMsg["val"].as<int>());
         break;
       case 35:
-        paletteArrayTmp = wsMsgReady["palette"].as<JsonArray>();
+        paletteArrayTmp = wsMsg["palette"].as<JsonArray>();
         copyArray(paletteArrayTmp, paletteArray);
         for (int i = 0; i < 16; i++) {
           int j = i * 3;
@@ -1824,16 +1830,16 @@ void processWSMessage(){
         }
         break;
       case 36:
-        pat = patternPointers[wsMsgReady["pointer"].as<int>()];
-        if (wsMsgReady["param"].as<int>() == 0){
+        pat = patternPointers[wsMsg["pointer"].as<int>()];
+        if (wsMsg["param"].as<int>() == 0){
           Serial.println("speed");
-          pat->pspeed = wsMsgReady["val"].as<int>();
-        } else if (wsMsgReady["param"].as<int>() == 1){
+          pat->pspeed = wsMsg["val"].as<int>();
+        } else if (wsMsg["param"].as<int>() == 1){
           Serial.println("length");
-          pat->plength = wsMsgReady["val"].as<int>();
+          pat->plength = wsMsg["val"].as<int>();
         } else {
           Serial.println("decay");
-          pat->decay = wsMsgReady["val"].as<int>();
+          pat->decay = wsMsg["val"].as<int>();
           Serial.println(pat->decay);
         }
         if (mainState.powerSaver.plength == 6){
@@ -1841,13 +1847,13 @@ void processWSMessage(){
         }
         break;
       case 37:
-        pat = patternPointers[wsMsgReady["pointer"].as<int>()];
+        pat = patternPointers[wsMsg["pointer"].as<int>()];
         patternsOff();
         pat->enabled = true;
         break;
       case 38:
-        pat = patternPointers[wsMsgReady["pointer"].as<int>()];
-        pat->enabled = wsMsgReady["enabled"].as<bool>();
+        pat = patternPointers[wsMsg["pointer"].as<int>()];
+        pat->enabled = wsMsg["enabled"].as<bool>();
         Serial.println(mainState.ants.enabled);
         break;
       case 39:
@@ -1857,43 +1863,43 @@ void processWSMessage(){
         blender();
         break;
       case 41:
-        enlightenmentCallback(wsMsgReady["val"].as<int>());
+        enlightenmentCallback(wsMsg["val"].as<int>());
         break;
       case 42:
-        if (wsMsgReady["magnitude"].as<int>() == 0) {
+        if (wsMsg["magnitude"].as<int>() == 0) {
           mainState.skaters.enabled = false;
         } else {
           mainState.skaters.enabled = true;
-          mainState.skaters.plength = abs(wsMsgReady["magnitude"].as<int>());
+          mainState.skaters.plength = abs(wsMsg["magnitude"].as<int>());
           mainState.skaters.pspeed = 1;
-          if (wsMsgReady["direction"].as<int>() == 1){
+          if (wsMsg["direction"].as<int>() == 1){
               for (int i=0; i<nStrips; i++) {
-                stripDirection[i] = (wsMsgReady["magnitude"].as<int>() / abs(wsMsgReady["magnitude"].as<int>())) * directionLR[i];
+                stripDirection[i] = (wsMsg["magnitude"].as<int>() / abs(wsMsg["magnitude"].as<int>())) * directionLR[i];
               }
           } else {
               for (int i=0; i<nStrips; i++) {
-                stripDirection[i] = (wsMsgReady["magnitude"].as<int>() / abs(wsMsgReady["magnitude"].as<int>())) * directionUD[i];
+                stripDirection[i] = (wsMsg["magnitude"].as<int>() / abs(wsMsg["magnitude"].as<int>())) * directionUD[i];
               }
           }
         }
         break;
       case 43:
-        if (!(wsMsgReady["enabled"].as<bool>())){
+        if (!(wsMsg["enabled"].as<bool>())){
           upset_mainState();
-        } else if (wsMsgReady["primed"].as<bool>()){
+        } else if (wsMsg["primed"].as<bool>()){
           mainState.launch.enabled = true;
         } else {
           tripperTrapMode();
         }
         break;
       case 44:
-        for (JsonObject lock_i : wsMsgReady["locks"].as<JsonArray>()) {
+        for (JsonObject lock_i : wsMsg["locks"].as<JsonArray>()) {
             lock = locks[lock_i["lockNumber"].as<int>()];
             *lock = !lock_i["lockState"].as<bool>();
         }
 
-        // lock = locks[wsMsgReady["lockNumber"].as<int>()];
-        // *lock = !wsMsgReady["enabled"].as<bool>();
+        // lock = locks[wsMsg["lockNumber"].as<int>()];
+        // *lock = !wsMsg["enabled"].as<bool>();
         Serial.println(stepRateLocked);
         Serial.println(fadeRateLocked);
         Serial.println(brightnessLocked);
