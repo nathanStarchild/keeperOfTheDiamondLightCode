@@ -40,6 +40,40 @@
 
                 <div class="accordion-item">
                     <h2 class="accordion-header">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#globals">
+                            Globals
+                        </button>
+                    </h2>
+                    <div id="globals" class="accordion-collapse collapse">
+                        <div class="lockableGrid py-3">
+                            <div></div>
+                            <label class="control slider-label">Frame Rate:
+                                <div id="stepInput" data-msgtype="10" class="slider" data-start="2" data-min="1" data-max="10" data-direction="rtl"></div>
+                            </label>    
+                            <img id="stepLock" src="lock-open.svg" class="mt-1 lock sliderLock" data-target="#stepInput" data-enabled="true" data-locknumber="0"></img>
+
+                            <div></div>
+                            <label class="control slider-label">Fade Rate:
+                                <div id="fadeInput" data-msgtype="11" class="slider" data-start="128" data-min="1" data-max="180" data-direction="ltr"></div>              
+                            </label>     
+                            <img id="fadeLock" src="lock-open.svg" class="mt-1 lock sliderLock" data-target="#fadeInput" data-enabled="true" data-locknumber="1"></img>
+                            
+                            <div></div>
+                            <label class="control slider-label">Brightness:
+                                <div id="brightnessInput" data-msgtype="12" class="slider" data-start="255" data-min="1" data-max="255" data-direction="ltr"></div>              
+                            </label>  
+                            <img id="brightnessLock" src="lock-open.svg" class="mt-1 lock sliderLock" data-target="#brightnessInput" data-enabled="true" data-locknumber="2"></img>
+                            <div></div>
+
+                            <div id="getBoredBtn" data-msgtype="45" class="btn btn-secondary control inputBtn">Get Bored</div>
+
+                            <div id="dontGetBoredBtn" data-msgtype="46" class="btn btn-secondary control inputBtn">Don't Get Bored</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
                         <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#mardiGrasCols">
                             Mardi Gras Colours
                         </button>
@@ -126,39 +160,6 @@
                     </div>
                 </div>
 
-                <div class="accordion-item">
-                    <h2 class="accordion-header">
-                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#globals">
-                            Globals
-                        </button>
-                    </h2>
-                    <div id="globals" class="accordion-collapse collapse">
-                        <div class="lockableGrid py-3">
-                            <div></div>
-                            <label class="control slider-label">Frame Rate:
-                                <div id="stepInput" data-msgtype="10" class="slider" data-start="2" data-min="1" data-max="10" data-direction="rtl"></div>
-                            </label>    
-                            <img id="stepLock" src="lock-open.svg" class="mt-1 lock sliderLock" data-target="#stepInput" data-enabled="true" data-locknumber="0"></img>
-
-                            <div></div>
-                            <label class="control slider-label">Fade Rate:
-                                <div id="fadeInput" data-msgtype="11" class="slider" data-start="128" data-min="1" data-max="180" data-direction="ltr"></div>              
-                            </label>     
-                            <img id="fadeLock" src="lock-open.svg" class="mt-1 lock sliderLock" data-target="#fadeInput" data-enabled="true" data-locknumber="1"></img>
-                            
-                            <div></div>
-                            <label class="control slider-label">Brightness:
-                                <div id="brightnessInput" data-msgtype="12" class="slider" data-start="255" data-min="1" data-max="255" data-direction="ltr"></div>              
-                            </label>  
-                            <img id="brightnessLock" src="lock-open.svg" class="mt-1 lock sliderLock" data-target="#brightnessInput" data-enabled="true" data-locknumber="2"></img>
-                            <div></div>
-
-                            <div id="getBoredBtn" data-msgtype="45" class="btn btn-secondary control inputBtn">Get Bored</div>
-
-                            <div id="dontGetBoredBtn" data-msgtype="46" class="btn btn-secondary control inputBtn">Don't Get Bored</div>
-                        </div>
-                    </div>
-                </div>
 
                 <div class="accordion-item">
                     <h2 class="accordion-header">
