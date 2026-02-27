@@ -137,7 +137,7 @@ wss.on('connection', function connection(ws) {
   
     ws.on('message', function message(data, isBinary) {
         console.log(`got a message: ${data}`)
-        if (data === "lockState") {
+        if (data == "lockState") {
             // Build an array of lock objects
             const locks = lockState.map((value, index) => ({
                 lockNumber: index,
@@ -151,36 +151,36 @@ wss.on('connection', function connection(ws) {
             };
 
             ws.send(JSON.stringify(msg));
-        } else {
-
-          //from here we assume the message is a json
-          let dat = JSON.parse(data)
-          //ping
-          if (dat.msgType == 999 && typeof msg.t0 !== 'undefined'){
-            sendPong(ws, dat.t0)
             return
-          }
-          if (dat.msgType == 997) {
-            ws.role = dat.role
-            return
-          }
-          if (dat.msgType == 44){
-              lockState[dat.lockNumber] = dat.enabled
-          } else if (dat.msgType == 45) {
-            console.log("get bored")
-            clearInterval(boredTimer);
-          } else if (dat.msgType == 46) {
-            console.log("don't get bored")
-            clearInterval(boredTimer);
-            boredTimer = setInterval(dontGetBored, 7 * 1000 * 60)
-          } else {
-            clearInterval(boredTimer);
-            boredTimer = setInterval(dontGetBored, 7 * 1000 * 60)
-          }
-
-          //broadcast the message
-          broadcast(data, isBinary, ws)
         }
+
+        //from here we assume the message is a json
+        let dat = JSON.parse(data)
+        //ping
+        if (dat.msgType == 999 && typeof msg.t0 !== 'undefined'){
+          sendPong(ws, dat.t0)
+          return
+        }
+        if (dat.msgType == 997) {
+          ws.role = dat.role
+          return
+        }
+        if (dat.msgType == 44){
+            lockState[dat.lockNumber] = dat.enabled
+        } else if (dat.msgType == 45) {
+          console.log("get bored")
+          clearInterval(boredTimer);
+        } else if (dat.msgType == 46) {
+          console.log("don't get bored")
+          clearInterval(boredTimer);
+          boredTimer = setInterval(dontGetBored, 7 * 1000 * 60)
+        } else {
+          clearInterval(boredTimer);
+          boredTimer = setInterval(dontGetBored, 7 * 1000 * 60)
+        }
+
+        //broadcast the message
+        broadcast(data, isBinary, ws)
     });
 });
 
