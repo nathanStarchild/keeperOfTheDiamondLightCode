@@ -9,6 +9,9 @@
 
 
 #include <WebSocketsClient.h>
+
+//https://arduinojson.org/v6/api/config/use_long_long/
+#define ARDUINOJSON_USE_LONG_LONG 1
 #include <ArduinoJson.h>
 
 #define SSID "queerBurners"
@@ -41,9 +44,9 @@ uint64_t offsetMs = 0;        // smoothed server offset
 bool firstOffset = true;
 uint64_t lastPingT0 = 0;
 bool pingOutstanding = false;
-#define PING_MSG_TYPE = 999;
-#define PONG_MSG_TYPE = 998;
-#define ROLE_MSG_TYPE = 997;
+#define PING_MSG_TYPE 999
+#define PONG_MSG_TYPE 998
+#define ROLE_MSG_TYPE 997
 
 
 void webSocketEvent(WStype_t type, uint8_t * payload, size_t length);
@@ -322,7 +325,7 @@ void sendRole() {
     ROLE
   );
 
-  ws.sendTXT(buf);
+  webSocket.sendTXT(buf);
 }
 #endif
 
@@ -339,7 +342,7 @@ void sendPing() {
     lastPingT0
   );
 
-  ws.sendTXT(buf);
+  webSocket.sendTXT(buf);
 }
 
 void handlePong(uint64_t t0, uint64_t serverTime) {

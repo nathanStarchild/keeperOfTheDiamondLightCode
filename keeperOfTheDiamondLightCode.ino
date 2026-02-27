@@ -39,7 +39,8 @@ bool noRelayer = true;
 #include "client.h"
 
 // Mardi Gras
-#include "esp8266Test.h"
+//#include "esp8266Test.h"
+#include "mg_pyramid_top.h"
 
 
 //#include "drumRoof.h"
@@ -1886,7 +1887,7 @@ void processWSMessage(){
         }
         break;
       case 44:
-        for (JsonObject lock_i : doc["locks"].as<JsonArray>()) {
+        for (JsonObject lock_i : wsMsgReady["locks"].as<JsonArray>()) {
             lock = locks[lock_i["lockNumber"].as<int>()];
             *lock = !lock_i["lockState"].as<bool>();
         }
