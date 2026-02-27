@@ -79,8 +79,8 @@ function broadcast(data, isBinary, from) {
         // if (client !== from && client.readyState === WebSocket.OPEN) {
         if (client.readyState === WebSocket.OPEN) {
             try {
-                // client.send(data, { binary: false });
-                client.send(data);
+                client.send(data, { binary: false });
+                // client.send(data);
                 sentCount++;
                 console.log(`  ✓ Successfully sent to this client`);
             } catch (err) {
