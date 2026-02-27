@@ -168,6 +168,7 @@ void wsLoop() {
 //        memcpy(wsMsgString, pendingMessages[i].msgString, n);
 //        wsMsgString[n] = '\0';
 //        safeStrCopy(wsMsgString, (const uint8_t*)pendingMessages[i].msgString, pendingMessages[i].length, MAX_MSG_LEN);
+        wsMsgString = "";
         wsMsgString = pendingMessages[i].msgString;
         inbox = true;
         Serial.printf("Executing pending message (startTime: %llu)\n", pendingMessages[i].startTime);
@@ -252,6 +253,10 @@ void WiFiGotIP(WiFiEvent_t event, WiFiEventInfo_t info){
 
 void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
   DeserializationError error;
+  Serial.printf("\n=== WS EVENT RECEIVED ===\n");
+  Serial.printf("Event type: %d\n", type);
+  Serial.printf("Length: %d\n", length);
+  Serial.printf("========================\n");
 
   switch (type) {
     case WStype_DISCONNECTED:
@@ -269,6 +274,10 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
       webSocket.sendTXT("lockState");
       break;
 
+    case WStype_BIN:
+      Serial.printf("get Binary (treating as text): length=%d\n", length);
+      // Fall through to handle like text
+      
     case WStype_TEXT:
       Serial.printf("get Text: %s\n", payload);
 
@@ -308,6 +317,7 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
             
 //            safeStrCopy(wsMsgString, payload, length, MAX_MSG_LEN);
             
+            wsMsgString = "";
             serializeJson(wsMsg, wsMsgString);
             
             
@@ -321,6 +331,7 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
 //              size_t n = safeStrCopy(pendingMessages[pendingMessageCount].msgString, payload, length, MAX_MSG_LEN);
 //              pendingMessages[pendingMessageCount].length = n;
               
+              pendingMessages[pendingMessageCount].msgString = "";
               serializeJson(wsMsg, pendingMessages[pendingMessageCount].msgString);
               pendingMessages[pendingMessageCount].startTime = startLocal;
               pendingMessageCount++;
@@ -335,6 +346,7 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
 //          memcpy(wsMsgString, payload, n);
 //          wsMsgString[n] = '\0';
 //          safeStrCopy(wsMsgString, payload, length, MAX_MSG_LEN);
+          wsMsgString = "";
           serializeJson(wsMsg, wsMsgString);
           Serial.printf("saved %s\n", wsMsgString);
           inbox = true;
