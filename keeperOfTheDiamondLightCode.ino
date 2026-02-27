@@ -1701,6 +1701,7 @@ void processWSMessage(){
   if (error) {
     Serial.print(F("deserializeJson() failed: "));
     Serial.println(error.f_str());
+    Serial.println(wsMsgString);
     return;
   }
   Serial.print("Processing JSON message: ");

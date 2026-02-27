@@ -25,15 +25,14 @@ WebSocketsClient webSocket;
 
 #define MAX_MSG_LEN 400
 DynamicJsonDocument wsMsg(1024);
-char wsMsgString[MAX_MSG_LEN];
+String wsMsgString;
 
 MilliTimer tryToConnectTimer(1 * 60000);
 
 bool inbox = false;
 #define MAX_PENDING_MESSAGES 2
 struct PendingMessage {
-  char msgString[MAX_MSG_LEN];
-  size_t length; 
+  String msgString;
   uint64_t startTime;
 };
 
@@ -68,6 +67,22 @@ void WiFiStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info);
 void WiFiGotIP(WiFiEvent_t event, WiFiEventInfo_t info);
 #endif
 
+size_t safeStrCopy(char* dest, const uint8_t* src, size_t srcLen, size_t maxLen) {
+    // Clamp number of bytes to copy
+    size_t n = srcLen;
+    if (n >= maxLen) n = maxLen - 1;
+
+    // Copy bytes
+    for (size_t i = 0; i < n; i++) {
+        dest[i] = (char)src[i];
+    }
+
+    // Null-terminate
+    dest[n] = '\0';
+
+    // Return number of bytes copied (excluding '\0')
+    return n;
+}
 
 void wsSetup() {
 
@@ -149,9 +164,11 @@ void wsLoop() {
     uint64_t now = (uint64_t)millis();
     for (uint8_t i = 0; i < pendingMessageCount; i++) {
       if (pendingMessages[i].startTime <= now) {
-        size_t n = min(pendingMessages[i].length, MAX_MSG_LEN - 1);
-        memcpy(wsMsgString, pendingMessages[i].msgString, n);
-        wsMsgString[n] = '\0';
+//        size_t n = min(pendingMessages[i].length, (size_t)(MAX_MSG_LEN - 1));
+//        memcpy(wsMsgString, pendingMessages[i].msgString, n);
+//        wsMsgString[n] = '\0';
+//        safeStrCopy(wsMsgString, (const uint8_t*)pendingMessages[i].msgString, pendingMessages[i].length, MAX_MSG_LEN);
+        wsMsgString = pendingMessages[i].msgString;
         inbox = true;
         Serial.printf("Executing pending message (startTime: %llu)\n", pendingMessages[i].startTime);
         
@@ -262,41 +279,49 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
       // webSocketsServer.broadcastTXT("message here");
       
       
-      error = deserializeJson(wsMsgIncoming, payload);
+      error = deserializeJson(wsMsg, payload);
       if (error) {
         Serial.print(F("deserializeJson() failed: "));
         Serial.println(error.f_str());
       } else {
         Serial.print("we got a json! ");
-        serializeJson(wsMsgIncoming, Serial);
-        Serial.print("\n");
+        serializeJson(wsMsg, Serial);
 
-        if (wsMsgIncoming["msgType"] == PONG_MSG_TYPE) {
-          uint64_t t0 = wsMsgIncoming["t0"];
-          uint64_t serverTime = wsMsgIncoming["serverTime"];
+        if (wsMsg["msgType"] == PONG_MSG_TYPE) {
+          uint64_t t0 = wsMsg["t0"];
+          uint64_t serverTime = wsMsg["serverTime"];
           handlePong(t0, serverTime);
           return;
         }
 
         // Check if message has a startTime
-        if (wsMsgIncoming.containsKey("startTime")) {
-          uint64_t startTime = wsMsgIncoming["startTime"];
+        if (wsMsg.containsKey("startTime")) {
+          uint64_t startTime = wsMsg["startTime"];
           uint64_t startLocal = startTime - offsetMs;
           uint64_t now = (uint64_t)millis();
           
           if (startLocal <= now) {
             // Execute immediately
-            size_t n = min(length, MAX_MSG_LEN - 1);
-            memcpy(wsMsgString, payload, n);
-            wsMsgString[n] = '\0';
+//            size_t n = min(length, (size_t)(MAX_MSG_LEN - 1));
+//            memcpy(wsMsgString, payload, n);
+//            wsMsgString[n] = '\0';
+            
+//            safeStrCopy(wsMsgString, payload, length, MAX_MSG_LEN);
+            
+            serializeJson(wsMsg, wsMsgString);
+            
+            
             inbox = true;
           } else {
             // Queue for later
             if (pendingMessageCount < MAX_PENDING_MESSAGES) {
-              size_t n = min(length, MAX_MSG_LEN - 1);
-              memcpy(pendingMessages[pendingMessageCount].msgString, payload, n);
-              pendingMessages[pendingMessageCount].msgString[n] = '\0';
-              pendingMessages[pendingMessageCount].length = n;
+//              size_t n = min(length, (size_t)(MAX_MSG_LEN - 1));
+//              memcpy(pendingMessages[pendingMessageCount].msgString, payload, n);
+//              pendingMessages[pendingMessageCount].msgString[n] = '\0';
+//              size_t n = safeStrCopy(pendingMessages[pendingMessageCount].msgString, payload, length, MAX_MSG_LEN);
+//              pendingMessages[pendingMessageCount].length = n;
+              
+              serializeJson(wsMsg, pendingMessages[pendingMessageCount].msgString);
               pendingMessages[pendingMessageCount].startTime = startLocal;
               pendingMessageCount++;
               Serial.printf("Queued message for startLocal: %llu (count: %d)\n", startLocal, pendingMessageCount);
@@ -306,9 +331,12 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
           }
         } else {
           // No startTime, execute immediately
-          size_t n = min(length, MAX_MSG_LEN - 1);
-          memcpy(wsMsgString, payload, n);
-          wsMsgString[n] = '\0';
+//          size_t n = min(length, (size_t)(MAX_MSG_LEN - 1));
+//          memcpy(wsMsgString, payload, n);
+//          wsMsgString[n] = '\0';
+//          safeStrCopy(wsMsgString, payload, length, MAX_MSG_LEN);
+          serializeJson(wsMsg, wsMsgString);
+          Serial.printf("saved %s\n", wsMsgString);
           inbox = true;
         }
 
