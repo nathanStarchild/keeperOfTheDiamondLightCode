@@ -60,6 +60,7 @@ function broadcast(data, isBinary, from) {
     wss.clients.forEach(function each(client) {
         if (client !== from && client.readyState === WebSocket.OPEN) {
             client.send(data, { binary: isBinary });
+            console.log("sent")
         }
     });
 }
@@ -189,6 +190,7 @@ wss.on('connection', function connection(ws) {
         }
 
         //broadcast the message
+        console.log("broadcasting")
         broadcast(data, isBinary, ws)
     });
 });
