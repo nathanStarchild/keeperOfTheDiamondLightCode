@@ -7,7 +7,7 @@ TBlendType    currentBlending;                                // NOBLEND or LINE
 CRGB designColour = CRGB::Black;
 CRGBPalette16 currentDesignPalette;
 //CRGBPalette16 targetDesignPalette;
-uint8_t paletteCycleIndex = 1;
+uint8_t paletteCycleIndex = 0;
 const uint8_t nPalettes = 26;
 
 

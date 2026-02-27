@@ -178,4 +178,28 @@ DEFINE_GRADIENT_PALETTE( communalEffort_dusty_gp ) {
    255,240,230,255
 };
 
-// const TProgmemRGBGradientPalettePtr palettes[] = {
+
+const uint8_t n_mg_palettes = 26;
+
+const TProgmemRGBGradientPalettePtr mg_palettes[20] = {
+  participation_gp,
+  radicalSelfExpression_gp,
+  leaveNoTrace_gp,
+  radicalInclusion_gp,
+  gifting_gp,
+  decommodification_gp,
+  radicalSelfReliance_gp,
+  immediacy_gp,
+  civicResponsibility_gp,
+  communalEffort_gp,
+  participation_dusty_gp,
+  radicalSelfExpression_dusty_gp,
+  leaveNoTrace_dusty_gp,
+  radicalInclusion_dusty_gp,
+  gifting_dusty_gp,
+  decommodification_dusty_gp,
+  radicalSelfReliance_dusty_gp,
+  immediacy_dusty_gp,
+  civicResponsibility_dusty_gp,
+  communalEffort_dusty_gp,
+};

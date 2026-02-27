@@ -41,7 +41,7 @@ lockState.forEach((value, index) => {
     console.log(JSON.stringify(dat))
 })
 
-async function broadcast(data, isBinary, from) {
+async function broadcastNew(data, isBinary, from) {
   const clients = [...wss.clients]
 
   for (let i = 0; i < clients.length; i++) {
@@ -54,6 +54,14 @@ async function broadcast(data, isBinary, from) {
 
     if (i % 8 === 0) await new Promise(r => setImmediate(r))
   }
+}
+
+function broadcast(data, isBinary, from) {
+    wss.clients.forEach(function each(client) {
+        if (client !== from && client.readyState === WebSocket.OPEN) {
+            client.send(data, { binary: isBinary });
+        }
+    });
 }
 
 async function sendToRole(data, isBinary, role) {

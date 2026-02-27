@@ -8,6 +8,7 @@ FASTLED_USING_NAMESPACE
 #include "millitimer.h"
 #include "pleiadianPalettes.h"
 #include "pleiadianPatterns.h"
+#include "mg_palettes.h"
 
 MilliTimer boredTimer(11 * 60000); //bored timer, change if no messages or controller input
 
@@ -113,7 +114,7 @@ MilliTimer offline_pattern(3 * 60000); //1000 seconds
 MilliTimer glitterTimer(10000); //how long glitter runs for
 MilliTimer enlightenment(enlightenTime); //enlightenment button hold time
 MilliTimer paletteBlendTimer(22); //how often to perform palette blending steps when moving to new palette
-MilliTimer paletteCycleTimer(5 * 60000); // how often to move to the next palette
+MilliTimer paletteCycleTimer(1 * 20000); // how often to move to the next palette
 MilliTimer testingTimer(10000);
 MilliTimer tripperTrapTimer(5 * 60000); //how long to stay in tripper trap mode
 MilliTimer batteryUpdateTimer(9*60000); //how long to wait before assuming the voltage screamer isn't coming back online
@@ -149,11 +150,12 @@ void setup() {
     randomSeed(analogRead(A0));
 
     currentBlending = LINEARBLEND;
-    currentPalette = Deep_Skyblues_gp;
-    targetPalette = Deep_Skyblues_gp;
+    currentPalette = participation_gp;
+    targetPalette = participation_gp;
     stepRate = 1;
     patternsOff();
-    doubleRainbow();
+//    doubleRainbow();
+    mainState.noise.enabled = true;
     // mainState.noiseFade.enabled = false;
 //    mainState.blendwave.enabled = true;
 //    mainState.noise2D.enabled = true;
@@ -186,6 +188,11 @@ void loop(){
         nblendPaletteTowardPalette(currentPalette, targetPalette, maxChanges);
         paletteBlendTimer.resetTimer();
     }  
+
+    if (paletteCycleTimer.isItTime()){
+      next_mg_palette();
+      paletteCycleTimer.resetTimer();
+    }
 
     if (nothingIsOn()) {
         Serial.println("Nothing is on");
@@ -645,6 +652,16 @@ void nextPalette() {
   }
   paletteCycleIndex = (paletteCycleIndex + 1) % nPalettes;
   targetPalette = cyclePalettes[paletteCycleIndex];
+  Serial.printf("palette: %d\n", paletteCycleIndex);
+}
+
+
+void next_mg_palette() {
+  if (paletteLocked){
+    return;
+  }
+  paletteCycleIndex = (paletteCycleIndex + 1) % n_mg_palettes;
+  targetPalette = mg_palettes[paletteCycleIndex];
   Serial.printf("palette: %d\n", paletteCycleIndex);
 }
 
