@@ -211,3 +211,16 @@ const TProgmemRGBGradientPalettePtr mg_palettes[n_mg_palettes] = {
   civicResponsibility_gp,
   communalEffort_gp,
 };
+
+uint8_t principleHue[10] = {
+ 235, // Pink
+ 150, // Turquoise
+  20, // Brown
+   0, // Red
+  32, // Orange
+  64, // Yellow
+ 128, // Green
+ 192, // Blue
+ 224, // Violet
+ 208  // Indigo
+};

@@ -189,10 +189,10 @@ void loop(){
         paletteBlendTimer.resetTimer();
     }  
 
-    if (paletteCycleTimer.isItTime()){
-      next_mg_palette();
-      paletteCycleTimer.resetTimer();
-    }
+    // if (paletteCycleTimer.isItTime()){
+    //   next_mg_palette();
+    //   paletteCycleTimer.resetTimer();
+    // }
 
     if (nothingIsOn()) {
         Serial.println("Nothing is on");
@@ -614,6 +614,7 @@ void patternsOff() {
   mainState.theBlob.enabled = false;
   mainState.noise2D.enabled = false;
   mainState.pi.enabled = false;
+  mainState.rainbowZoom.enabled = false;
 }
 
 bool nothingIsOn() {
@@ -642,7 +643,8 @@ bool nothingIsOn() {
     mainState.metal.enabled ||
     mainState.theBlob.enabled ||
     mainState.noise2D.enabled ||
-    mainState.pi.enabled
+    mainState.pi.enabled ||
+    mainState.rainbowZoom.enabled
   );
 }
 
@@ -744,6 +746,10 @@ void updatePatterns() { //render the next LED state in the buffer using the curr
     for (i = 0; i < num_leds; i++) {
       leds[i].setHue(((mainState.patternStep % 256) * mainState.wave.pspeed) + (i / mainState.wave.plength));
     }
+  }
+
+  if (mainState.rainbowZoom.enabled) {
+    rainbowZoom();
   }
 
   if (mainState.blendwave.enabled) {
@@ -1501,6 +1507,19 @@ void rainbow() {
     }
 }
 
+void rainbowZoom() {
+  //length is how many times the leds span more than 24
+  // ie length=1 means the patterns spans 24 indices,length=255 means the span is 24*255.
+  // speed is how fast it scrolls
+  //decay is centre index
+    for (int i=0; i<NUM_LEDS; i++) {
+      uint16_t pal_idx = map(i, 0, num_leds-1, 0, mainState.rainbowZoom.plength * 24);
+      uint8_t hue = (pal_idx + mainState.rainbowZoom.decay) % 256;
+      uint16_t led_idx = (i + mainState.patternStep * mainState.rainbowZoom.pspeed) % num_leds;
+      leds[led_idx] = ColorFromPalette(RainbowColors_p, hue, 255);
+    }
+}
+
 void noisePattern() {
   for (int i=0; i<num_leds; i++) {
 //    uint8_t val = (3*inoise8(i*mainState.noise.plength, mainState.patternStep * mainState.noise.pspeed)%256);
@@ -1747,7 +1766,8 @@ void processWSMessage(){
        tranquilityMode();
        break;
      case 4:
-       nextPalette();
+      //  nextPalette();
+      next_mg_palette();
        break;
      case 5:
        tripperTrapMode();

@@ -1100,7 +1100,33 @@ $(document).ready(function() {
                 "max": 255,
                 "start": 30
             }
-        }
+        },
+        {
+            "name": "rainbowZoom",
+            "pointer": 31,
+            "enabled": false,
+            "speed": {
+                "direction": "ltr",
+                "name": "speed",
+                "min": 1,
+                "max": 20,
+                "start": 3,
+            },
+            "length": {
+                "direction": "ltr",
+                "name": "length",
+                "min": 1,
+                "max": 255,
+                "start": 30
+            },
+            "decay": {
+                "direction": "ltr",
+                "name": "fringe",
+                "min": 0,
+                "max": 255,
+                "start": 0
+            }
+        },
         // {
         //     "name": "metal",
         //     "pointer": 26,
