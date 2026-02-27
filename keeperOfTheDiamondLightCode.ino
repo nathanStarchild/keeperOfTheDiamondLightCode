@@ -111,6 +111,7 @@ bool noRelayer = true;
 const uint16_t enlightenTime = 60000; //ms
 #define ZOOM_INTERVAL 5000
 MilliTimer zoomTimer(ZOOM_INTERVAL); //1000 seconds
+MilliTimer returnTimer(10000);
 //MilliTimer boredTimer(11 * 60000); //bored timer, change if no messages or controller input
 MilliTimer glitterTimer(10000); //how long glitter runs for
 MilliTimer enlightenment(enlightenTime); //enlightenment button hold time
@@ -150,17 +151,36 @@ void setup() {
 
     randomSeed(analogRead(A0));
 
+    returnTimer.stopTimer();
+
     currentBlending = LINEARBLEND;
     currentPalette = participation_gp;
     targetPalette = participation_gp;
     stepRate = 1;
     patternsOff();
-//    doubleRainbow();
-    mainState.noise.enabled = true;
-    // mainState.noiseFade.enabled = false;
+    doubleRainbow();
+    // mainState.noise.enabled = true;
+    mainState.noiseFade.enabled = false;
 //    mainState.blendwave.enabled = true;
 //    mainState.noise2D.enabled = true;
+    #ifdef ROLE
+    if (strcmp(ROLE, "lantern") == 0 || strcmp(ROLE, "doofStick") == 0) {
+      #ifdef NUMBER
+      set_mg_palette(NUMBER);
+      #endif
+      paletteLocked = true;
+      patternsOff();
+      mainState.noise.enabled = true;
+    }
+    if (strcmp(ROLE, "burnBarrels") == 0) {
+      patternsOff();
+      fireMode();
+      setStepRate(1);
+      stepRateLocked = true;
+    }
+    #endif
 }
+
 
 void loop(){
     wsLoop();
@@ -176,8 +196,8 @@ void loop(){
       #endif
       FastLED.show();
       mainState.stale = true;
-//        uint32_t el = frameTimer.elapsed();
-//        Serial.println(el);
+      //  uint32_t el = frameTimer.elapsed();
+      //  Serial.println(el);
     }
 
     if (mainState.stale) {
@@ -202,6 +222,27 @@ void loop(){
 
     if (alone) {
       dontGetBored();
+    }
+
+    if (returnTimer.isItTime()) {
+      Serial.println("Returning to primary operation");
+      #ifdef ROLE
+        if (strcmp(ROLE, "lantern") == 0 || strcmp(ROLE, "doofStick") == 0) {
+          paletteLocked = false;
+          #ifdef NUMBER
+          set_mg_palette(NUMBER);
+          #endif
+          paletteLocked = true;
+        }
+        if (strcmp(ROLE, "burnBarrels") == 0) {
+          patternsOff();
+          fireMode();
+          stepRateLocked = false;
+          setStepRate(1);
+          stepRateLocked = true;
+        }
+      #endif
+      returnTimer.stopTimer();
     }
 }
 
@@ -402,6 +443,46 @@ void mg_random() {
     mainState.theBlob.decay = random8(20, 255);
 }
 
+void mg_noise_party() {
+  #ifdef ROLE
+  if (strcmp(ROLE, "burnBarrels") == 0) {
+    return
+  }
+  #endif
+  patternsOff();
+  setStepRate(1);
+  mainState.noise.enabled = true;
+  mainState.noise.plength = 37;
+  mainState.noise.pspeed = 16;
+  mainState.noiseFade.enabled = true;
+  mainState.noiseFade.plength = 27;
+  mainState.noiseFade.pspeed = 22;
+  mainState.theVoid.enabled = true;
+  mainState.theVoid.pspeed = 10;
+  mainState.theVoid.plength = 75;
+
+}
+
+void mg_blob() {
+  #ifdef ROLE
+  if (strcmp(ROLE, "burnBarrels") == 0) {
+    return
+  }
+  #endif
+  patternsOff();
+  setStepRate(1);
+  mainState.theBlob.enabled = true;
+  mainState.theBlob.plength = 37;
+  mainState.theBlob.pspeed = 16;
+  mainState.theBlob.decay = 22;
+  mainState.rain.enabled = true;
+  mainState.rain.plength = 9;
+  mainState.ripple.enabled = true;
+  mainState.theVoid.enabled = true;
+
+}
+
+
 void holdingPatternMode(uint8_t n) {
   if (n == 0) {
     upset_mainState();
@@ -446,6 +527,12 @@ void tripperTrapMode() {
 }
 
 void tranquilityMode() {
+  #ifdef ROLE
+  if (strcmp(ROLE, "burnBarrels") == 0) {
+    fireMode();
+    return
+  }
+  #endif
     patternsOff();
 //    targetPalette = OceanColors_p;
 //    paletteCycleIndex = 0;
@@ -459,6 +546,12 @@ void tranquilityMode() {
 }
 
 void shootingStars() {
+  #ifdef ROLE
+  if (strcmp(ROLE, "burnBarrels") == 0) {
+    fireMode();
+    return
+  }
+  #endif
     patternsOff();
     setNRipples(1);
     mainState.ripple.enabled = true;
@@ -516,6 +609,12 @@ void blender() {
 }
 
 void doubleRainbow() {
+  #ifdef ROLE
+  if (strcmp(ROLE, "burnBarrels") == 0) {
+    fireMode();
+    return
+  }
+  #endif
   patternsOff();
   mainState.rainbow.enabled = true;
   mainState.noiseFade.enabled = true;
@@ -547,6 +646,12 @@ void flashGrid() {
 }
 
 void antsMode() {
+  #ifdef ROLE
+  if (strcmp(ROLE, "burnBarrels") == 0) {
+    fireMode();
+    return
+  }
+  #endif
       patternsOff();
       mainState.ants.enabled = true;
       mainState.ants.plength = 20;
@@ -649,6 +754,7 @@ void airMode() {
 void zoomToColour(uint8_t col_idx){
   // currentPalette = mg_palettes[col_idx];
   // targetPalette = mg_palettes[col_idx];
+  paletteLocked = false;
   set_mg_palette(col_idx);
   patternsOff();
   mainState.rainbowZoom.enabled = true;
@@ -1609,6 +1715,7 @@ void rainbowZoom() {
   mainState.rainbowZoom.plength = progress;
   if (zoomTimer.isItTime()){
     mg_random();
+    returnTimer.startTimer();
   }
 }
 
@@ -1652,7 +1759,9 @@ void noiseFade() {
     uint8_t val = inoise8(i*mainState.noiseFade.plength, mainState.patternStep * mainState.noiseFade.pspeed);
     int vm = map(val, 0, 255, -190, 300);
     uint8_t pv = (uint8_t)min(255, max(vm, 0));
-    leds[i] %= pv;
+    if (pv < 245){
+      leds[i] %= pv;
+    }
   }
 }
 
@@ -2043,6 +2152,14 @@ void processWSMessage(){
         #ifdef NUMBER
         }
         #endif
+        break;
+      case 51:
+        mg_noise_party();
+        break;
+      case 53:
+        mg_blob();
+        break;
+        mg_random();
         break;
    }
   }
