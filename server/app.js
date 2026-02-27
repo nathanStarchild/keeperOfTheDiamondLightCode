@@ -57,13 +57,29 @@ async function broadcastNew(data, isBinary, from) {
 }
 
 function broadcast(data, isBinary, from) {
-    wss.clients.forEach(function each(client) {
+    let sentCount = 0;
+    let totalClients = wss.clients.size;
+    console.log(`Broadcasting to ${totalClients} clients. Data: ${data}`);
+    
+    wss.clients.forEach(function each(client, index) {
+        const clientInfo = {
+            role: client.role || 'none',
+            readyState: client.readyState,
+            remoteAddress: client._socket ? client._socket.remoteAddress : 'N/A',
+            remotePort: client._socket ? client._socket.remotePort : 'N/A',
+            isSender: client === from
+        };
+        
         // if (client !== from && client.readyState === WebSocket.OPEN) {
         if (client.readyState === WebSocket.OPEN) {
             client.send(data, { binary: false });
-            console.log("sent")
+            sentCount++;
+            console.log(`Sent to client ${sentCount}/${totalClients}:`, clientInfo);
+        } else {
+            console.log(`Skipped client:`, clientInfo);
         }
     });
+    console.log(`Broadcast complete: ${sentCount} clients received message`);
 }
 
 async function sendToRole(data, isBinary, role) {
@@ -144,10 +160,25 @@ function sendPong(ws, t0){
 }
 
 wss.on('connection', function connection(ws) {
+    console.log(`New client connected. Total clients: ${wss.clients.size}`);
+    console.log(`Client info:`, {
+        protocol: ws.protocol,
+        readyState: ws.readyState,
+        url: ws.url,
+        headers: ws.upgradeReq ? ws.upgradeReq.headers : 'N/A',
+        remoteAddress: ws._socket ? ws._socket.remoteAddress : 'N/A',
+        remotePort: ws._socket ? ws._socket.remotePort : 'N/A'
+    });
+    
     ws.on('error', console.error);
   
     ws.on('message', function message(data, isBinary) {
-        console.log(`got a message: ${data}`)
+        console.log(`\n=== Received message ===`);
+        console.log(`From: ${ws.role || 'unknown role'}`);
+        console.log(`isBinary: ${isBinary}`);
+        console.log(`Data: ${data}`);
+        console.log(`========================\n`);
+        
         if (data == "lockState") {
             // Build an array of lock objects
             const locks = lockState.map((value, index) => ({
@@ -191,8 +222,15 @@ wss.on('connection', function connection(ws) {
         }
 
         //broadcast the message
-        console.log("broadcasting")
+        console.log(`\n=== About to broadcast ===`);
+        console.log(`Original sender: ${ws.role || 'unknown'}`);
+        console.log(`Message: ${data}`);
+        console.log(`========================\n`);
         broadcast(data, isBinary, ws)
+    });
+    
+    ws.on('close', function close() {
+        console.log(`Client disconnected (role: ${ws.role || 'unknown'}). Total clients: ${wss.clients.size}`);
     });
 });
 
