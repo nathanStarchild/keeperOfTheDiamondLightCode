@@ -26,7 +26,7 @@ uint16_t sweepSpot = NUMBER + 3;
 uint16_t element = 0;
 
 void elementSetup(){
-    FastLED.addLeds<WS2813, DATA_PIN_1, RGB>(outLeds, 0, LEDS_OUTPUT1); 
+    FastLED.addLeds<WS2812B, DATA_PIN_1, GRB>(outLeds, 0, LEDS_OUTPUT1); 
     // FastLED.addLeds<WS2813, DATA_PIN_2, RGB>(outLeds, LEDS_OUTPUT1, LEDS_OUTPUT2); 
     // FastLED.addLeds<WS2813, DATA_PIN_3, RGB>(outLeds, LEDS_OUTPUT1 + LEDS_OUTPUT2, LEDS_OUTPUT3); 
 //    FastLED.addLeds<WS2813, DATA_PIN_1, RGB>(outLeds, 0, 600); 

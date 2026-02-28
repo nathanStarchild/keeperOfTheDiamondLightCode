@@ -41,7 +41,32 @@ bool noRelayer = true;
 
 // Mardi Gras
 //#include "esp8266Test.h"
-#include "mg_pyramid_top.h"
+// #include "mg_pyramid_top.h"
+// #include "mg_pyramid_sides.h"
+#include "mg_pyramid_wash.h"
+// #include "mg_truck.h"
+// #include "mg_burn_barrels.h"
+// #include "mg_lantern_0.h"
+// #include "mg_lantern_1.h"
+// #include "mg_lantern_2.h"
+// #include "mg_lantern_3.h"
+// #include "mg_lantern_4.h"
+// #include "mg_lantern_5.h"
+// #include "mg_lantern_6.h"
+// #include "mg_lantern_7.h"
+// #include "mg_lantern_8.h"
+// #include "mg_lantern_9.h"
+// #include "mg_doof_stick_0.h"
+// #include "mg_doof_stick_1.h"
+// #include "mg_doof_stick_2.h"
+// #include "mg_doof_stick_3.h"
+// #include "mg_doof_stick_4.h"
+// #include "mg_doof_stick_5.h"
+// #include "mg_doof_stick_6.h"
+// #include "mg_doof_stick_7.h"
+// #include "mg_doof_stick_8.h"
+// #include "mg_doof_stick_9.h"
+// #include "mg_doof_stick_10.h"
 
 
 //#include "drumRoof.h"
@@ -146,6 +171,12 @@ Spiraliser spiral;
 void setup() {
     Serial.begin(9600);
     Serial.println("hello");
+    #ifdef ROLE
+    Serial.println(ROLE);
+    #endif
+    #ifdef NUMBER
+    Serial.println(NUMBER);
+    #endif
     elementSetup();
     wsSetup();
 
@@ -310,7 +341,7 @@ CRGB averageColour(CRGB *ledsIn, int count) {
 void computeWashPixels() {
     int numWashes = NUM_LEDS / LEDS_PER_PIXEL;
     for (int i = 0; i < numWashes; i++) {
-        targetLeds[i] = averageColorFast(
+        targetLeds[i] = averageColour(
             &leds[i * LEDS_PER_PIXEL],  // pointer to chunk start
             LEDS_PER_PIXEL
         );
@@ -2164,7 +2195,6 @@ void processWSMessage(){
         break;
       case 54:  
         enlightenmentAchieved();
-        returnTimer.startTimer();
         break;
       case 55:  
         returnTimer.startTimer();
