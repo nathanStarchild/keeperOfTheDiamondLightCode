@@ -1,13 +1,24 @@
 0 - Pink - Participation
 1 - Turquoise - Radical Self Expression
-2 - Brown - Leave No Trace
+2 - Brown - Leave No Trace - too yellow
 3 - Red - Radical Inclusion
-4 - Orange - Gifting
+4 - Orange - Gifting - too yellow
 5 - Yellow - Decommodification
-6 - Green - Radical Self Reliance
+6 - Green - Radical Self Reliance - too blue
 7 - Blue - Immediacy
 8 - Violet - Civic Responsibility
-9 - Indigo - Communal Effort
+9 - Indigo - Communal Effort - too blue
 
 
 Black - Consent
+
+0 - Pink 
+1 - Turquoise 
+2 - Brown 
+3 - Red 
+4 - Orange 
+5 - Yellow
+6 - Green 
+7 - Blue 
+8 - Violet
+9 - Indigo
