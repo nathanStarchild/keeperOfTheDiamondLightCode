@@ -15,7 +15,7 @@
 #define MESH_SSID "diamondLightMesh"
 #define MESH_PASSWORD "keeperOfTheDiamondLight"
 #define MESH_PORT 5555
-#define MESH_CHANNEL 7
+#define MESH_CHANNEL 
 
 // ========== GLOBAL OBJECTS ==========
 painlessMesh mesh;
@@ -27,16 +27,6 @@ String wsMsgString;
 bool inbox = false;
 bool meshInbox = false;
 String meshMsgString;
-
-// Pending messages (timed execution)
-#define MAX_PENDING_MESSAGES 10  // Increased from 2, but not too large for ESP8266 RAM
-struct PendingMessage {
-  String msgString;
-  uint64_t startTime;
-};
-
-PendingMessage pendingMessages[MAX_PENDING_MESSAGES];
-uint8_t pendingMessageCount = 0;
 
 // ========== STATE TRACKING ==========
 bool meshConnected = false;
@@ -61,39 +51,9 @@ void receivedCallback(uint32_t from, String &msg) {
     return;
   }
   
-  // Process message locally - execute immediately or queue for later
-  if (meshDoc.containsKey("startTime")) {
-    uint64_t startTime = meshDoc["startTime"];  // in mesh microseconds
-    uint64_t now = mesh.getNodeTime();  // in mesh microseconds
-    
-    if (startTime <= now) {
-      Serial.printf("Mesh: now = %11u, processing immediately\n", now);
-      // Execute immediately
-      meshMsgString = msg;
-      meshInbox = true;
-    } else {
-      // Queue for later
-      if (pendingMessageCount < MAX_PENDING_MESSAGES) {
-        pendingMessages[pendingMessageCount].msgString = msg;
-        pendingMessages[pendingMessageCount].startTime = startTime;
-        pendingMessageCount++;
-        Serial.printf("Mesh: Queued message for %llu us (count: %d)\n", startTime, pendingMessageCount);
-      } else {
-        // Buffer full - drop oldest message to make room
-        Serial.println("Mesh: WARNING - Buffer full, dropping oldest message");
-        for (uint8_t j = 0; j < MAX_PENDING_MESSAGES - 1; j++) {
-          pendingMessages[j] = pendingMessages[j + 1];
-        }
-        pendingMessages[MAX_PENDING_MESSAGES - 1].msgString = msg;
-        pendingMessages[MAX_PENDING_MESSAGES - 1].startTime = startTime;
-        // Count stays at MAX_PENDING_MESSAGES
-      }
-    }
-  } else {
-    // No startTime, execute immediately
-    meshMsgString = msg;
-    meshInbox = true;
-  }
+  // Execute all messages immediately (ignore startTime for now)
+  meshMsgString = msg;
+  meshInbox = true;
 }
 
 void newConnectionCallback(uint32_t nodeId) {
@@ -174,30 +134,6 @@ void wsLoop() {
   
   // Handle ArduinoOTA
   ArduinoOTA.handle();
-  
-  // Process pending messages (with bounds checking)
-  if (pendingMessageCount > 0) {
-    // Sanity check - fix corruption if it happened
-    if (pendingMessageCount > MAX_PENDING_MESSAGES) {
-      Serial.printf("meshNode: ERROR - Corrupted count %d, resetting to %d\n", pendingMessageCount, MAX_PENDING_MESSAGES);
-      pendingMessageCount = MAX_PENDING_MESSAGES;
-    }
-    
-    uint64_t now = mesh.getNodeTime();  // in mesh microseconds
-    for (uint8_t i = 0; i < pendingMessageCount && i < MAX_PENDING_MESSAGES; i++) {
-      if (pendingMessages[i].startTime <= now) {
-        wsMsgString = pendingMessages[i].msgString;
-        inbox = true;
-        Serial.printf("meshNode: Executing pending message (count: %d)\n", pendingMessageCount);
-        
-        for (uint8_t j = i; j < pendingMessageCount - 1; j++) {
-          pendingMessages[j] = pendingMessages[j + 1];
-        }
-        pendingMessageCount--;
-        break;
-      }
-    }
-  }
   
   // Process incoming mesh message
   if (meshInbox) {
