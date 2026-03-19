@@ -39,6 +39,7 @@ bool noRelayer = true;
 //#include "relayer.h"
 // #include "client.h"
 #include "meshNode.h"
+// #include "meshBridge.h"
 
 // Mardi Gras
 //#include "esp8266Test.h"
