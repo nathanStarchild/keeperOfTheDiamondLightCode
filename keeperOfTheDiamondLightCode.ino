@@ -37,16 +37,17 @@ bool alone = true;
 bool noRelayer = true;
 //  #include "server.h"
 //#include "relayer.h"
-#include "client.h"
+// #include "client.h"
+#include "meshNode.h"
 
 // Mardi Gras
 //#include "esp8266Test.h"
 // #include "mg_pyramid_top.h"
 // #include "mg_pyramid_sides.h"
-#include "mg_pyramid_wash.h"
+// #include "mg_pyramid_wash.h"
 // #include "mg_truck.h"
 // #include "mg_burn_barrels.h"
-// #include "mg_lantern_0.h"
+#include "mg_lantern_0.h"
 // #include "mg_lantern_1.h"
 // #include "mg_lantern_2.h"
 // #include "mg_lantern_3.h"
