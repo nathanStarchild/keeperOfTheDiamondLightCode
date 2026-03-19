@@ -15,7 +15,7 @@
 #define MESH_SSID "diamondLightMesh"
 #define MESH_PASSWORD "keeperOfTheDiamondLight"
 #define MESH_PORT 5555
-#define MESH_CHANNEL 
+#define MESH_CHANNEL 7
 
 // ========== GLOBAL OBJECTS ==========
 painlessMesh mesh;
