@@ -2,6 +2,7 @@
 
 #define FASTLED_INTERRUPT_RETRY_COUNT 0
 #define FASTLED_ESP32_I2S true
+// #define FASTLED_ALLOW_INTERRUPTS 0
 #include <FastLED.h>
 FASTLED_USING_NAMESPACE
 
@@ -147,7 +148,7 @@ MilliTimer paletteCycleTimer(1 * 20000); // how often to move to the next palett
 MilliTimer testingTimer(10000);
 MilliTimer tripperTrapTimer(5 * 60000); //how long to stay in tripper trap mode
 MilliTimer batteryUpdateTimer(9*60000); //how long to wait before assuming the voltage screamer isn't coming back online
-MilliTimer frameTimer(22);
+MilliTimer frameTimer(30);
 
 
 const float PHI = 1.61803398875;
@@ -227,7 +228,9 @@ void loop(){
       #ifdef LEDS_PER_PIXEL
       computeWashPixels();
       #endif
+      // noInterrupts();
       FastLED.show();
+      // interrupts();
       mainState.stale = true;
       //  uint32_t el = frameTimer.elapsed();
       //  Serial.println(el);
@@ -294,17 +297,15 @@ void setFadeRate(uint16_t rate) {
 void blendFrames(){
   uint8_t ratio;
   if (stepRate > 1) {
-    ratio = map(frameCount % stepRate, 0, stepRate-1, 1, 255);
+    uint8_t linearRatio = map(frameCount % stepRate, 0, stepRate-1, 0, 255);
+    ratio = ease8InOutQuad(linearRatio);
+    // ratio = map(frameCount % stepRate, 0, stepRate-1, 1, 255);
   } else {
     ratio = 0;
   }
     
   for (int i = 0; i < NUM_LEDS; i++) {
-    if (ratio > 0) {
-        outLeds[i] = blend( oldLeds[i], leds[i], ratio );
-    } else {
-      outLeds[i] = leds[i];
-    }
+    outLeds[i] = blend( oldLeds[i], leds[i], ratio );
   }
 }
 
@@ -343,11 +344,14 @@ CRGB averageColour(CRGB *ledsIn, int count) {
 void computeWashPixels() {
     int numWashes = NUM_LEDS / LEDS_PER_PIXEL;
     for (int i = 0; i < numWashes; i++) {
-        targetLeds[i] = averageColour(
-            &leds[i * LEDS_PER_PIXEL],  // pointer to chunk start
-            LEDS_PER_PIXEL
-        );
+        // targetLeds[i] = averageColour(
+        //     &outLeds[i * LEDS_PER_PIXEL],  // Use blended output, not raw leds
+        //     LEDS_PER_PIXEL
+        // );
+        targetLeds[i] = outLeds[i+1];
     }
+    // Serial.printf("%d, %d, %d\n", targetLeds[0].r, targetLeds[0].g, targetLeds[0].b);
+    // Serial.println("");
 }
 #endif
 
