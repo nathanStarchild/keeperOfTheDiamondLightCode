@@ -29,7 +29,7 @@ bool meshInbox = false;
 String meshMsgString;
 
 // Pending messages (timed execution)
-#define MAX_PENDING_MESSAGES 2
+#define MAX_PENDING_MESSAGES 10  // Increased from 2, but not too large for ESP8266 RAM
 struct PendingMessage {
   String msgString;
   uint64_t startTime;
@@ -67,6 +67,7 @@ void receivedCallback(uint32_t from, String &msg) {
     uint64_t now = mesh.getNodeTime();  // in mesh microseconds
     
     if (startTime <= now) {
+      Serial.printf("Mesh: now = %11u, processing immediately\n", now);
       // Execute immediately
       meshMsgString = msg;
       meshInbox = true;
@@ -78,7 +79,14 @@ void receivedCallback(uint32_t from, String &msg) {
         pendingMessageCount++;
         Serial.printf("Mesh: Queued message for %llu us (count: %d)\n", startTime, pendingMessageCount);
       } else {
-        Serial.println("Mesh: ERROR - Pending message buffer full!");
+        // Buffer full - drop oldest message to make room
+        Serial.println("Mesh: WARNING - Buffer full, dropping oldest message");
+        for (uint8_t j = 0; j < MAX_PENDING_MESSAGES - 1; j++) {
+          pendingMessages[j] = pendingMessages[j + 1];
+        }
+        pendingMessages[MAX_PENDING_MESSAGES - 1].msgString = msg;
+        pendingMessages[MAX_PENDING_MESSAGES - 1].startTime = startTime;
+        // Count stays at MAX_PENDING_MESSAGES
       }
     }
   } else {
@@ -156,16 +164,27 @@ void wsSetup() {
 }
 
 void wsLoop() {
-  // Update mesh network
-  mesh.update();
+  static uint8_t loopCounter = 0;
+  loopCounter++;
+
+  // Update mesh network (only every 10th loop to reduce overhead)
+  if(loopCounter % 10 == 0){
+    mesh.update();
+  }
   
   // Handle ArduinoOTA
   ArduinoOTA.handle();
   
-  // Process pending messages
+  // Process pending messages (with bounds checking)
   if (pendingMessageCount > 0) {
+    // Sanity check - fix corruption if it happened
+    if (pendingMessageCount > MAX_PENDING_MESSAGES) {
+      Serial.printf("meshNode: ERROR - Corrupted count %d, resetting to %d\n", pendingMessageCount, MAX_PENDING_MESSAGES);
+      pendingMessageCount = MAX_PENDING_MESSAGES;
+    }
+    
     uint64_t now = mesh.getNodeTime();  // in mesh microseconds
-    for (uint8_t i = 0; i < pendingMessageCount; i++) {
+    for (uint8_t i = 0; i < pendingMessageCount && i < MAX_PENDING_MESSAGES; i++) {
       if (pendingMessages[i].startTime <= now) {
         wsMsgString = pendingMessages[i].msgString;
         inbox = true;
