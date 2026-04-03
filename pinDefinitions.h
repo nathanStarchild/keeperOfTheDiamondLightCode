@@ -10,6 +10,9 @@
 
   //- WS2812
   #define DATA_PIN_1 4
+
+  //- button
+  #define BUTTON_PIN 14
 #else
 
   

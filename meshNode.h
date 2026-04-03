@@ -26,7 +26,9 @@ String wsMsgString;
 
 bool inbox = false;
 bool meshInbox = false;
+bool outbox = false;
 String meshMsgString;
+uint64_t pendingStartTime = 0;  // 0 means no pending scheduled message
 
 // ========== STATE TRACKING ==========
 bool meshConnected = false;
@@ -43,6 +45,12 @@ void nodeTimeAdjustedCallback(int32_t offset);
 void receivedCallback(uint32_t from, String &msg) {
   Serial.printf("Mesh: Received from %u: %s\n", from, msg.c_str());
   
+  // Check if we're still waiting on a previous scheduled message
+  if (pendingStartTime > 0) {
+    Serial.println("Mesh: Warning - new message received while waiting on scheduled message, dropping old message");
+    pendingStartTime = 0;
+  }
+  
   DynamicJsonDocument meshDoc(1024);
   DeserializationError error = deserializeJson(meshDoc, msg);
   
@@ -51,7 +59,31 @@ void receivedCallback(uint32_t from, String &msg) {
     return;
   }
   
-  // Execute all messages immediately (ignore startTime for now)
+  // Check if message has a startTime
+  if (meshDoc.containsKey("startTime")) {
+    uint64_t startTime = meshDoc["startTime"].as<uint64_t>();
+    uint64_t now = mesh.getNodeTime();
+    
+    // Check if message is stale (startTime more than 5 seconds ago)
+    if (now > startTime && (now - startTime) > 5000000) {  // 5 seconds = 5,000,000 microseconds
+      Serial.printf("Mesh: Dropping stale message (startTime was %llu us ago)\n", (now - startTime));
+      return;
+    }
+    
+    if (now < startTime) {
+      // Schedule for later execution
+      meshMsgString = msg;
+      pendingStartTime = startTime;
+      uint64_t waitUs = startTime - now;
+      Serial.printf("Mesh: Scheduled message for execution in %llu us\n", waitUs);
+      return;
+    }
+    
+    // StartTime already passed (but within 5 seconds), execute immediately
+    Serial.println("Mesh: StartTime recently passed, executing immediately");
+  }
+  
+  // No startTime or time already passed - execute immediately
   meshMsgString = msg;
   meshInbox = true;
 }
@@ -134,6 +166,31 @@ void wsLoop() {
   
   // Handle ArduinoOTA
   ArduinoOTA.handle();
+  
+  // Send outgoing mesh message FIRST (before incoming overwrites wsMsgString)
+  if (outbox) {
+    mesh.sendBroadcast(wsMsgString);
+    Serial.printf("meshNode: Sent to mesh: %s\n", wsMsgString.c_str());
+    outbox = false;
+  }
+  
+  // Check for pending scheduled message
+  if (pendingStartTime > 0) {
+    uint64_t now = mesh.getNodeTime();
+    
+    if (now >= pendingStartTime) {
+      // Time to execute!
+      Serial.println("meshNode: Executing scheduled message (startTime reached)");
+      meshInbox = true;
+      pendingStartTime = 0;
+    } else {
+      // Still waiting
+      if (loopCounter % 100 == 0) {  // Only print occasionally to avoid spam
+        uint64_t waitUs = pendingStartTime - now;
+        Serial.printf("meshNode: Waiting %llu us for scheduled execution\n", waitUs);
+      }
+    }
+  }
   
   // Process incoming mesh message
   if (meshInbox) {

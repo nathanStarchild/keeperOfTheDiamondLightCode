@@ -217,8 +217,6 @@ void setup() {
 
 
 void loop(){
-    wsLoop();
-
     if ( frameTimer.isItTime()) {
       frameTimer.resetTimer();
 //    if ( true ) {
@@ -235,6 +233,12 @@ void loop(){
       //  uint32_t el = frameTimer.elapsed();
       //  Serial.println(el);
     }
+
+    wsLoop();
+
+    #ifdef ELEMENT_LOOP
+    elementLoop();
+    #endif
 
     if (mainState.stale) {
       updatePatterns(); //fill the buffer up with the next lot of patterns.
@@ -261,8 +265,8 @@ void loop(){
     }
 
     if (returnTimer.isItTime()) {
-      Serial.println("Returning to primary operation");
       #ifdef ROLE
+        Serial.println("Returning to primary operation");
         if (strcmp(ROLE, "lantern") == 0 || strcmp(ROLE, "doofStick") == 0) {
           paletteLocked = false;
           #ifdef NUMBER

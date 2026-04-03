@@ -1,0 +1,118 @@
+MAGIC BUTTON CHEAT SHEET
+========================
+. = short press (1)    - = long press (0)
+First press = Most Significant Bit (MSB)
+
+Format: [button pattern] → (number) command name [params]
+
+BASIC COMMANDS (no parameters needed)
+--------------------------------------
+.                → (1)  upset_mainState
+.-               → (2)  doubleRainbow
+..               → (3)  tranquilityMode
+.--              → (4)  nextPalette
+.-.              → (5)  tripperTrapMode
+..-              → (6)  antsMode
+...              → (7)  shootingStars
+.---             → (8)  toggleHouseLights
+.--.             → (9)  launch
+
+NOISE & FADER
+-------------
+...-             → (14) noiseTest
+....             → (15) noiseFader
+
+ELEMENT MODES
+-------------
+.-.--            → (20) earthMode
+.-.-.            → (21) fireMode
+.-..-            → (22) airMode
+.-...            → (23) waterMode
+..---            → (24) metalMode
+
+VISUAL EFFECTS
+--------------
+...--            → (28) rippleGeddon
+...-.            → (29) tailTime
+....-            → (30) blender
+.....            → (31) flashGrid
+.--...           → (39) rainbowSpiral
+.-.---           → (40) blender
+
+SPECIAL COMMANDS
+----------------
+..--.-           → (50) zoomToColour (auto-cycles palette)
+..--..           → (51) mg_noise_party
+..-.--           → (52) mg_blob
+..-.-.           → (53) mg_random
+..-..-           → (54) enlightenmentAchieved
+..-...           → (55) returnTimer
+
+COMMANDS WITH 1 PARAMETER (enter command, wait, then enter value)
+------------------------------------------------------------------
+.-.-             → (10) setStepRate [needs value 1-255]
+.-..             → (11) setFadeRate [needs value 1-255]
+..--             → (12) setBrightness [needs value 0-255]
+..-.             → (13) setNRipples [needs value 1-10]
+.----            → (16) noiseLength [needs value]
+.---.            → (17) noiseSpeed [needs value]
+.--.-            → (18) noiseFadeLength [needs value]
+.--..            → (19) noiseFadeSpeed [needs value]
+..--.            → (25) airLength [needs value]
+..-.-            → (26) airSpeed [needs value]
+.-----           → (32) fireDecay [needs value]
+.----.           → (33) fireSpeed [needs value]
+.---.-           → (34) setPalette [needs palette number]
+.-.--.           → (41) enlightenment [needs value]
+
+TIPS
+----
+- Wait 600ms (0.6 seconds) after completing a sequence
+- For commands with parameters, enter the command first, wait for the sequence 
+  to complete, then enter the parameter value as another binary sequence
+- Short sequences are easier: use 1-9 for quick access to common commands
+- Command 50 (zoomToColour) is special - it automatically cycles palettes
+
+QUICK REFERENCE - MOST USEFUL COMMANDS
+---------------------------------------
+..               → (3)  tranquilityMode
+.-.              → (5)  tripperTrapMode
+..--             → (12) setBrightness [+value]
+.-...            → (23) waterMode
+.-.--            → (20) earthMode
+..---            → (24) metalMode
+..--.-           → (50) zoomToColour (cycles palettes)
+
+POTENTIAL FUTURE CODES (UNASSIGNED, EASY TO REMEMBER)
+------------------------------------------------------
+These numbers are available for new commands and have memorable patterns:
+
+SUPER EASY (all same type):
+......           → (63)  Available - six shorts, super memorable!
+.......          → (127) Available - seven shorts
+
+CLEAN SYMMETRICAL PATTERNS:
+..----           → (48)  Available - two shorts, four longs
+...---           → (56)  Available - three shorts, three longs (perfectly symmetrical)
+....--           → (60)  Available - four shorts, two longs
+.....-           → (62)  Available - five shorts, one long
+
+POWERS OF 2 (memorable for programmers):
+.------          → (64)  Available - one short, six longs
+.-------         → (128) Available - one short, seven longs
+
+NICE PROGRESSIONS:
+...----          → (112) Available - three shorts, four longs
+....---          → (120) Available - four shorts, three longs
+
+ALTERNATING PATTERNS (singles):
+.-.-.-           → (42)  Available - alternating (6 presses)
+.-.-.-.          → (85)  Available - alternating (7 presses)
+.-.-.-.-         → (170) Available - alternating (8 presses)
+
+ALTERNATING PATTERNS (pairs):
+..--..-          → (102) Available - (7 presses)
+.--..--.         → (153) Available - (8 presses)
+..--..--         → (204) Available - short pair/long pair alternating (8 presses)
+
+Tip: Number 63 (......) is probably the easiest to remember and input of all!
