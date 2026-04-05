@@ -19,6 +19,7 @@
 
 // ========== GLOBAL OBJECTS ==========
 painlessMesh mesh;
+uint32_t myId;
 
 // ========== MESSAGE HANDLING ==========
 DynamicJsonDocument wsMsg(1024);
@@ -34,11 +35,39 @@ uint64_t pendingStartTime = 0;  // 0 means no pending scheduled message
 bool meshConnected = false;
 
 // ========== FORWARD DECLARATIONS ==========
-void processWSMessage();  // Defined in main .ino file
+extern void processWSMessage();  // Defined in main .ino file
+extern void nodeCounter();  // Defined in main .ino file
+extern MilliTimer nodeCountTimer;  // Defined in main .ino file
+extern uint16_t sweepSpot; // defined in element definition
+
+
 void receivedCallback(uint32_t from, String &msg);
 void newConnectionCallback(uint32_t nodeId);
 void changedConnectionCallback();
 void nodeTimeAdjustedCallback(int32_t offset);
+
+// ========== STATE MANAGEMENT ==========
+
+void updateSweepSpot() {
+  SimpleList<uint32_t> nodeList = mesh.getNodeList();
+  nodeList.push_back(myId);
+  
+  // Sort the list
+  nodeList.sort([](uint32_t a, uint32_t b) { return a < b; });
+  
+  // Find my position using iterator
+  uint8_t position = 0;
+  
+  SimpleList<uint32_t>::iterator it = nodeList.begin();
+  while (it != nodeList.end()) {
+    if (*it == myId) {
+      sweepSpot = position + 3;
+      break;
+    }
+    position++;
+    ++it;
+  }
+}
 
 // ========== MESH CALLBACKS ==========
 
@@ -97,6 +126,12 @@ void changedConnectionCallback() {
   Serial.printf("Mesh: Connections changed\n");
   Serial.printf("Mesh: Nodes connected: %d\n", mesh.getNodeList().size());
   meshConnected = mesh.getNodeList().size() > 0;
+  if (meshConnected) {
+    updateSweepSpot();
+  }
+  mainState.nodeCount.plength = mesh.getNodeList().size() + 1;
+  nodeCountTimer.setInterval(mainState.nodeCount.decay * 10 * mainState.nodeCount.plength);
+  nodeCounter();
 }
 
 void nodeTimeAdjustedCallback(int32_t offset) {
@@ -120,8 +155,11 @@ void wsSetup() {
   mesh.onNewConnection(&newConnectionCallback);
   mesh.onChangedConnections(&changedConnectionCallback);
   mesh.onNodeTimeAdjusted(&nodeTimeAdjustedCallback);
+
+
+  myId = mesh.getNodeId();
   
-  Serial.printf("meshNode: Mesh ID = %u\n", mesh.getNodeId());
+  Serial.printf("meshNode: Mesh ID = %u\n", myId);
   Serial.println("meshNode: Mesh-only mode");
   
   // Setup ArduinoOTA
@@ -165,7 +203,7 @@ void wsLoop() {
   }
   
   // Handle ArduinoOTA
-  ArduinoOTA.handle();
+  // ArduinoOTA.handle();
   
   // Send outgoing mesh message FIRST (before incoming overwrites wsMsgString)
   if (outbox) {
@@ -176,7 +214,9 @@ void wsLoop() {
   
   // Check for pending scheduled message
   if (pendingStartTime > 0) {
+    uint32_t before = millis();
     uint64_t now = mesh.getNodeTime();
+    uint32_t after = millis();
     
     if (now >= pendingStartTime) {
       // Time to execute!
@@ -188,6 +228,7 @@ void wsLoop() {
       if (loopCounter % 100 == 0) {  // Only print occasionally to avoid spam
         uint64_t waitUs = pendingStartTime - now;
         Serial.printf("meshNode: Waiting %llu us for scheduled execution\n", waitUs);
+        Serial.printf("it takes %u ms to get mesh time\n", after - before);
       }
     }
   }

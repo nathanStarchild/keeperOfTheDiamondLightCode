@@ -125,7 +125,7 @@ void forwardToMesh(String &message) {
     Serial.printf("Bridge: Converted startTime %llu ms (server) to %llu us (mesh)\n", serverStartTime, meshStartTime);
   }
   
-  String meshMsg;
+  String meshMsg = "";
   serializeJson(doc, meshMsg);
   mesh.sendBroadcast(meshMsg);
   Serial.printf("Bridge: Forwarded to mesh (%d nodes)\n", mesh.getNodeList().size());
@@ -191,7 +191,7 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
 
         // Forward to mesh if we have connections
         if (meshConnected || mesh.getNodeList().size() > 0) {
-          String wsMsgString = "";
+          wsMsgString = "";
           serializeJson(wsDoc, wsMsgString);
           forwardToMesh(wsMsgString);
         }

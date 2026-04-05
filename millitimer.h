@@ -9,6 +9,8 @@ class MilliTimer {
     void updateTimer();
     bool isRunning();
     uint32_t elapsed();
+    uint32_t remaining();
+    uint32_t getInterval();
   private:
     uint32_t started;
     uint32_t interval;
@@ -57,6 +59,18 @@ uint32_t MilliTimer::elapsed() {
     return ( now - started);
   }
   return 0;
+}
+
+uint32_t MilliTimer::remaining() {
+  if (_running) {
+    uint32_t now = millis();
+    return ( next - now);
+  }
+  return 0;
+}
+
+uint32_t MilliTimer::getInterval() {
+  return interval;
 }
 
 void MilliTimer::updateTimer() {

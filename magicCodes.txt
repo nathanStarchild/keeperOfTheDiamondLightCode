@@ -34,7 +34,7 @@ VISUAL EFFECTS
 --------------
 ...--            → (28) rippleGeddon
 ...-.            → (29) tailTime
-....-            → (30) blender
+....-            → (30) rainbowNoise
 .....            → (31) flashGrid
 .--...           → (39) rainbowSpiral
 .-.---           → (40) blender

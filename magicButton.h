@@ -11,9 +11,6 @@
 #ifndef MAGIC_BUTTON_H
 #define MAGIC_BUTTON_H
 
-#include <Arduino.h>
-#include "millitimer.h"
-
 class MagicButton {
   public:
     // Constructor: takes button pin and optional pull-up mode
@@ -127,6 +124,7 @@ uint16_t MagicButton::checkButton() {
     // Button just pressed
     pressStartTime = millis();
     buttonPressed = true;
+    Serial.println("pressed");
   }
   
   // Detect button release (transition to not pressed)
@@ -154,7 +152,7 @@ uint16_t MagicButton::checkButton() {
   }
   
   // Check for sequence timeout
-  if (sequenceActive && sequenceTimer->isItTime()) {
+  if (sequenceActive && !buttonPressed && sequenceTimer->isItTime()) {
     // Sequence complete!
     returnValue = accumulatedValue;
     Serial.print("MagicButton: Sequence complete! Value = ");

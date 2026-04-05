@@ -9,9 +9,7 @@
 #ifndef MAGIC_BUTTON_HANDLER_H
 #define MAGIC_BUTTON_HANDLER_H
 
-#include <Arduino.h>
 #include "magicButton.h"
-#include <ArduinoJson.h>
 
 // Forward declarations for global message handling
 extern void processWSMessage();
@@ -147,7 +145,7 @@ const char* MagicButtonHandler::getCommandName(uint8_t msgType) {
     case 26: return "airSpeed";
     case 28: return "rippleGeddon";
     case 29: return "tailTime";
-    case 30: return "blender";
+    case 30: return "rainbowNoise";
     case 31: return "flashGrid";
     case 32: return "fireDecay";
     case 33: return "fireSpeed";
@@ -191,6 +189,7 @@ void MagicButtonHandler::buildMessage(uint8_t msgType, uint16_t val1, uint16_t v
   
   // Populate wsMsg and wsMsgString (used for both local and network)
   wsMsg = doc;
+  wsMsgString = "";
   serializeJson(doc, wsMsgString);
   
   if (serialDebugEnabled) {
@@ -215,7 +214,14 @@ void MagicButtonHandler::executeCommand(uint8_t msgType, uint16_t val1, uint16_t
   
   // Special handling for msgType 50 (zoomToColour) - cycles palette and uses paletteCycleIndex
   if (msgType == 50) {
+
+    if (serialDebugEnabled) {
+        Serial.printf("MagicButtonHandler: Palette was %d\n", paletteCycleIndex);
+    }
     next_mg_palette();
+    if(serialDebugEnabled) {
+        Serial.printf("MagicButtonHandler: Called next_mg_palette(), new palette is %d\n", paletteCycleIndex);
+    }
     val1 = paletteCycleIndex;
     if (serialDebugEnabled) {
       Serial.printf("MagicButtonHandler: Called next_mg_palette(), using paletteCycleIndex=%d\n", val1);

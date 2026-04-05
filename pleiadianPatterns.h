@@ -43,6 +43,7 @@ typedef struct patternState {
   pattern noise2D;
   pattern pi;
   pattern rainbowZoom;
+  pattern nodeCount;
 };
 
 // wave length 1 to 10
@@ -82,6 +83,7 @@ patternState mainState = {
   {false, 5, 15, 250}, //noise2D
   {false, 5, 15, 250}, //pi
   {false, 5, 15, 250}, //rainbowZoom
+  {false, 50, 1, 250}, //nodeCount
   };
 
 pattern *patternPointers[] = {
@@ -117,4 +119,43 @@ pattern *patternPointers[] = {
   &mainState.noise2D,//29
   &mainState.pi,//30
   &mainState.rainbowZoom,//31
+  &mainState.nodeCount,//32
 };
+
+const char* patternNames[] = {
+  "wave",           //0
+  "tail",           //1
+  "breathe",        //2
+  "glitter",        //3
+  "crazytown",      //4
+  "enlightenment",  //5
+  "ripple",         //6
+  "blendwave",      //7
+  "rain",           //8
+  "holdingPattern", //9
+  "mapPattern",     //10
+  "paletteDisplay", //11
+  "sweep",          //12
+  "dimmer",         //13
+  "skaters",        //14
+  "poleChaser",     //15
+  "powerSaver",     //16
+  "ants",           //17
+  "launch",         //18
+  "houseLights",    //19
+  "spiral",         //20
+  "rainbow",        //21
+  "noise",          //22
+  "noiseFade",      //23
+  "air",            //24
+  "fire",           //25
+  "metal",          //26
+  "theVoid",        //27
+  "theBlob",        //28
+  "noise2D",        //29
+  "pi",             //30
+  "rainbowZoom",    //31
+  "nodeCount"       //32
+};
+
+const int nPatterns = sizeof(patternPointers) / sizeof(patternPointers[0]);

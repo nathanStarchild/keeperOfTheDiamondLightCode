@@ -1,6 +1,6 @@
 #include "pinDefinitions.h"
 
-#define NUMBER 0
+// #define NUMBER 0
 
 const uint16_t stripLength = 50;
 const uint8_t nStrips = 2;
@@ -20,21 +20,30 @@ int directionUD[nStrips] = {1, -1};
 int directionIO[nStrips] = {1, 1};
 int stripDirection[nStrips] =  {1, -1};
 uint16_t audienceSpot = 1;
-uint16_t sweepSpot = NUMBER + 3;
+uint16_t sweepSpot = 3;
 uint16_t element = 0;
 
 // magic button
 #include "magicButton.h"
+#include "magicButtonHandler.h"
 MagicButton magicButton(BUTTON_PIN, true); // Using pullup mode
 MagicButtonHandler magicButtonHandler(&magicButton);
 MilliTimer buttonCheckTimer(50); // debounce timer
 
 void elementSetup(){
     FastLED.addLeds<WS2812B, DATA_PIN_1, GRB>(outLeds, 0, LEDS_OUTPUT1); 
+    Serial.print("LEDS_OUTPUT1 = ");
+    Serial.println(LEDS_OUTPUT1);
+    Serial.print("stripLength = ");
+    Serial.println(stripLength);
+    Serial.print("nStrips = ");
+    Serial.println(nStrips);
+    Serial.print("NUM_LEDS = ");
+    Serial.println(NUM_LEDS);
 
-    char hostname[32];
-    snprintf(hostname, sizeof(hostname), "costume_%d", NUMBER);
-    ArduinoOTA.setHostname(hostname);
+    // char hostname[32];
+    // snprintf(hostname, sizeof(hostname), "costume_%d", NUMBER);
+    // ArduinoOTA.setHostname(hostname);
 
     magicButton.begin();
 }
