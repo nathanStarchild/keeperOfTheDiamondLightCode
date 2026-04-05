@@ -5,20 +5,22 @@
 #include "painlessMesh.h"
 
 #include <ArduinoOTA.h>
+#include <EEPROM.h>
 
 //https://arduinojson.org/v6/api/config/use_long_long/
 #define ARDUINOJSON_USE_LONG_LONG 1
 #include <ArduinoJson.h>
 
 // ========== CONFIGURATION ==========
+// EEPROM addresses
+#define EEPROM_BRIDGE_ID_ADDR 0  // 4 bytes for uint32_t
+#define EEPROM_SIZE 512
+
 // Mesh Network Settings
 #define MESH_SSID "diamondLightMesh"
 #define MESH_PASSWORD "keeperOfTheDiamondLight"
 #define MESH_PORT 5555
 #define MESH_CHANNEL 7
-
-// Message Protocol
-#define BRIDGE_ANNOUNCE_MSG_TYPE 996
 
 // ========== GLOBAL OBJECTS ==========
 painlessMesh mesh;
@@ -38,6 +40,9 @@ uint64_t pendingStartTime = 0;  // 0 means no pending scheduled message
 bool meshConnected = false;
 bool bridgeConnected = false;
 uint32_t bridgeId = 0;
+uint16_t nonMeshDeviceCount = 0;  // Pyramid and other direct-connected devices
+uint32_t lastNodeCounterTime = 0;  // Debounce nodeCounter() calls
+#define NODE_COUNTER_DEBOUNCE_MS 3000  // Don't run nodeCounter() more than once per 3 seconds
 
 // ========== FORWARD DECLARATIONS ==========
 extern void processWSMessage();  // Defined in main .ino file
@@ -50,10 +55,38 @@ void receivedCallback(uint32_t from, String &msg);
 void newConnectionCallback(uint32_t nodeId);
 void changedConnectionCallback();
 void nodeTimeAdjustedCallback(int32_t offset);
+void updateNodeState(bool runNodeCounter = true);
+void saveBridgeId();
+void loadBridgeId();
+
+// ========== EEPROM FUNCTIONS ==========
+
+void saveBridgeId() {
+  EEPROM.put(EEPROM_BRIDGE_ID_ADDR, bridgeId);
+  EEPROM.commit();
+  Serial.printf("Saved bridgeId to EEPROM: %u\n", bridgeId);
+}
+
+void loadBridgeId() {
+  uint32_t storedBridgeId = 0;
+  EEPROM.get(EEPROM_BRIDGE_ID_ADDR, storedBridgeId);
+  
+  // Check if we have a valid stored bridge ID (not 0 or 0xFFFFFFFF)
+  if (storedBridgeId != 0 && storedBridgeId != 0xFFFFFFFF) {
+    bridgeId = storedBridgeId;
+    Serial.printf("Loaded bridgeId from EEPROM: %u\n", bridgeId);
+  } else {
+    Serial.println("No valid bridgeId in EEPROM");
+  }
+}
 
 // ========== STATE MANAGEMENT ==========
 
-void updateSweepSpot() {
+void updateNodeState(bool runNodeCounter) {
+  // Calculate this node's sweepSpot based on position in sorted mesh network
+  // Mesh nodes start after non-mesh devices (pyramids, etc.)
+  // Bridge is excluded from position counting
+  
   SimpleList<uint32_t> nodeList = mesh.getNodeList();
   nodeList.push_back(myId);
   
@@ -68,9 +101,9 @@ void updateSweepSpot() {
     uint32_t nodeId = *it;
     
     if (nodeId == myId) {
-      sweepSpot = position + 3;
-      Serial.printf("Updated sweepSpot to %d (position %d, %d total nodes)\n", 
-                    sweepSpot, position, nodeList.size());
+      sweepSpot = position + nonMeshDeviceCount;
+      Serial.printf("Updated sweepSpot to %d (position %d in mesh, %d non-mesh devices)\n", 
+                    sweepSpot, position, nonMeshDeviceCount);
       break;
     }
     
@@ -80,6 +113,24 @@ void updateSweepSpot() {
     }
     
     ++it;
+  }
+  
+  // Calculate total LED count: mesh nodes + self - bridge (if present) + non-mesh devices
+  uint16_t meshNodes = mesh.getNodeList().size() + 1;  // +1 for self
+  uint16_t totalNodes = meshNodes - (bridgeConnected ? 1 : 0) + nonMeshDeviceCount;
+  
+  mainState.nodeCount.plength = totalNodes;
+  nodeCountTimer.setInterval(mainState.nodeCount.decay * 10 * totalNodes);
+  
+  // Only run nodeCounter if requested and debounce time has passed
+  if (runNodeCounter) {
+    uint32_t now = millis();
+    if (now - lastNodeCounterTime >= NODE_COUNTER_DEBOUNCE_MS) {
+      lastNodeCounterTime = now;
+      nodeCounter();
+    } else {
+      Serial.printf("Skipping nodeCounter() - debounced (%lu ms since last)\n", now - lastNodeCounterTime);
+    }
   }
 }
 
@@ -92,10 +143,25 @@ void receivedCallback(uint32_t from, String &msg) {
   DynamicJsonDocument doc(128);
   if (deserializeJson(doc, msg) == DeserializationError::Ok) {
     if (doc["msgType"] == BRIDGE_ANNOUNCE_MSG_TYPE) {
+      bool wasNewBridge = (bridgeId != from);
       bridgeId = from;
       bridgeConnected = true;
-      Serial.printf("Mesh: Bridge connected (nodeId %u)\n", bridgeId);
-      updateSweepSpot();
+      
+      // Get non-mesh device count from bridge announcement
+      if (doc.containsKey("nonMeshCount")) {
+        nonMeshDeviceCount = doc["nonMeshCount"];
+      }
+      
+      Serial.printf("Mesh: Bridge connected (nodeId %u, %u non-mesh devices)\n", 
+                    bridgeId, nonMeshDeviceCount);
+      
+      // Save bridge ID to EEPROM for future recognition
+      if (wasNewBridge) {
+        saveBridgeId();
+      }
+      
+      // Always run nodeCounter when bridge announces (confirms final device count)
+      updateNodeState(true);
       return;  // Don't process as pattern message
     }
   }
@@ -145,19 +211,60 @@ void receivedCallback(uint32_t from, String &msg) {
 
 void newConnectionCallback(uint32_t nodeId) {
   Serial.printf("Mesh: New connection, nodeId = %u\n", nodeId);
+  bool wasConnected = meshConnected;
   meshConnected = mesh.getNodeList().size() > 0;
+  
+  // Check if this is the bridge we know from EEPROM
+  if (bridgeId != 0 && nodeId == bridgeId) {
+    bridgeConnected = true;
+    Serial.printf("Mesh: Recognized bridge from EEPROM (nodeId %u)\n", bridgeId);
+    // Don't run updateNodeState here - wait for bridge announce with device count
+  }
+  
+  // If we just connected after being disconnected, reset nonMeshDeviceCount
+  if (!wasConnected && meshConnected) {
+    nonMeshDeviceCount = 0;
+    Serial.println("Mesh: Reconnected - reset non-mesh device count to 0");
+  }
 }
 
 void changedConnectionCallback() {
   Serial.printf("Mesh: Connections changed\n");
   Serial.printf("Mesh: Nodes connected: %d\n", mesh.getNodeList().size());
+  
+  bool wasConnected = meshConnected;
   meshConnected = mesh.getNodeList().size() > 0;
-  if (meshConnected) {
-    updateSweepSpot();
+  
+  // If we just lost all connections, reset nonMeshDeviceCount
+  if (wasConnected && !meshConnected) {
+    nonMeshDeviceCount = 0;
+    bridgeConnected = false;
+    Serial.println("Mesh: Disconnected - reset non-mesh device count to 0");
   }
-  mainState.nodeCount.plength = mesh.getNodeList().size() + 1;
-  nodeCountTimer.setInterval(mainState.nodeCount.decay * 10 * mainState.nodeCount.plength);
-  nodeCounter();
+  
+  // Check if bridge disconnected (was in list, now isn't)
+  if (bridgeConnected) {
+    bool bridgeStillConnected = false;
+    SimpleList<uint32_t> nodeList = mesh.getNodeList();
+    SimpleList<uint32_t>::iterator it = nodeList.begin();
+    while (it != nodeList.end()) {
+      if (*it == bridgeId) {
+        bridgeStillConnected = true;
+        break;
+      }
+      ++it;
+    }
+    
+    if (!bridgeStillConnected) {
+      bridgeConnected = false;
+      nonMeshDeviceCount = 0;
+      Serial.println("Mesh: Bridge disconnected - reset non-mesh device count to 0");
+    }
+  }
+  
+  // Run nodeCounter() only if there's no bridge (bridge will announce with count)
+  bool runCounter = !bridgeConnected;
+  updateNodeState(runCounter);
 }
 
 void nodeTimeAdjustedCallback(int32_t offset) {
@@ -168,6 +275,12 @@ void nodeTimeAdjustedCallback(int32_t offset) {
 
 void wsSetup() {
   Serial.println("meshNode: Initializing...");
+  
+  // Initialize EEPROM
+  EEPROM.begin(EEPROM_SIZE);
+  
+  // Load bridge ID from EEPROM if available
+  loadBridgeId();
   
   // Initialize mesh network
   mesh.setDebugMsgTypes(ERROR | STARTUP | CONNECTION);

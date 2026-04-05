@@ -25,11 +25,8 @@
 #define MESH_PORT 5555
 #define MESH_CHANNEL 7
 
-// Message Protocol
-#define PING_MSG_TYPE 999
-#define PONG_MSG_TYPE 998
-#define ROLE_MSG_TYPE 997
-#define BRIDGE_ANNOUNCE_MSG_TYPE 996
+// Role Definition
+#define ROLE "bridge"
 
 // ========== GLOBAL OBJECTS ==========
 painlessMesh mesh;
@@ -38,6 +35,7 @@ WebSocketsClient webSocket;
 // ========== STATE TRACKING ==========
 bool meshConnected = false;
 bool wsConnected = false;
+uint16_t nonMeshDeviceCount = 0;  // Pyramid and other direct-connected devices
 
 MilliTimer wsReconnectTimer(5000);
 
@@ -65,6 +63,7 @@ void nodeTimeAdjustedCallback(int32_t offset);
 void forwardToMesh(String &message);
 void forwardToWebSocket(String &message);
 void announceBridge();
+void reportNodeCount();
 
 // ========== MESH CALLBACKS ==========
 
@@ -114,6 +113,9 @@ void changedConnectionCallback() {
   if (meshConnected) {
     announceBridge();
   }
+  
+  // Report node count to server
+  reportNodeCount();
 }
 
 void nodeTimeAdjustedCallback(int32_t offset) {
@@ -123,10 +125,25 @@ void nodeTimeAdjustedCallback(int32_t offset) {
 // ========== BRIDGE ANNOUNCEMENT ==========
 
 void announceBridge() {
-  char msg[32];
-  snprintf(msg, sizeof(msg), "{\"msgType\":%d}", BRIDGE_ANNOUNCE_MSG_TYPE);
+  char msg[64];
+  snprintf(msg, sizeof(msg), "{\"msgType\":%d,\"nonMeshCount\":%u}", 
+           BRIDGE_ANNOUNCE_MSG_TYPE, nonMeshDeviceCount);
   mesh.sendBroadcast(msg);
-  Serial.printf("Bridge: Announced to mesh (nodeId %u)\n", mesh.getNodeId());
+  Serial.printf("Bridge: Announced to mesh (nodeId %u, %u non-mesh devices)\n", 
+                mesh.getNodeId(), nonMeshDeviceCount);
+}
+
+void reportNodeCount() {
+  if (!wsConnected) {
+    return;
+  }
+  
+  uint16_t nodeCount = mesh.getNodeList().size();  // Excludes bridge itself
+  
+  char msg[64];
+  snprintf(msg, sizeof(msg), "{\"msgType\":%d,\"nodeCount\":%u}", NODE_COUNT_MSG_TYPE, nodeCount);
+  webSocket.sendTXT(msg);
+  Serial.printf("Bridge: Reported %u mesh nodes to server\n", nodeCount);
 }
 
 // ========== MESSAGE FORWARDING ==========
@@ -216,6 +233,22 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
           uint64_t serverTime = wsDoc["serverTime"];
           handlePong(t0, serverTime);
           return;
+        }
+        
+        // Handle TOTAL_LED_COUNT (update non-mesh device count)
+        if (wsDoc["msgType"] == TOTAL_LED_COUNT_MSG_TYPE) {
+          uint16_t pyramidCount = wsDoc["pyramidCount"];
+          
+          // Only re-announce if count changed
+          if (pyramidCount != nonMeshDeviceCount) {
+            nonMeshDeviceCount = pyramidCount;
+            Serial.printf("Bridge: Non-mesh device count changed to %u - re-announcing\n", nonMeshDeviceCount);
+            announceBridge();
+          } else {
+            Serial.printf("Bridge: Non-mesh device count unchanged (%u) - no re-announce\n", nonMeshDeviceCount);
+          }
+          
+          return;  // Don't forward this message to mesh
         }
 
         // Forward to mesh if we have connections

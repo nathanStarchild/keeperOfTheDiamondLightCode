@@ -14,9 +14,21 @@
 #define ARDUINOJSON_USE_LONG_LONG 1
 #include <ArduinoJson.h>
 
-#define SSID "queerBurners"
-#define WIFI_KEY "nextyearwasbetter"
-#define WS_SERVER "192.168.0.10"
+// Network configuration: set to "Pi" or "Router"
+#define SERVER "Pi"
+
+#if SERVER == "Pi"
+  // Pi Access Point configuration (for pyramid installations and other direct-connected devices)
+  #define SSID "diamondLightNetwork"
+  #define WIFI_KEY ""
+  #define WS_SERVER "200.200.200.1"
+#else
+  // Router configuration (for development/testing)
+  #define SSID "queerBurners"
+  #define WIFI_KEY "nextyearwasbetter"
+  #define WS_SERVER "192.168.0.10"
+#endif
+
 #define WS_PORT 80
 #define WS_PATH "/"
 
@@ -46,16 +58,20 @@ int64_t offsetMs = 0;        // smoothed server offset (can be negative)
 bool firstOffset = true;
 uint64_t lastPingT0 = 0;
 bool pingOutstanding = false;
-#define PING_MSG_TYPE 999
-#define PONG_MSG_TYPE 998
-#define ROLE_MSG_TYPE 997
-
 
 void webSocketEvent(WStype_t type, uint8_t * payload, size_t length);
 void processWSMessage();
 void sendPing();
 void handlePong(uint64_t t0, uint64_t serverTime);
 void sendRole();
+void handleSweepSpotAssignment(uint16_t newSweepSpot);
+void handleTotalLEDCount(uint16_t totalCount);
+
+// External references to main .ino functions
+extern void nodeCounter();  // Defined in main .ino file
+extern MilliTimer nodeCountTimer;  // Defined in main .ino file
+extern uint16_t sweepSpot;  // Defined in element definition
+extern MainState mainState;  // Defined in main .ino file
 
 #ifdef ESP8266
 WiFiEventHandler stationConnectedHandler;
@@ -90,11 +106,8 @@ void wsSetup() {
   WiFi.mode(WIFI_STA);
   WiFi.setAutoReconnect(false);
   WiFi.setSleep(false);
-  #ifdef WIFI_KEY
-    WiFi.begin(SSID, WIFI_KEY);
-  #else
-    WiFi.begin(SSID);
-  #endif
+  
+  WiFi.begin(SSID, WIFI_KEY);
 
   #ifdef ESP8266
     stationConnectedHandler = WiFi.onStationModeGotIP(&WiFiGotIP);
@@ -148,7 +161,7 @@ void wsLoop() {
     if(alone) {
       if (tryToConnectTimer.isItTime()) {
         Serial.println("tryin to connect");
-        WiFi.begin("diamondLightNetwork");
+        WiFi.begin(SSID, WIFI_KEY);
         tryToConnectTimer.resetTimer();
       } 
       return;
@@ -302,6 +315,20 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
           handlePong(t0, serverTime);
           return;
         }
+        
+        // Handle sweepSpot assignment (for pyramid devices)
+        if (wsMsg["msgType"] == SWEEP_SPOT_MSG_TYPE) {
+          uint16_t newSweepSpot = wsMsg["sweepSpot"];
+          handleSweepSpotAssignment(newSweepSpot);
+          return;
+        }
+        
+        // Handle total LED count update (for pyramid devices)
+        if (wsMsg["msgType"] == TOTAL_LED_COUNT_MSG_TYPE) {
+          uint16_t totalCount = wsMsg["totalLEDCount"];
+          handleTotalLEDCount(totalCount);
+          return;
+        }
 
         // Check if message has a startTime
         if (wsMsg.containsKey("startTime")) {
@@ -439,4 +466,20 @@ void handlePong(uint64_t t0, uint64_t serverTime) {
     }
     Serial.printf("Offset adjusted: %lld ms (delta: %lld ms)\n", offsetMs, newOffset - offsetMs);
   }
+}
+
+void handleSweepSpotAssignment(uint16_t newSweepSpot) {
+  sweepSpot = newSweepSpot;
+  Serial.printf("SweepSpot assigned: %d\n", sweepSpot);
+}
+
+void handleTotalLEDCount(uint16_t totalCount) {
+  Serial.printf("Total LED count updated: %d devices\n", totalCount);
+  
+  // Update node count for patterns
+  mainState.nodeCount.plength = totalCount;
+  nodeCountTimer.setInterval(mainState.nodeCount.decay * 10 * totalCount);
+  
+  // Run nodeCounter() to flash the lights
+  nodeCounter();
 }

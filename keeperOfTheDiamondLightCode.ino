@@ -6,6 +6,7 @@
 #include <FastLED.h>
 FASTLED_USING_NAMESPACE
 
+#include "messageTypes.h"
 #include "millitimer.h"
 #include "pleiadianPalettes.h"
 #include "pleiadianPatterns.h"

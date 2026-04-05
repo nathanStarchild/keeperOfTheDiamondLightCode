@@ -8,10 +8,65 @@ const port = 3000;
 
 var hostName = 'antarean.pyramid';
 
+// Message type constants
+const MSG_PING = 999;
+const MSG_PONG = 998;
+const MSG_ROLE = 997;
+const MSG_BRIDGE_ANNOUNCE = 996;
+const MSG_NODE_COUNT = 995;
+const MSG_TOTAL_LED_COUNT = 994;
+const MSG_SWEEP_SPOT = 993;
+
 const server = createServer(app);
 const wss = new WebSocketServer({ server });
 
 const serverStartTime = Date.now();
+
+let meshNodeCount = 0;
+
+// Track clients by role: bridge, pyramid, browser
+let clientsByRole = {
+  bridge: [],
+  pyramid: [],
+  browser: []
+};
+
+function getTotalLEDDevices() {
+  return meshNodeCount + clientsByRole.pyramid.length;
+}
+
+function broadcastTotalLEDCount() {
+  const total = getTotalLEDDevices();
+  const msg = {
+    msgType: MSG_TOTAL_LED_COUNT,
+    totalLEDCount: total,
+    meshCount: meshNodeCount,
+    pyramidCount: clientsByRole.pyramid.length
+  };
+  
+  console.log(`Broadcasting total LED count: ${total} (${meshNodeCount} mesh + ${clientsByRole.pyramid.length} pyramid)`);
+  broadcast(JSON.stringify(msg), false, null);
+}
+
+function assignSweepSpot(ws, sweepSpot) {
+  ws.sweepSpot = sweepSpot;
+  const msg = {
+    msgType: MSG_SWEEP_SPOT,
+    sweepSpot: sweepSpot
+  };
+  
+  ws.send(JSON.stringify(msg));
+  console.log(`Assigned sweepSpot ${sweepSpot} to pyramid client`);
+}
+
+function reassignPyramidSweepSpots() {
+  // Reassign sweepSpots in order (0, 1, 2, etc.)
+  clientsByRole.pyramid.forEach((client, index) => {
+    if (client.sweepSpot !== index) {
+      assignSweepSpot(client, index);
+    }
+  });
+}
 
 function serverTime() {
   return Date.now() - serverStartTime
@@ -82,8 +137,8 @@ function broadcast(data, isBinary, from) {
         
         console.log(`\nClient ${index + 1}/${totalClients}:`, clientInfo);
         
-        // if (client !== from && client.readyState === WebSocket.OPEN) {
-        if (client.readyState === WebSocket.OPEN) {
+        if (client !== from && client.readyState === WebSocket.OPEN) {
+        // if (client.readyState === WebSocket.OPEN) {
             try {
                 client.send(data, { binary: false });
                 // client.send(data);
@@ -170,7 +225,7 @@ boredTimer = setInterval(dontGetBored, 7 * 1000 * 60)
 
 function sendPong(ws, t0){
   let dat = {
-    "msgType": 998,
+    "msgType": MSG_PONG,
     "t0": t0,
     "serverTime": serverTime()
   }
@@ -217,14 +272,50 @@ wss.on('connection', function connection(ws) {
         //from here we assume the message is a json
         let dat = JSON.parse(data)
         //ping
-        if (dat.msgType == 999 && typeof dat.t0 !== 'undefined'){
+        if (dat.msgType == MSG_PING && typeof dat.t0 !== 'undefined'){
           sendPong(ws, dat.t0)
           return
         }
-        // if (dat.msgType == 997) {
-        //   ws.role = dat.role
-        //   return
-        // }
+        //node count update from bridge
+        if (dat.msgType == MSG_NODE_COUNT && typeof dat.nodeCount !== 'undefined') {
+          meshNodeCount = dat.nodeCount;
+          console.log(`Mesh node count updated: ${meshNodeCount} nodes`);
+          console.log(`Total LED devices: ${getTotalLEDDevices()} (${meshNodeCount} mesh + ${clientsByRole.pyramid.length} pyramid)`);
+          // Broadcast the total LED count to all clients
+          broadcastTotalLEDCount();
+          return;
+        }
+        //role assignment
+        if (dat.msgType == MSG_ROLE && typeof dat.role !== 'undefined') {
+          // Remove from old role if it exists
+          if (ws.role && clientsByRole[ws.role]) {
+            const index = clientsByRole[ws.role].indexOf(ws);
+            if (index > -1) {
+              clientsByRole[ws.role].splice(index, 1);
+            }
+          }
+          
+          // Set new role
+          ws.role = dat.role;
+          
+          // Add to new role tracking
+          if (clientsByRole[ws.role]) {
+            clientsByRole[ws.role].push(ws);
+          }
+          
+          console.log(`Client role set to: ${ws.role}`);
+          console.log(`Role counts - bridge: ${clientsByRole.bridge.length}, pyramid: ${clientsByRole.pyramid.length}, browser: ${clientsByRole.browser.length}`);
+          console.log(`Total LED devices: ${getTotalLEDDevices()} (${meshNodeCount} mesh + ${clientsByRole.pyramid.length} pyramid)`);
+          
+          // Assign sweepSpot if this is a pyramid
+          if (ws.role === 'pyramid') {
+            const sweepSpot = clientsByRole.pyramid.length - 1;  // 0-indexed
+            assignSweepSpot(ws, sweepSpot);
+            broadcastTotalLEDCount();
+          }
+          
+          return;
+        }
         if (dat.msgType == 44){
             lockState[dat.lockNumber] = dat.enabled
         } else if (dat.msgType == 45) {
@@ -257,7 +348,37 @@ wss.on('connection', function connection(ws) {
     });
     
     ws.on('close', function close() {
+        const oldRole = ws.role;
+        const oldSweepSpot = ws.sweepSpot;
+        
+        // Remove from role tracking
+        if (ws.role && clientsByRole[ws.role]) {
+          const index = clientsByRole[ws.role].indexOf(ws);
+          if (index > -1) {
+            clientsByRole[ws.role].splice(index, 1);
+          }
+        }
+        
+        // If bridge disconnects, we lose all mesh nodes
+        if (oldRole === 'bridge') {
+          meshNodeCount = 0;
+          console.log('Bridge disconnected - mesh node count reset to 0');
+        }
+        
         console.log(`Client disconnected (role: ${ws.role || 'unknown'}). Total clients: ${wss.clients.size}`);
+        console.log(`Role counts - bridge: ${clientsByRole.bridge.length}, pyramid: ${clientsByRole.pyramid.length}, browser: ${clientsByRole.browser.length}`);
+        console.log(`Total LED devices: ${getTotalLEDDevices()} (${meshNodeCount} mesh + ${clientsByRole.pyramid.length} pyramid)`);
+        
+        // If a pyramid disconnected, reassign sweepSpots for remaining pyramids
+        if (oldRole === 'pyramid') {
+          reassignPyramidSweepSpots();
+          broadcastTotalLEDCount();
+        }
+        
+        // Broadcast total LED count if bridge disconnected (affects total)
+        if (oldRole === 'bridge') {
+          broadcastTotalLEDCount();
+        }
     });
 });
 
