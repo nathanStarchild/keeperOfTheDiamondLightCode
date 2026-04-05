@@ -90,7 +90,8 @@ uint8_t MagicButtonHandler::getParameterCount(uint8_t msgType) {
       msgType == 21 || msgType == 22 || msgType == 23 || msgType == 24 ||
       msgType == 28 || msgType == 29 || msgType == 30 || msgType == 31 ||
       msgType == 39 || msgType == 40 || msgType == 50 || msgType == 51 || 
-      msgType == 52 || msgType == 53 || msgType == 54 || msgType == 55) {
+      msgType == 52 || msgType == 53 || msgType == 54 || msgType == 55 ||
+      msgType == 63) {
     return 0;
   }
   
@@ -159,6 +160,7 @@ const char* MagicButtonHandler::getCommandName(uint8_t msgType) {
     case 53: return "mg_random";
     case 54: return "enlightenmentAchieved";
     case 55: return "returnTimer";
+    case 63: return "nodeCounter";
     default: return "unknown";
   }
 }

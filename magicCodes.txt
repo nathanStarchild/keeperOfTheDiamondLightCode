@@ -47,6 +47,7 @@ SPECIAL COMMANDS
 ..-.-.           → (53) mg_random
 ..-..-           → (54) enlightenmentAchieved
 ..-...           → (55) returnTimer
+......           → (63) nodeCounter
 
 COMMANDS WITH 1 PARAMETER (enter command, wait, then enter value)
 ------------------------------------------------------------------
@@ -88,7 +89,6 @@ POTENTIAL FUTURE CODES (UNASSIGNED, EASY TO REMEMBER)
 These numbers are available for new commands and have memorable patterns:
 
 SUPER EASY (all same type):
-......           → (63)  Available - six shorts, super memorable!
 .......          → (127) Available - seven shorts
 
 CLEAN SYMMETRICAL PATTERNS:

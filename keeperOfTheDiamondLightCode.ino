@@ -1820,7 +1820,7 @@ void launch() {
         }
       }
       sweepProgress++;
-      if (sweepProgress == sweepRate * 12) {
+      if (sweepProgress == sweepRate * mainState.nodeCount.plength) {
         onFor = 3;
         fadeRate = min(fadeRate + 10, 255);
         sweepProgress = 0;
@@ -2476,7 +2476,8 @@ void processWSMessage(){
         returnTimer.startTimer();
         break;
       case 63:
-        nodeCounter()
+        nodeCounter();
+        break;
    }
   }
 }
