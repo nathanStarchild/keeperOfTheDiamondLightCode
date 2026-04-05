@@ -29,6 +29,7 @@
 #define PING_MSG_TYPE 999
 #define PONG_MSG_TYPE 998
 #define ROLE_MSG_TYPE 997
+#define BRIDGE_ANNOUNCE_MSG_TYPE 996
 
 // ========== GLOBAL OBJECTS ==========
 painlessMesh mesh;
@@ -63,26 +64,40 @@ void changedConnectionCallback();
 void nodeTimeAdjustedCallback(int32_t offset);
 void forwardToMesh(String &message);
 void forwardToWebSocket(String &message);
+void announceBridge();
 
 // ========== MESH CALLBACKS ==========
 
 void receivedCallback(uint32_t from, String &msg) {
   Serial.printf("Mesh: Received from %u: %s\n", from, msg.c_str());
   
+  if (!wsConnected) {
+    return;
+  }
+  
   DynamicJsonDocument meshDoc(1024);
   DeserializationError error = deserializeJson(meshDoc, msg);
   
   if (error) {
     Serial.printf("Mesh: JSON parse error: %s\n", error.c_str());
+    // Forward as-is even if parse fails
+    forwardToWebSocket(msg);
     return;
   }
   
-  // Check if this message should be forwarded to server
-  bool toServer = meshDoc["toServer"] | false;
-  if (toServer && wsConnected) {
-    Serial.println("Mesh: Forwarding to WebSocket server");
-    forwardToWebSocket(msg);
+  // Convert startTime from mesh time (us) to server time (ms) if present
+  if (meshDoc.containsKey("startTime")) {
+    uint64_t meshStartTime = meshDoc["startTime"];  // in microseconds
+    uint64_t serverStartTime = ((int64_t)meshStartTime + offsetUs) / 1000;  // convert to server milliseconds
+    meshDoc["startTime"] = serverStartTime;
+    Serial.printf("Mesh: Converted startTime %llu us (mesh) to %llu ms (server)\n", meshStartTime, serverStartTime);
   }
+  
+  // Serialize and forward to server
+  String serverMsg = "";
+  serializeJson(meshDoc, serverMsg);
+  forwardToWebSocket(serverMsg);
+  Serial.println("Mesh: Forwarded to WebSocket server");
 }
 
 void newConnectionCallback(uint32_t nodeId) {
@@ -94,10 +109,24 @@ void changedConnectionCallback() {
   Serial.printf("Mesh: Connections changed\n");
   Serial.printf("Mesh: Nodes connected: %d\n", mesh.getNodeList().size());
   meshConnected = mesh.getNodeList().size() > 0;
+  
+  // Announce bridge identity when mesh topology changes
+  if (meshConnected) {
+    announceBridge();
+  }
 }
 
 void nodeTimeAdjustedCallback(int32_t offset) {
   Serial.printf("Mesh: Time adjusted by %d us\n", offset);
+}
+
+// ========== BRIDGE ANNOUNCEMENT ==========
+
+void announceBridge() {
+  char msg[32];
+  snprintf(msg, sizeof(msg), "{\"msgType\":%d}", BRIDGE_ANNOUNCE_MSG_TYPE);
+  mesh.sendBroadcast(msg);
+  Serial.printf("Bridge: Announced to mesh (nodeId %u)\n", mesh.getNodeId());
 }
 
 // ========== MESSAGE FORWARDING ==========

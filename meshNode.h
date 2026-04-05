@@ -17,6 +17,9 @@
 #define MESH_PORT 5555
 #define MESH_CHANNEL 7
 
+// Message Protocol
+#define BRIDGE_ANNOUNCE_MSG_TYPE 996
+
 // ========== GLOBAL OBJECTS ==========
 painlessMesh mesh;
 uint32_t myId;
@@ -33,6 +36,8 @@ uint64_t pendingStartTime = 0;  // 0 means no pending scheduled message
 
 // ========== STATE TRACKING ==========
 bool meshConnected = false;
+bool bridgeConnected = false;
+uint32_t bridgeId = 0;
 
 // ========== FORWARD DECLARATIONS ==========
 extern void processWSMessage();  // Defined in main .ino file
@@ -55,16 +60,25 @@ void updateSweepSpot() {
   // Sort the list
   nodeList.sort([](uint32_t a, uint32_t b) { return a < b; });
   
-  // Find my position using iterator
+  // Find my position, excluding bridge if connected
   uint8_t position = 0;
   
   SimpleList<uint32_t>::iterator it = nodeList.begin();
   while (it != nodeList.end()) {
-    if (*it == myId) {
+    uint32_t nodeId = *it;
+    
+    if (nodeId == myId) {
       sweepSpot = position + 3;
+      Serial.printf("Updated sweepSpot to %d (position %d, %d total nodes)\n", 
+                    sweepSpot, position, nodeList.size());
       break;
     }
-    position++;
+    
+    // Only increment position for non-bridge nodes
+    if (!bridgeConnected || nodeId != bridgeId) {
+      position++;
+    }
+    
     ++it;
   }
 }
@@ -73,6 +87,18 @@ void updateSweepSpot() {
 
 void receivedCallback(uint32_t from, String &msg) {
   Serial.printf("Mesh: Received from %u: %s\n", from, msg.c_str());
+  
+  // Check for bridge announcement
+  DynamicJsonDocument doc(128);
+  if (deserializeJson(doc, msg) == DeserializationError::Ok) {
+    if (doc["msgType"] == BRIDGE_ANNOUNCE_MSG_TYPE) {
+      bridgeId = from;
+      bridgeConnected = true;
+      Serial.printf("Mesh: Bridge connected (nodeId %u)\n", bridgeId);
+      updateSweepSpot();
+      return;  // Don't process as pattern message
+    }
+  }
   
   // Check if we're still waiting on a previous scheduled message
   if (pendingStartTime > 0) {
