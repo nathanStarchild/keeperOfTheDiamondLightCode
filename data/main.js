@@ -138,7 +138,7 @@ $(document).ready(function() {
         console.log($(event.currentTarget))
         let data = {
             'msgType': $(event.currentTarget).data("msgtype"),
-            'value': $(event.currentTarget).data("value"),
+            'val': $(event.currentTarget).data("value"),
             'delay': syncDelay
         }
         console.log(data)
@@ -277,7 +277,7 @@ $(document).ready(function() {
     // Mardi Gras Biz
     function loadMGColours() {
         let cols = [
-            "#c80037",//"Pink",
+            "#fe019a",//"Pink",
             "#00857a",//"Turquoise",
             "#330300",//"Brown",
             "#ff0000",//"Red",
