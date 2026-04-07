@@ -321,7 +321,11 @@ void wsSetup() {
   loadBridgeId();
   
   // Initialize mesh network
-  mesh.setDebugMsgTypes(ERROR | STARTUP | CONNECTION);
+  if (debugging) {
+    mesh.setDebugMsgTypes(ERROR | STARTUP | CONNECTION);
+  } else {
+    mesh.setDebugMsgTypes(ERROR | STARTUP);
+  }
   
   // Initialize mesh in AP+STA mode on channel 7
   mesh.init(MESH_SSID, MESH_PASSWORD, MESH_PORT, WIFI_AP_STA, MESH_CHANNEL);

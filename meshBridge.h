@@ -33,6 +33,7 @@ extern bool debugging;
 // ========== GLOBAL OBJECTS ==========
 painlessMesh mesh;
 WebSocketsClient webSocket;
+extern bool debugging;
 
 // ========== STATE TRACKING ==========
 bool meshConnected = false;
@@ -397,7 +398,11 @@ void wsSetup() {
   Serial.println("meshBridge: Initializing...");
   
   // Initialize mesh network
-  mesh.setDebugMsgTypes(ERROR | STARTUP | CONNECTION);
+  if (debugging) {
+    mesh.setDebugMsgTypes(ERROR | STARTUP | CONNECTION);
+  } else {
+    mesh.setDebugMsgTypes(ERROR | STARTUP);
+  }
   
   // Initialize mesh
   mesh.init(MESH_SSID, MESH_PASSWORD, MESH_PORT, WIFI_AP_STA, MESH_CHANNEL);
