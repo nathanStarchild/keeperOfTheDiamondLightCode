@@ -49,10 +49,7 @@ class MagicButton {
     // Sequence tracking
     uint16_t accumulatedValue;
     uint8_t bitCount;
-    MilliTimer* sequenceTimer;
-    bool sequenceActive;
-    
-    // Thresholds
+  MilliTimer sequenceTimer;  // Direct member (not pointer) - initialized in constructor
     uint32_t shortPressThreshold;  // < this = 1, >= this = 0
     uint32_t sequenceTimeout;      // Time to wait before considering sequence complete
     
@@ -63,7 +60,12 @@ class MagicButton {
 };
 
 // Constructor
-MagicButton::MagicButton(uint8_t pin, bool usePullup) {
+// Note: Member initializer list (after ':' and before '{') constructs member objects
+// BEFORE the constructor body runs. This is required for objects like MilliTimer that
+// don't have a default constructor - they must be initialized with parameters.
+// Syntax: Constructor(params) : memberObject(initValue) { body }
+MagicButton::MagicButton(uint8_t pin, bool usePullup) 
+  : sequenceTimer(600) {  // Initialize MilliTimer with 600ms timeout
   buttonPin = pin;
   this->usePullup = usePullup;
   lastButtonState = usePullup ? HIGH : LOW;
@@ -75,8 +77,7 @@ MagicButton::MagicButton(uint8_t pin, bool usePullup) {
   sequenceActive = false;
   shortPressThreshold = 300;   // 300ms threshold
   sequenceTimeout = 600;       // 600ms timeout
-  sequenceTimer = new MilliTimer(sequenceTimeout);
-  sequenceTimer->stopTimer();  // Start stopped
+  sequenceTimer.stopTimer();   // Start stopped
 }
 
 // Initialize button
@@ -105,14 +106,14 @@ void MagicButton::addBit(bool bit) {
     accumulatedValue = (accumulatedValue << 1) | (bit ? 1 : 0);
     bitCount++;
     sequenceActive = true;
-    sequenceTimer->startTimer();
+    sequenceTimer.startTimer();
   }
 }
 
 // Complete the sequence
 void MagicButton::completeSequence() {
   sequenceActive = false;
-  sequenceTimer->stopTimer();
+  sequenceTimer.stopTimer();
 }
 
 // Check button and return value when sequence complete
@@ -169,7 +170,7 @@ uint16_t MagicButton::checkButton(bool getDuration) {
   }
   
   // Check for sequence timeout
-  if (sequenceActive && !buttonPressed && sequenceTimer->isItTime()) {
+  if (sequenceActive && !buttonPressed && sequenceTimer.isItTime()) {
     // Sequence complete!
     returnValue = accumulatedValue;
     Serial.print("MagicButton: Sequence complete! Value = ");
@@ -187,7 +188,7 @@ void MagicButton::reset() {
   bitCount = 0;
   sequenceActive = false;
   buttonPressed = false;
-  sequenceTimer->stopTimer();
+  sequenceTimer.stopTimer();
 }
 
 // Set short press threshold
@@ -198,7 +199,7 @@ void MagicButton::setShortPressThreshold(uint32_t ms) {
 // Set sequence timeout
 void MagicButton::setSequenceTimeout(uint32_t ms) {
   sequenceTimeout = ms;
-  sequenceTimer->setInterval(ms);
+  sequenceTimer.setInterval(ms);
 }
 
 // Get bit count

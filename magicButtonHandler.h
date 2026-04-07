@@ -10,6 +10,7 @@
 #define MAGIC_BUTTON_HANDLER_H
 
 #include "magicButton.h"
+#include "messageTypes.h"
 
 // Forward declarations for global message handling
 extern void processWSMessage();
@@ -57,6 +58,10 @@ class MagicButtonHandler {
     uint16_t pendingValue1;
     uint16_t pendingValue2;
     
+    // Timeout handling
+    MilliTimer parameterTimeout;
+    static const uint32_t PARAMETER_TIMEOUT_MS = 2000;  // 2 seconds to enter parameter
+    
     // Configuration flags
     bool localExecutionEnabled;
     bool networkBroadcastEnabled;
@@ -68,10 +73,13 @@ class MagicButtonHandler {
     void buildMessage(uint8_t msgType, uint16_t val1 = 0, uint16_t val2 = 0);
     bool needsSync(uint8_t msgType);
     const char* getCommandName(uint8_t msgType);
+    void handleTimeout();
+    int16_t generateRandomInRange(int16_t min, int16_t max);
 };
 
 // Constructor
-MagicButtonHandler::MagicButtonHandler(MagicButton* button) {
+MagicButtonHandler::MagicButtonHandler(MagicButton* button) 
+  : parameterTimeout(PARAMETER_TIMEOUT_MS) {
   magicButton = button;
   currentState = WAITING_FOR_COMMAND;
   pendingMsgType = 0;
@@ -80,37 +88,20 @@ MagicButtonHandler::MagicButtonHandler(MagicButton* button) {
   localExecutionEnabled = true;
   networkBroadcastEnabled = true;
   serialDebugEnabled = true;
+  parameterTimeout.stopTimer();  // Don't start until waiting for parameter
 }
 
 // Get number of parameters needed for a message type
 uint8_t MagicButtonHandler::getParameterCount(uint8_t msgType) {
-  // Commands with 0 parameters
-  if (msgType == 1 || msgType == 2 || msgType == 3 || msgType == 4 ||
-      msgType == 5 || msgType == 6 || msgType == 7 || msgType == 8 ||
-      msgType == 9 || msgType == 14 || msgType == 15 || msgType == 20 ||
-      msgType == 21 || msgType == 22 || msgType == 23 || msgType == 24 ||
-      msgType == 28 || msgType == 29 || msgType == 30 || msgType == 31 ||
-      msgType == 39 || msgType == 40 || msgType == 50 || msgType == 51 || 
-      msgType == 52 || msgType == 53 || msgType == 54 || msgType == 55 ||
-      msgType == 56 || msgType == 63) {
-    return 0;
+  const MessageTypeDef* msgDef = getMessageTypeDef(msgType);
+  
+  if (msgDef != nullptr) {
+    return pgm_read_byte(&msgDef->paramCount);
   }
   
-  // Commands with 1 parameter (val)
-  if (msgType == 10 || msgType == 11 || msgType == 12 || msgType == 13 ||
-      msgType == 16 || msgType == 17 || msgType == 18 || msgType == 19 ||
-      msgType == 25 || msgType == 26 || msgType == 32 || msgType == 33 ||
-      msgType == 34 || msgType == 41 || msgType == 48) {
-    return 1;
-  }
-  
-  // msgType 60 (sweep with duration) - special case: 1 param + duration hold
-  if (msgType == 60) {
-    return 1;  // Will transition to WAITING_FOR_DURATION after value
-  }
-  
-  // Commands with 2 parameters - not supported yet
-  // msgType 37, 38, 42, 43 would need special handling
+  // Legacy/special commands not in lookup table
+  // msgType 4 (nextPalette) - 0 params, but converts to setPalette
+  if (msgType == 4) return 0;
   
   // Unknown command
   return 255;  // Invalid
@@ -118,60 +109,28 @@ uint8_t MagicButtonHandler::getParameterCount(uint8_t msgType) {
 
 // Check if message type needs synchronized execution
 bool MagicButtonHandler::needsSync(uint8_t msgType) {
-  return (msgType == 9 || msgType == 48 || msgType == 50 || msgType == 54);
+  const MessageTypeDef* msgDef = getMessageTypeDef(msgType);
+  
+  if (msgDef != nullptr) {
+    return pgm_read_byte(&msgDef->needsSync);
+  }
+  
+  return false;  // Default to no sync for unknown messages
 }
 
 // Get human-readable command name for debugging
 const char* MagicButtonHandler::getCommandName(uint8_t msgType) {
-  switch(msgType) {
-    case 1: return "upset_mainState";
-    case 2: return "doubleRainbow";
-    case 3: return "tranquilityMode";
-    case 4: return "nextPalette";
-    case 5: return "tripperTrapMode";
-    case 6: return "antsMode";
-    case 7: return "shootingStars";
-    case 8: return "toggleHouseLights";
-    case 9: return "launch";
-    case 10: return "setStepRate";
-    case 11: return "setFadeRate";
-    case 12: return "setBrightness";
-    case 13: return "setNRipples";
-    case 14: return "noiseTest";
-    case 15: return "noiseFader";
-    case 16: return "noiseLength";
-    case 17: return "noiseSpeed";
-    case 18: return "noiseFadeLength";
-    case 19: return "noiseFadeSpeed";
-    case 20: return "earthMode";
-    case 21: return "fireMode";
-    case 22: return "airMode";
-    case 23: return "waterMode";
-    case 24: return "metalMode";
-    case 25: return "airLength";
-    case 26: return "airSpeed";
-    case 28: return "rippleGeddon";
-    case 29: return "tailTime";
-    case 30: return "rainbowNoise";
-    case 31: return "flashGrid";
-    case 32: return "fireDecay";
-    case 33: return "fireSpeed";
-    case 34: return "setPalette";
-    case 39: return "rainbowSpiral";
-    case 40: return "blender";
-    case 41: return "enlightenment";
-    case 48: return "sweep";
-    case 50: return "zoomToColour";
-    case 51: return "mg_noise_party";
-    case 52: return "mg_blob";
-    case 53: return "mg_random";
-    case 54: return "enlightenmentAchieved";
-    case 55: return "returnTimer";
-    case 56: return "chillPill";
-    case 60: return "sweepWithDuration";
-    case 63: return "nodeCounter";
-    default: return "unknown";
+  const MessageTypeDef* msgDef = getMessageTypeDef(msgType);
+  
+  if (msgDef != nullptr) {
+    // Read pointer from PROGMEM (32-bit on both ESP8266 and ESP32)
+    return (const char*)pgm_read_dword(&msgDef->name);
   }
+  
+  // Legacy commands not in lookup table
+  if (msgType == 4) return "nextPalette";
+  
+  return "unknown";
 }
 
 // Build message and populate global variables
@@ -287,6 +246,12 @@ void MagicButtonHandler::executeCommand(uint8_t msgType, uint16_t val1, uint16_t
 
 // Main update function
 void MagicButtonHandler::update() {
+  // Check for parameter entry timeout
+  if (currentState != WAITING_FOR_COMMAND && parameterTimeout.isItTime()) {
+    handleTimeout();
+    return;
+  }
+  
   // Check if we're waiting for duration input
   if (currentState == WAITING_FOR_DURATION) {
     uint16_t duration = magicButton->checkButton(true);  // Get duration mode
@@ -331,6 +296,8 @@ void MagicButtonHandler::update() {
         } else if (paramCount == 1) {
           // Wait for value
           currentState = WAITING_FOR_VALUE_1;
+          parameterTimeout.resetTimer();
+          parameterTimeout.startTimer();
           if (serialDebugEnabled) {
             Serial.printf("MagicButtonHandler: Command %d (%s) needs 1 value. Waiting...\n", 
                          pendingMsgType, getCommandName(pendingMsgType));
@@ -338,6 +305,8 @@ void MagicButtonHandler::update() {
         } else if (paramCount == 2) {
           // Wait for first value
           currentState = WAITING_FOR_VALUE_1;
+          parameterTimeout.resetTimer();
+          parameterTimeout.startTimer();
           if (serialDebugEnabled) {
             Serial.printf("MagicButtonHandler: Command %d (%s) needs 2 values. Waiting...\n", 
                          pendingMsgType, getCommandName(pendingMsgType));
@@ -355,6 +324,8 @@ void MagicButtonHandler::update() {
           // Check if this is msgType 60 (needs duration hold)
           if (pendingMsgType == 60) {
             currentState = WAITING_FOR_DURATION;
+            parameterTimeout.resetTimer();
+            parameterTimeout.startTimer();
             if (serialDebugEnabled) {
               Serial.printf("MagicButtonHandler: Got plength=%d, now waiting for duration hold...\n", pendingValue1);
             }
@@ -366,6 +337,8 @@ void MagicButtonHandler::update() {
         } else if (paramCount == 2) {
           // Wait for second value
           currentState = WAITING_FOR_VALUE_2;
+          parameterTimeout.resetTimer();
+          parameterTimeout.startTimer();
           if (serialDebugEnabled) {
             Serial.printf("MagicButtonHandler: Got value1=%d, waiting for value2...\n", pendingValue1);
           }
@@ -408,6 +381,89 @@ void MagicButtonHandler::reset() {
   pendingMsgType = 0;
   pendingValue1 = 0;
   pendingValue2 = 0;
+  parameterTimeout.stop();
+}
+
+// Generate random value within range (excludes 0 for tail.pspeed special case)
+int16_t MagicButtonHandler::generateRandomInRange(int16_t min, int16_t max) {
+  if (min < 0) {
+    // Handle negative ranges (like tail.pspeed: -3 to 3, excluding 0)
+    // Generate random in full range, then skip 0
+    int16_t val = random(min, max + 1);
+    if (val == 0 && min < 0 && max > 0) {
+      // Flip a coin: go negative or positive
+      val = random(0, 2) ? random(min, 0) : random(1, max + 1);
+    }
+    return val;
+  } else {
+    return random(min, max + 1);
+  }
+}
+
+// Handle parameter entry timeout
+void MagicButtonHandler::handleTimeout() {
+  const MessageTypeDef* msgDef = getMessageTypeDef(pendingMsgType);
+  
+  if (msgDef == nullptr) {
+    if (serialDebugEnabled) {
+      Serial.printf("MagicButtonHandler: Timeout on unknown msgType %d - resetting\n", pendingMsgType);
+    }
+    reset();
+    return;
+  }
+  
+  TimeoutAction action = (TimeoutAction)pgm_read_byte(&msgDef->timeoutAction);
+  
+  if (action == TIMEOUT_RESET) {
+    if (serialDebugEnabled) {
+      Serial.printf("MagicButtonHandler: Timeout on %s - resetting (ignoring input)\n", getCommandName(pendingMsgType));
+    }
+    // Just reset state, don't execute any command
+    reset();
+    return;
+  }
+  
+  // TIMEOUT_RANDOM - generate random values for incomplete parameters
+  if (serialDebugEnabled) {
+    Serial.printf("MagicButtonHandler: Timeout on %s - generating random values\n", getCommandName(pendingMsgType));
+  }
+  
+  uint8_t paramCount = pgm_read_byte(&msgDef->paramCount);
+  
+  if (currentState == WAITING_FOR_VALUE_1) {
+    // Need to generate value1 (and possibly value2)
+    int16_t min1 = pgm_read_word(&msgDef->param1.min);
+    int16_t max1 = pgm_read_word(&msgDef->param1.max);
+    pendingValue1 = generateRandomInRange(min1, max1);
+    
+    if (paramCount == 2) {
+      int16_t min2 = pgm_read_word(&msgDef->param2.min);
+      int16_t max2 = pgm_read_word(&msgDef->param2.max);
+      pendingValue2 = generateRandomInRange(min2, max2);
+    }
+  } else if (currentState == WAITING_FOR_VALUE_2) {
+    // Already have value1, just need value2
+    int16_t min2 = pgm_read_word(&msgDef->param2.min);
+    int16_t max2 = pgm_read_word(&msgDef->param2.max);
+    pendingValue2 = generateRandomInRange(min2, max2);
+  } else if (currentState == WAITING_FOR_DURATION) {
+    // Generate random duration for msgType 60
+    int16_t minDur = pgm_read_word(&msgDef->param1.min);  // duration stored in param1
+    int16_t maxDur = pgm_read_word(&msgDef->param1.max);
+    pendingValue2 = generateRandomInRange(minDur, maxDur);  // duration goes in val2
+  }
+  
+  if (serialDebugEnabled) {
+    if (paramCount == 1) {
+      Serial.printf("MagicButtonHandler: Generated val=%d\n", pendingValue1);
+    } else if (paramCount == 2) {
+      Serial.printf("MagicButtonHandler: Generated val1=%d, val2=%d\n", pendingValue1, pendingValue2);
+    }
+  }
+  
+  // Execute with generated values
+  executeCommand(pendingMsgType, pendingValue1, pendingValue2);
+  reset();
 }
 
 #endif // MAGIC_BUTTON_HANDLER_H
