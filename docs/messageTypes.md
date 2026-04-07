@@ -43,7 +43,7 @@ Complete reference for all message types used in the Keeper of the Diamond Light
 - 63 - Node Counter
 - [50 - Zoom to Colour](#50---zoom-to-colour) (has parameters)
 
-### Configuration Commands (10-13, 16-19, 25-26, 32-34)
+### Configuration Commands (10-13, 16-19, 25-26, 32-34, 48)
 - [10 - Set Step Rate](#10---set-step-rate)
 - [11 - Set Fade Rate](#11---set-fade-rate)
 - [12 - Set Brightness](#12---set-brightness)
@@ -57,6 +57,7 @@ Complete reference for all message types used in the Keeper of the Diamond Light
 - [32 - Fire Decay](#32---fire-decay)
 - [33 - Fire Speed](#33---fire-speed)
 - [34 - Set Palette](#34---set-palette)
+- [48 - Sweep](#48---sweep)
 
 ### Advanced Pattern Commands (35-43)
 - [35 - Set Custom Palette Array](#35---set-custom-palette-array)
@@ -728,6 +729,33 @@ Complete reference for all message types used in the Keeper of the Diamond Light
 
 ---
 
+### 48 - Sweep
+
+**Purpose:** Activates sweep effect with specified visual mode flags.
+
+**Parameters:** 1
+- `val` (int): Bit flags for visual modes (plength parameter)
+
+**Format:**
+```json
+{
+  "msgType": 48,
+  "val": 7
+}
+```
+
+**Parsed By:**
+- ESP devices (`keeperOfTheDiamondLightCode.ino` - processWSMessage)
+
+**Network Flow:**
+- Server → All devices (broadcast)
+
+**Synchronized:** YES - Uses `startTime` for coordinated effect
+
+**Notes:** Enables `mainState.sweep.enabled` and sets `mainState.sweep.plength`. The plength value uses bit flags to control visual modes in the sweep effect. Synchronized to ensure all devices sweep together. Magic button pattern `..----` (short-short-long-long-long-long) + value sequence.
+
+---
+
 ## Advanced Pattern Commands (35-43)
 
 ### 35 - Set Custom Palette Array
@@ -1201,6 +1229,7 @@ Update `magicCodes.txt` when adding new patterns.
 | 44 | Lock State | 1 | No | - |
 | 45 | Disable Bored Timer | 0 | No | - |
 | 46 | Enable Bored Timer | 0 | No | - |
+| 48 | Sweep | 1 | YES | `..----` |
 | 50 | Zoom to Colour | 1 | YES | `..--.-` |
 | 51 | MG Noise Party | 0 | No | `..--..` |
 | 52 | MG Blob | 0 | No | `..-.--` |

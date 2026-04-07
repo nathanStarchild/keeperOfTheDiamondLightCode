@@ -44,6 +44,7 @@ bool noRelayer = true;
 // #include "client.h"
 #include "meshNode.h"
 // #include "meshBridge.h"
+// #include "theBridge.h"
 
 //AfrikaBurn
 #include "costumeString.h"
@@ -2450,6 +2451,10 @@ void processWSMessage(){
         Serial.println(fadeRateLocked);
         Serial.println(brightnessLocked);
         Serial.println(paletteLocked);
+        break;
+      case 48:
+        mainState.sweep.enabled = true;
+        mainState.sweep.plength = wsMsg["val"].as<int>();
         break;
       case 50:
         #ifdef NUMBER

@@ -26,6 +26,10 @@ body{
     background-color: #F0F0FA;
 }
 
+.bg-main {
+    background-color: #F0F0FA !important;
+}
+
 .main {
     display: flex;
     flex-direction: column;
@@ -88,6 +92,10 @@ body{
 .gridSpan {
     grid-column: 1 / 4;
     place-self: center;
+}
+
+.grid-cols-3 {
+    grid-template-columns: repeat(3, 1fr);
 }
 
 .select-container {

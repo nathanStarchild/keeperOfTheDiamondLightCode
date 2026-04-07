@@ -234,7 +234,7 @@ $(document).ready(function() {
         return false;
     };
 
-    $('#paletteSelect').on('change', function(){
+    $('#paletteSelect, #mgPaletteSelect').on('change', function(){
         let data = {
             'msgType': $(this).data("msgtype"),
             'val': $(this).val(),
@@ -277,20 +277,35 @@ $(document).ready(function() {
     // Mardi Gras Biz
     function loadMGColours() {
         let cols = [
-            "Pink",
-            "Turquoise",
-            "Brown",
-            "Red",
-            "Orange",
-            "Yellow",
-            "Green",
-            "Blue",
-            "Violet",
-            "Indigo",
+            "#c80037",//"Pink",
+            "#00857a",//"Turquoise",
+            "#330300",//"Brown",
+            "#ff0000",//"Red",
+            "#d04c00", //"Orange",
+            "#ab8a00", //"Yellow",
+            "#00e717", //"Green",
+            "#0a00f5", //"Blue",
+            "#790086", //"Violet",
+            "#2a00d5", //"Indigo",
         ]
         for (const i in cols) {
-            let tmpl = `<div data-msgtype="50" data-value="${i}" class="btn btn-secondary control valueBtn">${cols[i]}</div>`
-            $("#mgColsContainer").append(tmpl)
+            // let tmpl = `<div data-msgtype="50" data-value="${i}" class="btn btn-secondary control valueBtn">${cols[i]}</div>`
+            // $("#mgColsContainer").append(tmpl)
+            // let tmpl = `<option value="${i}" style="background-color: ${cols[i]};"></option>`
+            // $("#mgPaletteSelect").append(tmpl)
+            if (i == 2) {
+                continue
+            }
+            let tmpl = `
+                <button 
+                    class="btn control valueBtn m-1" 
+                    data-msgtype="50" 
+                    data-value="${i}" 
+                    style="background-color: ${cols[i]};"
+                > 
+                    <p class="p-3"></p>
+                </button>`
+            $("#mg_palettesDropdown").append(tmpl)
         }
     }
 

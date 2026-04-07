@@ -48,6 +48,7 @@ SPECIAL COMMANDS
 ..-..-           → (54) enlightenmentAchieved
 ..-...           → (55) returnTimer
 ......           → (63) nodeCounter
+..----           → (48) sweep [+value]
 
 COMMANDS WITH 1 PARAMETER (enter command, wait, then enter value)
 ------------------------------------------------------------------
@@ -65,6 +66,7 @@ COMMANDS WITH 1 PARAMETER (enter command, wait, then enter value)
 .----.           → (33) fireSpeed [needs value]
 .---.-           → (34) setPalette [needs palette number]
 .-.--.           → (41) enlightenment [needs value]
+..----           → (48) sweep [needs value]
 
 TIPS
 ----
@@ -92,7 +94,6 @@ SUPER EASY (all same type):
 .......          → (127) Available - seven shorts
 
 CLEAN SYMMETRICAL PATTERNS:
-..----           → (48)  Available - two shorts, four longs
 ...---           → (56)  Available - three shorts, three longs (perfectly symmetrical)
 ....--           → (60)  Available - four shorts, two longs
 .....-           → (62)  Available - five shorts, one long

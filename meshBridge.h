@@ -393,7 +393,7 @@ void wsLoop() {
   mesh.update();
   
   // Handle ArduinoOTA
-  ArduinoOTA.handle();
+  // ArduinoOTA.handle();
   
   // Handle WiFi connection state
   if (WiFi.status() == WL_CONNECTED) {

@@ -63,7 +63,7 @@ patternState mainState = {
   {false, 0, 0, 0}, //holdingPattern
   {false, 0, 0, 0}, //mapPattern
   {false, 0, 0, 0}, //paletteDisplay
-  {false, 0, 0, 0}, //sweep
+  {false, 25, 0, 64}, //sweep
   {false, 0, 0, 0}, //dimmer
   {false, 1, 1, 0}, //skaters
   {false, 1, 1, 1}, //poleChaser

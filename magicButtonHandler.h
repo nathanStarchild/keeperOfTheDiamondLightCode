@@ -99,7 +99,7 @@ uint8_t MagicButtonHandler::getParameterCount(uint8_t msgType) {
   if (msgType == 10 || msgType == 11 || msgType == 12 || msgType == 13 ||
       msgType == 16 || msgType == 17 || msgType == 18 || msgType == 19 ||
       msgType == 25 || msgType == 26 || msgType == 32 || msgType == 33 ||
-      msgType == 34 || msgType == 41) {
+      msgType == 34 || msgType == 41 || msgType == 48) {
     return 1;
   }
   
@@ -112,7 +112,7 @@ uint8_t MagicButtonHandler::getParameterCount(uint8_t msgType) {
 
 // Check if message type needs synchronized execution
 bool MagicButtonHandler::needsSync(uint8_t msgType) {
-  return (msgType == 9 || msgType == 50 || msgType == 54);
+  return (msgType == 9 || msgType == 48 || msgType == 50 || msgType == 54);
 }
 
 // Get human-readable command name for debugging
@@ -154,6 +154,7 @@ const char* MagicButtonHandler::getCommandName(uint8_t msgType) {
     case 39: return "rainbowSpiral";
     case 40: return "blender";
     case 41: return "enlightenment";
+    case 48: return "sweep";
     case 50: return "zoomToColour";
     case 51: return "mg_noise_party";
     case 52: return "mg_blob";
