@@ -84,6 +84,7 @@ patternState mainState = {
   {false, 5, 15, 250}, //pi
   {false, 5, 15, 250}, //rainbowZoom
   {false, 50, 1, 250}, //nodeCount
+  {false, 0, 0, 0}, //rollCall
   };
 
 pattern *patternPointers[] = {
@@ -120,6 +121,7 @@ pattern *patternPointers[] = {
   &mainState.pi,//30
   &mainState.rainbowZoom,//31
   &mainState.nodeCount,//32
+  &mainState.rollCall,//33
 };
 
 const char* patternNames[] = {
@@ -155,7 +157,8 @@ const char* patternNames[] = {
   "noise2D",        //29
   "pi",             //30
   "rainbowZoom",    //31
-  "nodeCount"       //32
+  "nodeCount",      //32
+  "rollCall"        //33
 };
 
 const int nPatterns = sizeof(patternPointers) / sizeof(patternPointers[0]);

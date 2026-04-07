@@ -1,0 +1,74 @@
+MAGIC BUTTON CHEAT SHEET
+========================
+. = short press (1)    - = long press (0)
+
+BASIC
+--------------------------------------
+.                → (1)  Random
+.-               → (2)  doubleRainbow
+                
+CHILL IT DOWN
+--------------------------------------
+..               → (3)  tranquility
+...---           → (56) chillPill
+...              → (7)  shootingStars
+....             → (15) noiseFader
+
+BIG IT UP
+--------------------------------------
+.-.              → (5)  tripperTrap
+..--..           → (51) partyParty
+..-.--           → (52) hectic
+..-.-.           → (53) highVibes
+
+ELEMENTS
+-------------
+.-.--            → (20) earth
+.-.-.            → (21) fire
+.-..-            → (22) air
+.-...            → (23) water
+..---            → (24) metal
+..-              → (6)  ants
+
+PRESETS
+--------------
+...--            → (28) rippleGeddon
+...-.            → (29) tailTime
+....-            → (30) rainbowNoise
+.....            → (31) flashGrid
+.--...           → (39) rainbowSpiral
+.-.---           → (40) blender
+
+SPECIAL COMMANDS
+----------------
+.---             → (8)  houseLights
+.--              → (4)  nextPalette
+..--.-           → (50) ColourBingo
+..-..-           → (54) enlightenmentAchieved
+.--.             → (9)  launch
+......           → (63) nodeCounter
+.......          → (127) rollCall
+
+COMMANDS WITH 1 PARAMETER (enter command, wait, then enter value)
+------------------------------------------------------------------
+.-.-             → (10) setStepRate [needs value 1-255]
+.-..             → (11) setFadeRate [needs value 1-255]
+..--             → (12) setBrightness [needs value 0-255]
+..-.             → (13) setNRipples [needs value 1-10]
+.----            → (16) noiseLength [needs value]
+.---.            → (17) noiseSpeed [needs value]
+.--.-            → (18) noiseFadeLength [needs value]
+.--..            → (19) noiseFadeSpeed [needs value]
+..--.            → (25) airLength [needs value]
+..-.-            → (26) airSpeed [needs value]
+.-----           → (32) fireDecay [needs value]
+.----.           → (33) fireSpeed [needs value]
+.---.-           → (34) setPalette [needs palette number]
+.-.--.           → (41) enlightenment [needs value]
+..----           → (48) sweep [needs value]
+
+COMMANDS WITH 1 PARAMETER + DURATION HOLD
+------------------------------------------
+....--           → (60) sweepWithDuration [+plength (3 bits) +hold for duration]
+                       Enter command, wait, enter 3-bit value (0-7 for plength),
+                       then hold button for desired sweep duration in milliseconds

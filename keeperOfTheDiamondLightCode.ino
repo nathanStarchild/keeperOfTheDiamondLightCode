@@ -323,6 +323,7 @@ void loop(){
 }
 
 void setStepRate(uint16_t rate) {
+  oldStepRate = stepRate;
   if (!stepRateLocked) {
     stepRate = max((uint16_t)1, rate);
   }
@@ -853,6 +854,13 @@ void zoomToColour(uint8_t col_idx){
 void nodeCounter(){
   mainState.nodeCount.enabled = true;
   nodeCountTimer.startTimer();
+  setStepRate(1);
+}
+
+void rollCaller() {
+  mainState,rollCall.enabled = true;
+  setStepRate(1);
+
 }
 
 void chillPill() {
@@ -933,7 +941,8 @@ bool nothingIsOn() {
     mainState.noise2D.enabled ||
     mainState.pi.enabled ||
     mainState.rainbowZoom.enabled ||
-    mainState.nodeCount.enabled
+    mainState.nodeCount.enabled ||
+    mainState.rollCall.enabled
   );
 }
 
@@ -968,6 +977,7 @@ void whatIsOn() {
   if (mainState.pi.enabled) { Serial.println("- pi"); count++; }
   if (mainState.rainbowZoom.enabled) { Serial.println("- rainbowZoom"); count++; }
   if (mainState.nodeCount.enabled) { Serial.println("- nodeCount"); count++; }
+  if (mainState.rollCall.enabled) { Serial.println("- rollCall"); count++; }
   
   if (count == 0) {
     Serial.println("(nothing is on)");
@@ -1125,10 +1135,6 @@ void updatePatterns() { //render the next LED state in the buffer using the curr
     for (i = 0; i < num_leds; i++) {
       leds[i].setHue(((mainState.patternStep % 256) * mainState.wave.pspeed) + (i / mainState.wave.plength));
     }
-  }
-
-  if (mainState.rainbowZoom.enabled) {
-    rainbowZoom();
   }
 
   if (mainState.blendwave.enabled) {
@@ -1301,6 +1307,14 @@ void updatePatterns() { //render the next LED state in the buffer using the curr
 
   if (mainState.nodeCount.enabled) {
     nodeCount();
+  }
+
+  if (mainState.rollCall.enabled) {
+    rollCall();
+  }
+
+  if (mainState.rainbowZoom.enabled) {
+    rainbowZoom();
   }
 
   if (mainState.launch.enabled) {
@@ -1655,6 +1669,7 @@ void sweep() {
   }
   
   uint8_t bright = map(sweepDistance, 0, mainState.sweep.decay, 255, 0);
+  bright = ease8InOutApprox(bright);
   
   // Palette mode: fill LED strip with color based on sweepSpot position
   if (0x1 & mainState.sweep.plength) {
@@ -1976,8 +1991,7 @@ void rainbowZoom() {
   }
   mainState.rainbowZoom.plength = progress;
   if (zoomTimer.isItTime()){
-    mg_random();
-    returnTimer.startTimer();
+    mainState.rainbowZoom.enabled = false;
   }
 }
 
@@ -2183,6 +2197,55 @@ void nodeCount(){
     setStepRate(oldStepRate);
     // Serial.println("Node count finished");
   }
+}
+
+void rollCall() {
+  //8 frames up
+  //5 frames down
+  //2 frames off
+  // = 1 beat (15 frames)
+  //sweepSpot + 1 times
+  // then 2 beats off
+  // repeat 3 times
+  
+  // create references to the variables to make the life easier
+  uint8_t& frameInBeat = mainState.rollCall.pspeed;
+  uint8_t& currentBeat = mainState.rollCall.plength;
+  uint8_t& currentCycle = mainState.rollCall.decay;
+  uint8_t n = sweepSpot + 1;
+
+  uint8_t bri = 10;
+  if (currentBeat < n){
+    if (frameInBeat < 8) {
+      bri = map(frameInBeat, 0, 8, 10, 255);
+      bri = ease8InOutApprox(bri);
+    } else if (frameInBeat < 13) {
+      bri = map(frameInBeat, 8, 13, 255, 10);
+      bri = ease8InOutApprox(bri);
+    }
+  }
+  for (int i=0; i<num_leds; i++) {
+    leds[i] = ColorFromPalette(currentPalette, map(i, 0, num_leds - 1, 0, 255), bri);
+  }
+
+  frameInBeat++;
+  if (frameInBeat >= 14) {
+    //reset beat
+    frameInBeat = 0;
+    currentBeat++;
+    if (currentBeat > n + 2) {
+      //reset cycle
+      currentBeat = 0;
+      currentCycle++;
+      if (currentCycle > 2) {
+        currentCycle = 0;
+        mainState.rollCall.enabled = false;
+        setStepRate(oldStepRate);
+      }
+    }
+  }
+
+
 }
 
 uint16_t nX(uint8_t n, int x) {
@@ -2540,6 +2603,9 @@ void processWSMessage(){
         break;
       case 63:
         nodeCounter();
+        break;
+      case 127:
+        rollCaller();
         break;
    }
   }

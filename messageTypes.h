@@ -99,6 +99,7 @@ const PROGMEM MessageTypeDef MESSAGE_TYPES[] = {
   {56, "chillPill",       0, {}, {}, false, TIMEOUT_RESET},
   {60, "setSweepDuration", 1, {"plength",     0,     7,   3, INPUT_BINARY}, {}, true,  TIMEOUT_RANDOM},  // SYNCHRONIZED - special: plength + duration
   {63, "nodeCounter",     0, {}, {}, true,  TIMEOUT_RESET},  // SYNCHRONIZED
+  {127, "rollCall",       0, {}, {}, true,  TIMEOUT_RESET},  // SYNCHRONIZED
 };
 
 const uint8_t MESSAGE_TYPES_COUNT = sizeof(MESSAGE_TYPES) / sizeof(MessageTypeDef);

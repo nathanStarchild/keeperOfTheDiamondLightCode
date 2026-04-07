@@ -50,6 +50,7 @@ SPECIAL COMMANDS
 ...---           → (56) chillPill
 ......           → (63) nodeCounter
 ..----           → (48) sweep [+value]
+.......          → (127) rollCall
 
 COMMANDS WITH 1 PARAMETER (enter command, wait, then enter value)
 ------------------------------------------------------------------
@@ -106,7 +107,6 @@ POTENTIAL FUTURE CODES (UNASSIGNED, EASY TO REMEMBER)
 These numbers are available for new commands and have memorable patterns:
 
 SUPER EASY (all same type):
-.......          → (127) Available - seven shorts
 
 CLEAN SYMMETRICAL PATTERNS (note: 56 is now assigned to chillPill):
 .....-           → (62)  Available - five shorts, one long
