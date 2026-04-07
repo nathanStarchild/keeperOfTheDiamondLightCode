@@ -277,16 +277,16 @@ $(document).ready(function() {
     // Mardi Gras Biz
     function loadMGColours() {
         let cols = [
-            "#fe019a",//"Pink",
-            "#00857a",//"Turquoise",
+            "#ff3f9f",//"Pink",
+            "#00d9ff",//"Turquoise",
             "#330300",//"Brown",
             "#ff0000",//"Red",
-            "#d04c00", //"Orange",
-            "#ab8a00", //"Yellow",
+            "#ffa229", //"Orange",
+            "#fbff00", //"Yellow",
             "#00e717", //"Green",
-            "#0a00f5", //"Blue",
-            "#790086", //"Violet",
-            "#2a00d5", //"Indigo",
+            "#0066ff", //"Blue",
+            "#cc00ff", //"Violet",
+            "#7700ff", //"Indigo",
         ]
         for (const i in cols) {
             // let tmpl = `<div data-msgtype="50" data-value="${i}" class="btn btn-secondary control valueBtn">${cols[i]}</div>`
