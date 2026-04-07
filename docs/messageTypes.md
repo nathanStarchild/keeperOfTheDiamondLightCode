@@ -43,7 +43,7 @@ Complete reference for all message types used in the Keeper of the Diamond Light
 - 63 - Node Counter
 - [50 - Zoom to Colour](#50---zoom-to-colour) (has parameters)
 
-### Configuration Commands (10-13, 16-19, 25-26, 32-34, 48)
+### Configuration Commands (10-13, 16-19, 25-26, 32-34, 48, 60)
 - [10 - Set Step Rate](#10---set-step-rate)
 - [11 - Set Fade Rate](#11---set-fade-rate)
 - [12 - Set Brightness](#12---set-brightness)
@@ -58,6 +58,7 @@ Complete reference for all message types used in the Keeper of the Diamond Light
 - [33 - Fire Speed](#33---fire-speed)
 - [34 - Set Palette](#34---set-palette)
 - [48 - Sweep](#48---sweep)
+- [60 - Sweep With Duration](#60---sweep-with-duration)
 
 ### Advanced Pattern Commands (35-43)
 - [35 - Set Custom Palette Array](#35---set-custom-palette-array)
@@ -753,6 +754,59 @@ Complete reference for all message types used in the Keeper of the Diamond Light
 **Synchronized:** YES - Uses `startTime` for coordinated effect
 
 **Notes:** Enables `mainState.sweep.enabled` and sets `mainState.sweep.plength`. The plength value uses bit flags to control visual modes in the sweep effect. Synchronized to ensure all devices sweep together. Magic button pattern `..----` (short-short-long-long-long-long) + value sequence.
+
+---
+
+### 60 - Sweep With Duration
+
+**Purpose:** Activates sweep effect with custom duration and visual mode flags. Calculates sweep speed automatically based on desired duration.
+
+**Parameters:** 2
+- `plength` (int): Bit flags for visual modes (0-7)
+  - Bit 0 (0x01): Palette mode - fill with color from currentPalette
+  - Bit 1 (0x02): Invert mode - sweep darkness instead of light
+  - Bit 2 (0x04): Harsh mode - binary on/off instead of smooth gradient
+- `duration` (int): Desired sweep duration in milliseconds
+
+**Format:**
+```json
+{
+  "msgType": 60,
+  "plength": 5,
+  "duration": 800
+}
+```
+
+**Parsed By:**
+- ESP devices (`keeperOfTheDiamondLightCode.ino` - processWSMessage, case 60)
+
+**Network Flow:**
+- Web client → Server → All devices (broadcast)
+- Magic button → Local execution + mesh broadcast
+
+**Calculation:**
+Calls `setSweepFromDuration()` which:
+- Sets `mainState.sweep.pspeed = 84` (25% overlap)
+- Calculates `mainState.sweep.decay` based on:
+  - `duration` (user input)
+  - `nodeCount` (number of mesh nodes)
+  - `frameInterval` (22ms animation frame time)
+  - `stepRate` (frames per animation step)
+- Formula: `decay = duration × 255 × stepRate / (frameInterval × (168 × nodeCount + 87))`
+
+**Web Interface:**
+- User swipes touch-friendly element
+- Swipe duration is measured in milliseconds
+- Three checkboxes set plength bits (0-7)
+- Message sent on swipe release
+
+**Magic Button:**
+- Enter command `....--` (binary 60)
+- Enter 3-bit plength value (0-7)
+- Hold button for desired sweep duration
+- Release to execute with measured duration
+
+**Notes:** Enables `mainState.sweep.enabled` and automatically calculates decay timing so the sweep completes in exactly the specified duration. The sweep synchronizes across all mesh nodes using their `sweepSpot` values. Magic button pattern `....--` (four shorts, two longs) + 3-bit value + hold duration.
 
 ---
 

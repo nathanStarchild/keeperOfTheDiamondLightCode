@@ -1291,6 +1291,130 @@ $(document).ready(function() {
 
     ///////////////////////////////////////////////////
 
+    // Swipe tracking functionality
+    function initSwipeTracking() {
+        const $swipeElement = $('#sweepSwipe');
+        const $indicator = $swipeElement.find('.swipe-indicator');
+        const $durationDisplay = $('#swipeDuration');
+        
+        let swipeStartTime = null;
+        let swipeStartX = null;
+        let isSwipping = false;
+        let swipeDuration = 0;
+        
+        const swipeWidth = $swipeElement.outerWidth();
+        const indicatorWidth = $indicator.outerWidth();
+        const maxTravel = swipeWidth - indicatorWidth - 20; // Account for padding
+        
+        function startSwipe(clientX) {
+            isSwipping = true;
+            swipeStartTime = Date.now();
+            swipeStartX = clientX - $swipeElement.offset().left;
+            $swipeElement.addClass('swiping');
+            $durationDisplay.text('Swiping...');
+        }
+        
+        function moveSwipe(clientX) {
+            if (!isSwipping) return;
+            
+            const currentX = clientX - $swipeElement.offset().left;
+            const deltaX = currentX - swipeStartX;
+            
+            // Constrain to boundaries
+            let newPosition = Math.max(10, Math.min(10 + deltaX, 10 + maxTravel));
+            $indicator.css('left', newPosition + 'px');
+            
+            // Update duration display in real-time
+            const currentDuration = Date.now() - swipeStartTime;
+            $durationDisplay.text(`Duration: ${currentDuration}ms`);
+        }
+        
+        function endSwipe() {
+            if (!isSwipping) return;
+            
+            isSwipping = false;
+            swipeDuration = Date.now() - swipeStartTime;
+            $swipeElement.removeClass('swiping');
+            
+            // Display final duration
+            $durationDisplay.text(`Swipe Duration: ${swipeDuration}ms`);
+            console.log('Swipe duration:', swipeDuration + 'ms');
+            
+            // Reset indicator position after a short delay
+            setTimeout(() => {
+                $indicator.css('left', '10px');
+            }, 500);
+            
+            // Get checkbox states and combine into plength value
+            const $sweepSwitches = $('.sweepSwitch');
+            let plength = 0;
+            $sweepSwitches.each(function(index) {
+                if ($(this).prop('checked')) {
+                    plength |= (1 << index); // Set bit at position index
+                }
+            });
+            
+            // Send message with msgType 60
+            let data = {
+                'msgType': 60,
+                'plength': plength,
+                'duration': swipeDuration,
+                'delay': syncDelay
+            };
+            console.log('Sending sweep data:', data);
+            ws.send(JSON.stringify(data));
+        }
+        
+        // Mouse events
+        $swipeElement.on('mousedown', function(e) {
+            e.preventDefault();
+            startSwipe(e.clientX);
+        });
+        
+        $(document).on('mousemove', function(e) {
+            if (isSwipping) {
+                e.preventDefault();
+                moveSwipe(e.clientX);
+            }
+        });
+        
+        $(document).on('mouseup', function() {
+            if (isSwipping) {
+                endSwipe();
+            }
+        });
+        
+        // Touch events for mobile
+        $swipeElement.on('touchstart', function(e) {
+            e.preventDefault();
+            startSwipe(e.originalEvent.touches[0].clientX);
+        });
+        
+        $swipeElement.on('touchmove', function(e) {
+            if (isSwipping) {
+                e.preventDefault();
+                moveSwipe(e.originalEvent.touches[0].clientX);
+            }
+        });
+        
+        $swipeElement.on('touchend', function() {
+            if (isSwipping) {
+                endSwipe();
+            }
+        });
+        
+        $swipeElement.on('touchcancel', function() {
+            if (isSwipping) {
+                endSwipe();
+            }
+        });
+    }
+    
+    // Initialize swipe tracking
+    initSwipeTracking();
+
+    ///////////////////////////////////////////////////
+
     //launch biz
     function launchBiz() {
 

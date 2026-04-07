@@ -48,7 +48,8 @@ class MagicButtonHandler {
     enum State {
       WAITING_FOR_COMMAND,
       WAITING_FOR_VALUE_1,
-      WAITING_FOR_VALUE_2
+      WAITING_FOR_VALUE_2,
+      WAITING_FOR_DURATION
     };
     
     State currentState;
@@ -91,7 +92,7 @@ uint8_t MagicButtonHandler::getParameterCount(uint8_t msgType) {
       msgType == 28 || msgType == 29 || msgType == 30 || msgType == 31 ||
       msgType == 39 || msgType == 40 || msgType == 50 || msgType == 51 || 
       msgType == 52 || msgType == 53 || msgType == 54 || msgType == 55 ||
-      msgType == 63) {
+      msgType == 56 || msgType == 63) {
     return 0;
   }
   
@@ -101,6 +102,11 @@ uint8_t MagicButtonHandler::getParameterCount(uint8_t msgType) {
       msgType == 25 || msgType == 26 || msgType == 32 || msgType == 33 ||
       msgType == 34 || msgType == 41 || msgType == 48) {
     return 1;
+  }
+  
+  // msgType 60 (sweep with duration) - special case: 1 param + duration hold
+  if (msgType == 60) {
+    return 1;  // Will transition to WAITING_FOR_DURATION after value
   }
   
   // Commands with 2 parameters - not supported yet
@@ -161,6 +167,8 @@ const char* MagicButtonHandler::getCommandName(uint8_t msgType) {
     case 53: return "mg_random";
     case 54: return "enlightenmentAchieved";
     case 55: return "returnTimer";
+    case 56: return "chillPill";
+    case 60: return "sweepWithDuration";
     case 63: return "nodeCounter";
     default: return "unknown";
   }
@@ -178,6 +186,12 @@ void MagicButtonHandler::buildMessage(uint8_t msgType, uint16_t val1, uint16_t v
   }
   if (paramCount >= 2) {
     doc["val2"] = val2;  // For future 2-param commands
+  }
+  
+  // msgType 60 (sweep with duration) - special case
+  if (msgType == 60) {
+    doc["plength"] = val1;
+    doc["duration"] = val2;
   }
   
   // Add startTime for synchronized execution on specific commands
@@ -273,6 +287,21 @@ void MagicButtonHandler::executeCommand(uint8_t msgType, uint16_t val1, uint16_t
 
 // Main update function
 void MagicButtonHandler::update() {
+  // Check if we're waiting for duration input
+  if (currentState == WAITING_FOR_DURATION) {
+    uint16_t duration = magicButton->checkButton(true);  // Get duration mode
+    if (duration > 0) {
+      // Got the duration!
+      if (serialDebugEnabled) {
+        Serial.printf("MagicButtonHandler: Got duration=%dms\n", duration);
+      }
+      executeCommand(pendingMsgType, pendingValue1, duration);
+      reset();
+    }
+    return;  // Keep waiting for duration
+  }
+  
+  // Normal binary input mode
   uint16_t value = magicButton->checkButton();
   
   if (value == 0) {
@@ -323,9 +352,17 @@ void MagicButtonHandler::update() {
         uint8_t paramCount = getParameterCount(pendingMsgType);
         
         if (paramCount == 1) {
-          // Execute with one value
-          executeCommand(pendingMsgType, pendingValue1);
-          reset();
+          // Check if this is msgType 60 (needs duration hold)
+          if (pendingMsgType == 60) {
+            currentState = WAITING_FOR_DURATION;
+            if (serialDebugEnabled) {
+              Serial.printf("MagicButtonHandler: Got plength=%d, now waiting for duration hold...\n", pendingValue1);
+            }
+          } else {
+            // Execute with one value
+            executeCommand(pendingMsgType, pendingValue1);
+            reset();
+          }
         } else if (paramCount == 2) {
           // Wait for second value
           currentState = WAITING_FOR_VALUE_2;

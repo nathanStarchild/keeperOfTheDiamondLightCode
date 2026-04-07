@@ -21,7 +21,8 @@ class MagicButton {
     
     // Check button state and return accumulated value when sequence complete
     // Returns 0 if no sequence completed, otherwise returns the binary number
-    uint16_t checkButton();
+    // If getDuration=true, returns press duration in ms instead of binary value
+    uint16_t checkButton(bool getDuration = false);
     
     // Reset the current sequence
     void reset();
@@ -115,7 +116,7 @@ void MagicButton::completeSequence() {
 }
 
 // Check button and return value when sequence complete
-uint16_t MagicButton::checkButton() {
+uint16_t MagicButton::checkButton(bool getDuration) {
   currentButtonState = readButton();
   uint16_t returnValue = 0;
   
@@ -127,7 +128,23 @@ uint16_t MagicButton::checkButton() {
     Serial.println("pressed");
   }
   
-  // Detect button release (transition to not pressed)
+  // Handle duration mode - return press duration in milliseconds
+  if (getDuration) {
+    // Detect button release and return duration
+    if (!currentButtonState && lastButtonState && buttonPressed) {
+      uint32_t pressDuration = millis() - pressStartTime;
+      buttonPressed = false;
+      Serial.print("MagicButton: Duration mode - press duration = ");
+      Serial.print(pressDuration);
+      Serial.println("ms");
+      lastButtonState = currentButtonState;
+      return pressDuration;
+    }
+    lastButtonState = currentButtonState;
+    return 0;  // Still waiting for release
+  }
+  
+  // Normal binary mode - detect button release and add bit
   if (!currentButtonState && lastButtonState && buttonPressed) {
     // Button just released - calculate duration and add bit
     uint32_t pressDuration = millis() - pressStartTime;

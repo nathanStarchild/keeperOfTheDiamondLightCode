@@ -842,7 +842,7 @@ void zoomToColour(uint8_t col_idx){
   // targetPalette = mg_palettes[col_idx];
   paletteLocked = false;
   set_mg_palette(col_idx);
-  patternsOff();
+  // patternsOff();
   mainState.rainbowZoom.enabled = true;
   mainState.rainbowZoom.plength = 40;
   mainState.rainbowZoom.pspeed = 0;
@@ -853,6 +853,23 @@ void zoomToColour(uint8_t col_idx){
 void nodeCounter(){
   mainState.nodeCount.enabled = true;
   nodeCountTimer.startTimer();
+}
+
+void chillPill() {
+  patternsOff();
+  setStepRate(7);
+  next_mg_palette();
+  mainState.noise.enabled = true;
+  mainState.noise.pspeed = 6;
+  mainState.noise.plength = 50;
+  mainState.theVoid.enabled = true;
+  mainState.theVoid.pspeed = 1;
+  mainState.theVoid.plength = 5;
+  mainState.theVoid.decay = 118;
+  mainState.rain.enabled = true;
+  mainState.rain.pspeed = 5;
+  mainState.rain.plength = 3;
+  mainState.rain.decay = 60;
 }
 
 void patternsOff() {
@@ -2233,6 +2250,32 @@ void dontGetBored(){
   }
 }
 
+void setSweepFromDuration(int duration) {
+  // Calculate decay so sweep takes the same time as swipe duration
+  // 
+  // Each animation step takes: frameTimer.interval / stepRate milliseconds
+  // With pspeed=84, nodeGap = 168*decay/255 ≈ 0.659*decay
+  // Total sweep duration in steps = nodeGap*(nodeCount-1) + decay
+  //                                = decay * ((168*nodeCount + 87) / 255)
+  // Total time (ms) = steps * (frameTimer.interval / stepRate)
+  // 
+  // Solving for decay:
+  // decay = duration * 255 * stepRate / (frameTimer.interval * (168*nodeCount + 87))
+  
+  mainState.sweep.pspeed = 84; // About 25% overlap between nodes
+  
+  uint8_t nodeCount = mainState.nodeCount.plength;
+  uint32_t frameInterval = frameTimer.getInterval(); // should be 22ms
+  
+  // Calculate decay to match swipe duration
+  uint32_t decayCalc = (uint32_t)duration * 255 * stepRate / (frameInterval * (168 * nodeCount + 87));
+  mainState.sweep.decay = constrain(decayCalc, 10, 255);
+  
+  Serial.printf("Sweep: plength=%d, duration=%dms, nodeCount=%d, stepRate=%d, frameInterval=%d\n", 
+                mainState.sweep.plength, duration, nodeCount, stepRate, frameInterval);
+  Serial.printf("  Calculated decay=%d (raw=%lu), pspeed=%d\n", 
+                mainState.sweep.decay, decayCalc, mainState.sweep.pspeed);
+}
 
 void processWSMessage(){
   if (!controllerEnabled){
@@ -2479,6 +2522,15 @@ void processWSMessage(){
         break;
       case 55:  
         returnTimer.startTimer();
+        break;
+      case 56:
+        chillPill();
+        break;
+      case 60:
+        // Sweep with swipe duration
+        mainState.sweep.plength = wsMsg["plength"].as<int>();
+        setSweepFromDuration(wsMsg["duration"].as<int>());
+        mainState.sweep.enabled = true;
         break;
       case 63:
         nodeCounter();

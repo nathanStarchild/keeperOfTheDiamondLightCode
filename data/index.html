@@ -65,6 +65,9 @@
                             <img id="brightnessLock" src="lock-open.svg" class="mt-1 lock sliderLock" data-target="#brightnessInput" data-enabled="true" data-locknumber="2"></img>
                             <div></div>
 
+                            <div data-msgtype="63" class="btn btn-secondary control inputBtn">Node Count</div>
+                            <div data-msgtype="127" class="btn btn-secondary control inputBtn">Roll Call</div>
+
                             <div id="getBoredBtn" data-msgtype="45" class="btn btn-secondary control inputBtn">Get Bored</div>
 
                             <div id="dontGetBoredBtn" data-msgtype="46" class="btn btn-secondary control inputBtn">Don't Get Bored</div>
@@ -72,7 +75,7 @@
                     </div>
                 </div>
 
-                <div class="accordion-item">
+                <!-- <div class="accordion-item">
                     <h2 class="accordion-header">
                         <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#mardiGrasCols">
                             Mardi Gras Colours
@@ -82,7 +85,7 @@
                         <div id="mgColsContainer" class="accordion-body gridContainer">
                         </div>
                     </div>
-                </div>
+                </div> -->
                 
                 <div class="accordion-item">
                     <h2 class="accordion-header">
@@ -119,6 +122,30 @@
                                     </div>
                                 </div>
                             </button>
+
+                            <button class="btn btn-secondary dropdown-toggle px-5" type="button" data-bs-toggle="collapse" data-bs-target="#sweep_container">
+                                Sweep
+                            </button>
+                            <div class="grid-span collapse" id="sweep_container">
+                                <div class="d-flex flex-column justify-content-center align-items-center w-100">
+                                    <div class="d-flex flex-row justify-content-center w-100">
+                                        <div class="me-2">Mode:</div>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input sweepSwitch" type="checkbox">
+                                        </div>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input sweepSwitch" type="checkbox">
+                                        </div>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input sweepSwitch" type="checkbox">
+                                        </div>
+                                    </div>
+                                    <div class="mt-2" id="sweepSwipe">
+                                        <div class="swipe-indicator"></div>
+                                    </div>
+                                    <div id="swipeDuration"></div>
+                                </div>
+                            </div>
                                 
                         </div>
                     </div>
@@ -144,6 +171,7 @@
                             <div id="mgrandomBtn" data-msgtype="53" class="btn btn-secondary control inputBtn">High Vibes</div> 
                             <div id="nmgoise" data-msgtype="51" class="btn btn-secondary control inputBtn">Party Party</div> 
                             <div id="blobBtn" data-msgtype="52" class="btn btn-secondary control inputBtn">Hectic</div>    
+                            <div data-msgtype="56" class="btn btn-secondary control inputBtn">Chill Pill</div>    
                         </div>
                     </div>
                 </div>

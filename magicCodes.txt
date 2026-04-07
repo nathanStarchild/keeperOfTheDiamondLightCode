@@ -86,6 +86,12 @@ QUICK REFERENCE - MOST USEFUL COMMANDS
 ..---            → (24) metalMode
 ..--.-           → (50) zoomToColour (cycles palettes)
 
+COMMANDS WITH 1 PARAMETER + DURATION HOLD
+------------------------------------------
+....--           → (60) sweepWithDuration [+plength (3 bits) +hold for duration]
+                       Enter command, wait, enter 3-bit value (0-7 for plength),
+                       then hold button for desired sweep duration in milliseconds
+
 POTENTIAL FUTURE CODES (UNASSIGNED, EASY TO REMEMBER)
 ------------------------------------------------------
 These numbers are available for new commands and have memorable patterns:
@@ -95,7 +101,6 @@ SUPER EASY (all same type):
 
 CLEAN SYMMETRICAL PATTERNS:
 ...---           → (56)  Available - three shorts, three longs (perfectly symmetrical)
-....--           → (60)  Available - four shorts, two longs
 .....-           → (62)  Available - five shorts, one long
 
 POWERS OF 2 (memorable for programmers):
