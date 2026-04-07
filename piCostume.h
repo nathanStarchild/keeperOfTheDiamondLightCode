@@ -20,11 +20,29 @@ uint16_t audienceSpot = 2;
 uint16_t sweepSpot = 2;
 uint16_t element = 0;
 
+// magic button
+#include "magicButton.h"
+#include "magicButtonHandler.h"
+MagicButton magicButton(BUTTON_PIN, true); // Using pullup mode
+MagicButtonHandler magicButtonHandler(&magicButton);
+MilliTimer buttonCheckTimer(50); // debounce timer
+
 void elementSetup(){
-//    FastLED.addLeds<WS2813, DATA_PIN_1, RGB>(outLeds, 0, LEDS_PER_OUTPUT); 
-    //LED type, data pin, clock pin, rgb order
-    FastLED.addLeds<WS2812B, DATA2_3PIN, GRB>(outLeds, LEDS_PER_OUTPUT);
-    
-    ArduinoOTA.setHostname("piCostume");
+    FastLED.addLeds<WS2812B, DATA_PIN_1, GRB>(outLeds, 0, LEDS_PER_OUTPUT); 
+
     stripSpacing = 2;
+
+    // char hostname[32];
+    // snprintf(hostname, sizeof(hostname), "costume_%d", NUMBER);
+    // ArduinoOTA.setHostname(hostname);
+
+    magicButton.begin();
+}
+
+#define ELEMENT_LOOP true
+void elementLoop() {
+    if (buttonCheckTimer.isItTime()) {
+        magicButtonHandler.update();
+        buttonCheckTimer.resetTimer();
+    }
 }

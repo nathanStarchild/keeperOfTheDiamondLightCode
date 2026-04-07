@@ -52,9 +52,8 @@ struct MessageTypeDef {
 
 // Lookup table stored in flash memory
 // Includes all message types used by magicButtonHandler
-// Sorted by msgType for binary search
+// MUST be sorted by msgType for binary search algorithm to work correctly
 const PROGMEM MessageTypeDef MESSAGE_TYPES[] = {
-  // 0-parameter messages
   {1,  "upset",           0, {}, {}, false, TIMEOUT_RESET},
   {2,  "doubleRainbow",   0, {}, {}, false, TIMEOUT_RESET},
   {3,  "tranquilityMode", 0, {}, {}, false, TIMEOUT_RESET},
@@ -63,20 +62,34 @@ const PROGMEM MessageTypeDef MESSAGE_TYPES[] = {
   {7,  "shootingStars",   0, {}, {}, false, TIMEOUT_RESET},
   {8,  "toggleHouseLights", 0, {}, {}, false, TIMEOUT_RESET},
   {9,  "launch",          0, {}, {}, true,  TIMEOUT_RESET},  // SYNCHRONIZED
+  {10, "setStepRate",     1, {"stepRate",     2,     8,   4, INPUT_BINARY}, {}, false, TIMEOUT_RANDOM},
+  {11, "setFadeRate",     1, {"fadeRate",    10,   240,  80, INPUT_BINARY}, {}, false, TIMEOUT_RANDOM},
+  {12, "setBrightness",   1, {"brightness",   5,   255, 100, INPUT_BINARY}, {}, false, TIMEOUT_RESET},  // Intentional changes only
+  {13, "setNRipples",     1, {"nRipples",     1,    10,  10, INPUT_BINARY}, {}, false, TIMEOUT_RANDOM},
   {14, "noiseTest",       0, {}, {}, false, TIMEOUT_RESET},
   {15, "noiseFader",      0, {}, {}, false, TIMEOUT_RESET},
+  {16, "setNoisePlength", 1, {"plength",      1,    30,   8, INPUT_BINARY}, {}, false, TIMEOUT_RANDOM},
+  {17, "setNoisePspeed",  1, {"pspeed",       1,     5,   1, INPUT_BINARY}, {}, false, TIMEOUT_RANDOM},
+  {18, "setNoiseFadePlength", 1, {"plength",  1,    33,  10, INPUT_BINARY}, {}, false, TIMEOUT_RANDOM},
+  {19, "setNoiseFadePspeed",  1, {"pspeed",   1,    10,   1, INPUT_BINARY}, {}, false, TIMEOUT_RANDOM},
   {20, "earthMode",       0, {}, {}, false, TIMEOUT_RESET},
   {21, "fireMode",        0, {}, {}, false, TIMEOUT_RESET},
   {22, "airMode",         0, {}, {}, false, TIMEOUT_RESET},
   {23, "waterMode",       0, {}, {}, false, TIMEOUT_RESET},
   {24, "metalMode",       0, {}, {}, false, TIMEOUT_RESET},
+  {25, "setAirPlength",   1, {"plength",      1,    30,  10, INPUT_BINARY}, {}, false, TIMEOUT_RANDOM},
+  {26, "setAirPspeed",    1, {"pspeed",       1,    10,   3, INPUT_BINARY}, {}, false, TIMEOUT_RANDOM},
   {28, "rippleGeddon",    0, {}, {}, false, TIMEOUT_RESET},
   {29, "tailTime",        0, {}, {}, false, TIMEOUT_RESET},
   {30, "rainbowNoise",    0, {}, {}, false, TIMEOUT_RESET},
   {31, "flashGrid",       0, {}, {}, false, TIMEOUT_RESET},
+  {32, "setFireDecay",    1, {"decay",        1,   255,  20, INPUT_BINARY}, {}, false, TIMEOUT_RANDOM},
+  {33, "setFirePspeed",   1, {"pspeed",       1,   255,  30, INPUT_BINARY}, {}, false, TIMEOUT_RANDOM},
+  {34, "setPalette",      1, {"paletteIndex", 0,    25,   0, INPUT_BINARY}, {}, false, TIMEOUT_RANDOM},
   {39, "rainbowSpiral",   0, {}, {}, false, TIMEOUT_RESET},
   {40, "blender",         0, {}, {}, false, TIMEOUT_RESET},
   {41, "enlightenment",   0, {}, {}, true,  TIMEOUT_RESET},  // SYNCHRONIZED - web sends boolean
+  {48, "setSweepPlength", 1, {"plength",      0,     7,   3, INPUT_BINARY}, {}, true,  TIMEOUT_RANDOM},  // SYNCHRONIZED
   {50, "zoomToColour",    0, {}, {}, true,  TIMEOUT_RESET},  // SYNCHRONIZED - special: 0-param input, sends val internally
   {51, "mg_noise_party",  0, {}, {}, false, TIMEOUT_RESET},
   {52, "mg_blob",         0, {}, {}, false, TIMEOUT_RESET},
@@ -84,24 +97,8 @@ const PROGMEM MessageTypeDef MESSAGE_TYPES[] = {
   {54, "enlightenmentAchieved", 0, {}, {}, true,  TIMEOUT_RESET},  // SYNCHRONIZED
   {55, "returnTimer",     0, {}, {}, false, TIMEOUT_RESET},
   {56, "chillPill",       0, {}, {}, false, TIMEOUT_RESET},
-  {63, "nodeCounter",     0, {}, {}, true,  TIMEOUT_RESET},  // SYNCHRONIZED
-  
-  // 1-parameter messages
-  {10, "setStepRate",     1, {"stepRate",     2,     8,   4, INPUT_BINARY}, {}, false, TIMEOUT_RANDOM},
-  {11, "setFadeRate",     1, {"fadeRate",    10,   240,  80, INPUT_BINARY}, {}, false, TIMEOUT_RANDOM},
-  {12, "setBrightness",   1, {"brightness",   5,   255, 100, INPUT_BINARY}, {}, false, TIMEOUT_RESET},  // Intentional changes only
-  {13, "setNRipples",     1, {"nRipples",     1,    10,  10, INPUT_BINARY}, {}, false, TIMEOUT_RANDOM},
-  {16, "setNoisePlength", 1, {"plength",      1,    30,   8, INPUT_BINARY}, {}, false, TIMEOUT_RANDOM},
-  {17, "setNoisePspeed",  1, {"pspeed",       1,     5,   1, INPUT_BINARY}, {}, false, TIMEOUT_RANDOM},
-  {18, "setNoiseFadePlength", 1, {"plength",  1,    33,  10, INPUT_BINARY}, {}, false, TIMEOUT_RANDOM},
-  {19, "setNoiseFadePspeed",  1, {"pspeed",   1,    10,   1, INPUT_BINARY}, {}, false, TIMEOUT_RANDOM},
-  {25, "setAirPlength",   1, {"plength",      1,    30,  10, INPUT_BINARY}, {}, false, TIMEOUT_RANDOM},
-  {26, "setAirPspeed",    1, {"pspeed",       1,    10,   3, INPUT_BINARY}, {}, false, TIMEOUT_RANDOM},
-  {32, "setFireDecay",    1, {"decay",        1,   255,  20, INPUT_BINARY}, {}, false, TIMEOUT_RANDOM},
-  {33, "setFirePspeed",   1, {"pspeed",       1,   255,  30, INPUT_BINARY}, {}, false, TIMEOUT_RANDOM},
-  {34, "setPalette",      1, {"paletteIndex", 0,    25,   0, INPUT_BINARY}, {}, false, TIMEOUT_RANDOM},
-  {48, "setSweepPlength", 1, {"plength",      0,     7,   3, INPUT_BINARY}, {}, true,  TIMEOUT_RANDOM},  // SYNCHRONIZED
   {60, "setSweepDuration", 1, {"plength",     0,     7,   3, INPUT_BINARY}, {}, true,  TIMEOUT_RANDOM},  // SYNCHRONIZED - special: plength + duration
+  {63, "nodeCounter",     0, {}, {}, true,  TIMEOUT_RESET},  // SYNCHRONIZED
 };
 
 const uint8_t MESSAGE_TYPES_COUNT = sizeof(MESSAGE_TYPES) / sizeof(MessageTypeDef);

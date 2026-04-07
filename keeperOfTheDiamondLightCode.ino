@@ -14,7 +14,7 @@ FASTLED_USING_NAMESPACE
 
 MilliTimer boredTimer(11 * 60000); //bored timer, change if no messages or controller input
 
-bool debugging = true;
+bool debugging = false;
 uint16_t aoIndex = 0;
 uint16_t frameCount = 0;
 uint16_t stepRate = 1;
@@ -36,6 +36,7 @@ bool *locks[] = {
 };
 
 bool alone = true;
+uint8_t stripSpacing = 4;
 
 //#define NO_RELAYER
 bool noRelayer = true;
@@ -47,7 +48,7 @@ bool noRelayer = true;
 // #include "theBridge.h"
 
 //AfrikaBurn
-#include "costumeString.h"
+// #include "costumeString.h"
 
 // Mardi Gras
 //#include "esp8266Test.h"
@@ -112,7 +113,7 @@ bool noRelayer = true;
 //#include "lightPainting4.h"
 //#include "lightPainting5.h"
 // #include "miniPyramid.h"
-//#include "piCostume.h"
+#include "piCostume.h"
 // #include "moonBeam.h"
 //#include "hexBase.h"
 //#include "christmas.h"
@@ -165,7 +166,6 @@ const float fib =  1.61803;
 
 uint16_t nX(uint8_t n, int x);
 
-uint8_t stripSpacing = 4;
 
 
 #include "rippler.h"
@@ -201,7 +201,7 @@ void setup() {
     setStepRate(1);
     // antsMode();
     // mainState.noise.enabled = true;
-    // mainState.noiseFade.enabled = false;
+    mainState.noiseFade.enabled = false;
 //    mainState.blendwave.enabled = true;
 //    mainState.noise2D.enabled = true;
 
@@ -2181,7 +2181,7 @@ void nodeCount(){
   if (nodeCountTimer.isItTime()){
     mainState.nodeCount.enabled = false;
     setStepRate(oldStepRate);
-    Serial.println("Node count finished");
+    // Serial.println("Node count finished");
   }
 }
 
@@ -2271,10 +2271,12 @@ void setSweepFromDuration(int duration) {
   uint32_t decayCalc = (uint32_t)duration * 255 * stepRate / (frameInterval * (168 * nodeCount + 87));
   mainState.sweep.decay = constrain(decayCalc, 10, 255);
   
-  Serial.printf("Sweep: plength=%d, duration=%dms, nodeCount=%d, stepRate=%d, frameInterval=%d\n", 
-                mainState.sweep.plength, duration, nodeCount, stepRate, frameInterval);
-  Serial.printf("  Calculated decay=%d (raw=%lu), pspeed=%d\n", 
-                mainState.sweep.decay, decayCalc, mainState.sweep.pspeed);
+  if (debugging){
+    Serial.printf("Sweep: plength=%d, duration=%dms, nodeCount=%d, stepRate=%d, frameInterval=%d\n", 
+                  mainState.sweep.plength, duration, nodeCount, stepRate, frameInterval);
+    Serial.printf("  Calculated decay=%d (raw=%lu), pspeed=%d\n", 
+                  mainState.sweep.decay, decayCalc, mainState.sweep.pspeed);
+  }
 }
 
 void processWSMessage(){
@@ -2289,7 +2291,9 @@ void processWSMessage(){
     Serial.println(wsMsgString);
     return;
   }
-  Serial.print("Processing JSON message: ");
+  if (debugging){
+    Serial.print("Processing JSON message: ");
+  }
 
   uint8_t mtype = wsMsg["msgType"].as<int>();
     //  Serial.println("that json again is:");
@@ -2302,7 +2306,9 @@ void processWSMessage(){
   pattern *pat;
   bool *lock;
   if (mtype) {
-    Serial.printf(" of msgType %i\n", mtype);
+    if (debugging) {
+      Serial.printf(" of msgType %i\n", mtype);
+    }
     boredTimer.resetTimer();
    switch (mtype) {
      case 1:
@@ -2422,15 +2428,15 @@ void processWSMessage(){
       case 36:
         pat = patternPointers[wsMsg["pointer"].as<int>()];
         if (wsMsg["param"].as<int>() == 0){
-          Serial.println("speed");
+          // Serial.println("speed");
           pat->pspeed = wsMsg["val"].as<int>();
         } else if (wsMsg["param"].as<int>() == 1){
-          Serial.println("length");
+          // Serial.println("length");
           pat->plength = wsMsg["val"].as<int>();
         } else {
-          Serial.println("decay");
+          // Serial.println("decay");
           pat->decay = wsMsg["val"].as<int>();
-          Serial.println(pat->decay);
+          // Serial.println(pat->decay);
         }
         if (mainState.powerSaver.plength == 6){
           holdingPatternMode(1);
@@ -2444,7 +2450,7 @@ void processWSMessage(){
       case 38:
         pat = patternPointers[wsMsg["pointer"].as<int>()];
         pat->enabled = wsMsg["enabled"].as<bool>();
-        Serial.println(mainState.ants.enabled);
+        // Serial.println(mainState.ants.enabled);
         break;
       case 39:
         rainbowSpiral();
@@ -2490,10 +2496,10 @@ void processWSMessage(){
 
         // lock = locks[wsMsg["lockNumber"].as<int>()];
         // *lock = !wsMsg["enabled"].as<bool>();
-        Serial.println(stepRateLocked);
-        Serial.println(fadeRateLocked);
-        Serial.println(brightnessLocked);
-        Serial.println(paletteLocked);
+        // Serial.println(stepRateLocked);
+        // Serial.println(fadeRateLocked);
+        // Serial.println(brightnessLocked);
+        // Serial.println(paletteLocked);
         break;
       case 48:
         mainState.sweep.enabled = true;

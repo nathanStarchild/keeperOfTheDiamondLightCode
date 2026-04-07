@@ -10,6 +10,8 @@
 
 #include <WebSocketsClient.h>
 
+extern bool debugging;
+
 //https://arduinojson.org/v6/api/config/use_long_long/
 #define ARDUINOJSON_USE_LONG_LONG 1
 #include <ArduinoJson.h>
@@ -121,37 +123,49 @@ void wsSetup() {
   // No authentication by default
   ArduinoOTA.setPassword("antares");
   ArduinoOTA.onStart([]() {
-      String type;
-      if (ArduinoOTA.getCommand() == U_FLASH)
-        type = "sketch";
-      else // U_SPIFFS
-        type = "filesystem";
+      if (debugging) {
+        String type;
+        if (ArduinoOTA.getCommand() == U_FLASH)
+          type = "sketch";
+        else // U_SPIFFS
+          type = "filesystem";
 
-      // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
-      Serial.println("Start updating " + type);
+        // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
+        Serial.println("Start updating " + type);
+      }
     });
   ArduinoOTA.onEnd([]() {
-      Serial.println("\nEnd");
+      if (debugging) {
+        Serial.println("\nEnd");
+      }
     });
   ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
-      Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+      if (debugging) {
+        Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+      }
     });
   ArduinoOTA.onError([](ota_error_t error) {
-      Serial.printf("Error[%u]: ", error);
-      if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
-      else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
-      else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
-      else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
-      else if (error == OTA_END_ERROR) Serial.println("End Failed");
+      if (debugging) {
+        Serial.printf("Error[%u]: ", error);
+        if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
+        else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
+        else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
+        else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
+        else if (error == OTA_END_ERROR) Serial.println("End Failed");
+      }
     });
    int retries = 0;
    while (WiFi.status() != WL_CONNECTED && retries < 20) {
      delay(500);
-     Serial.print(".");
+     if (debugging) {
+       Serial.print(".");
+     }
      retries ++;
    }
    if (WiFi.status() != WL_CONNECTED){
-     Serial.println("Couldn't connect to network");
+     if (debugging) {
+       Serial.println("Couldn't connect to network");
+     }
      alone = true;
    }
 }
@@ -160,7 +174,9 @@ void wsLoop() {
 
     if(alone) {
       if (tryToConnectTimer.isItTime()) {
-        Serial.println("tryin to connect");
+        if (debugging) {
+          Serial.println("tryin to connect");
+        }
         WiFi.begin(SSID, WIFI_KEY);
         tryToConnectTimer.resetTimer();
       } 
@@ -184,7 +200,9 @@ void wsLoop() {
         wsMsgString = "";
         wsMsgString = pendingMessages[i].msgString;
         inbox = true;
-        Serial.printf("Executing pending message (startTime: %llu)\n", pendingMessages[i].startTime);
+        if (debugging) {
+          Serial.printf("Executing pending message (startTime: %llu)\n", pendingMessages[i].startTime);
+        }
         
         // Shift remaining messages down
         for (uint8_t j = i; j < pendingMessageCount - 1; j++) {
@@ -266,18 +284,24 @@ void WiFiGotIP(WiFiEvent_t event, WiFiEventInfo_t info){
 
 void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
   DeserializationError error;
-  Serial.printf("\n=== WS EVENT RECEIVED ===\n");
-  Serial.printf("Event type: %d\n", type);
-  Serial.printf("Length: %d\n", length);
-  Serial.printf("========================\n");
+  if (debugging) {
+    Serial.printf("\n=== WS EVENT RECEIVED ===\n");
+    Serial.printf("Event type: %d\n", type);
+    Serial.printf("Length: %d\n", length);
+    Serial.printf("========================\n");
+  }
 
   switch (type) {
     case WStype_DISCONNECTED:
-      Serial.printf("Disconnected!\n");
+      if (debugging) {
+        Serial.printf("Disconnected!\n");
+      }
       break;
 
     case WStype_CONNECTED:
-      Serial.printf("[WSc] Connected to url: %s\n", payload);
+      if (debugging) {
+        Serial.printf("[WSc] Connected to url: %s\n", payload);
+      }
 
       // send message to server when Connected
       #ifdef ROLE
@@ -288,11 +312,15 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
       break;
 
     case WStype_BIN:
-      Serial.printf("get Binary (treating as text): length=%d\n", length);
+      if (debugging) {
+        Serial.printf("get Binary (treating as text): length=%d\n", length);
+      }
       // Fall through to handle like text
       
     case WStype_TEXT:
-      Serial.printf("get Text: %s\n", payload);
+      if (debugging) {
+        Serial.printf("get Text: %s\n", payload);
+      }
 
       // send message to client
       // webSocketsServer.sendTXT(num, "message here");
@@ -303,11 +331,15 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
       
       error = deserializeJson(wsMsg, payload);
       if (error) {
-        Serial.print(F("deserializeJson() failed: "));
-        Serial.println(error.f_str());
+        if (debugging) {
+          Serial.print(F("deserializeJson() failed: "));
+          Serial.println(error.f_str());
+        }
       } else {
-        Serial.print("we got a json! ");
-        serializeJson(wsMsg, Serial);
+        if (debugging) {
+          Serial.print("we got a json! ");
+          serializeJson(wsMsg, Serial);
+        }
 
         if (wsMsg["msgType"] == PONG_MSG_TYPE) {
           uint64_t t0 = wsMsg["t0"];
@@ -363,7 +395,9 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
               serializeJson(wsMsg, pendingMessages[pendingMessageCount].msgString);
               pendingMessages[pendingMessageCount].startTime = startLocal;
               pendingMessageCount++;
-              Serial.printf("Queued message for startLocal: %llu, current local: %llu (count: %d)\n", startLocal, now, pendingMessageCount);
+              if (debugging) {
+                Serial.printf("Queued message for startLocal: %llu, current local: %llu (count: %d)\n", startLocal, now, pendingMessageCount);
+              }
             } else {
               Serial.println("ERROR: Pending message buffer full!");
             }
@@ -376,7 +410,9 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
 //          safeStrCopy(wsMsgString, payload, length, MAX_MSG_LEN);
           wsMsgString = "";
           serializeJson(wsMsg, wsMsgString);
-          Serial.printf("saved %s\n", wsMsgString);
+          if (debugging) {
+            Serial.printf("saved %s\n", wsMsgString);
+          }
           inbox = true;
         }
 
@@ -429,11 +465,15 @@ void handlePong(uint64_t t0, uint64_t serverTime) {
 
   // Validate pong
   if (!pingOutstanding) {
-    Serial.println("Ignoring pong (no ping outstanding)");
+    if (debugging) {
+      Serial.println("Ignoring pong (no ping outstanding)");
+    }
     return;
   }
   if (t0 != lastPingT0) {
-    Serial.println("Ignoring stale pong");
+    if (debugging) {
+      Serial.println("Ignoring stale pong");
+    }
     return;
   }
 
@@ -446,35 +486,47 @@ void handlePong(uint64_t t0, uint64_t serverTime) {
   // Compensate for half the round-trip time (assume symmetric network delay)
   int64_t newOffset = (int64_t)serverTime - (int64_t)now + (int64_t)(rtt / 2);
 
-  Serial.printf("Pong received: t0=%llu, now=%llu, serverTime=%llu, rtt=%llu\n", 
+  if (debugging) {
+    Serial.printf("Pong received: t0=%llu, now=%llu, serverTime=%llu, rtt=%llu\n", 
                 t0, now, serverTime, rtt);
+  }
 
   if (firstOffset) {
     // First pong: take as absolute offset, no smoothing
     offsetMs = newOffset;
     firstOffset = false;
-    Serial.printf("First offset set: %lld ms\n", offsetMs);
+    if (debugging) {
+      Serial.printf("First offset set: %lld ms\n", offsetMs);
+    }
   } else {
     // Check for large jumps (> 100ms)
     int64_t delta = llabs(newOffset - offsetMs);
     if (delta > 100) {
-      Serial.printf("Large offset jump detected (%lld ms), snapping\n", delta);
+      if (debugging) {
+        Serial.printf("Large offset jump detected (%lld ms), snapping\n", delta);
+      }
       offsetMs = newOffset;
     } else {
       // Smooth the offset with exponential moving average (90% old, 10% new)
       offsetMs = (int64_t)(offsetMs * 0.9 + newOffset * 0.1);
     }
-    Serial.printf("Offset adjusted: %lld ms (delta: %lld ms)\n", offsetMs, newOffset - offsetMs);
+    if (debugging) {
+      Serial.printf("Offset adjusted: %lld ms (delta: %lld ms)\n", offsetMs, newOffset - offsetMs);
+    }
   }
 }
 
 void handleSweepSpotAssignment(uint16_t newSweepSpot) {
   sweepSpot = newSweepSpot;
-  Serial.printf("SweepSpot assigned: %d\n", sweepSpot);
+  if (debugging) {
+    Serial.printf("SweepSpot assigned: %d\n", sweepSpot);
+  }
 }
 
 void handleTotalLEDCount(uint16_t totalCount) {
-  Serial.printf("Total LED count updated: %d devices\n", totalCount);
+  if (debugging) {
+    Serial.printf("Total LED count updated: %d devices\n", totalCount);
+  }
   
   // Update node count for patterns
   mainState.nodeCount.plength = totalCount;

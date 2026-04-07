@@ -11,6 +11,8 @@
 #ifndef MAGIC_BUTTON_H
 #define MAGIC_BUTTON_H
 
+extern bool debugging;
+
 class MagicButton {
   public:
     // Constructor: takes button pin and optional pull-up mode
@@ -49,7 +51,8 @@ class MagicButton {
     // Sequence tracking
     uint16_t accumulatedValue;
     uint8_t bitCount;
-  MilliTimer sequenceTimer;  // Direct member (not pointer) - initialized in constructor
+    MilliTimer sequenceTimer;  // Direct member (not pointer) - initialized in constructor
+    bool sequenceActive;
     uint32_t shortPressThreshold;  // < this = 1, >= this = 0
     uint32_t sequenceTimeout;      // Time to wait before considering sequence complete
     
@@ -126,7 +129,9 @@ uint16_t MagicButton::checkButton(bool getDuration) {
     // Button just pressed
     pressStartTime = millis();
     buttonPressed = true;
-    Serial.println("pressed");
+    if (debugging) {
+      Serial.println("pressed");
+    }
   }
   
   // Handle duration mode - return press duration in milliseconds
@@ -135,9 +140,11 @@ uint16_t MagicButton::checkButton(bool getDuration) {
     if (!currentButtonState && lastButtonState && buttonPressed) {
       uint32_t pressDuration = millis() - pressStartTime;
       buttonPressed = false;
-      Serial.print("MagicButton: Duration mode - press duration = ");
-      Serial.print(pressDuration);
-      Serial.println("ms");
+      if (debugging) {
+        Serial.print("MagicButton: Duration mode - press duration = ");
+        Serial.print(pressDuration);
+        Serial.println("ms");
+      }
       lastButtonState = currentButtonState;
       return pressDuration;
     }
@@ -153,18 +160,24 @@ uint16_t MagicButton::checkButton(bool getDuration) {
     if (pressDuration < shortPressThreshold) {
       // Short press = 1
       addBit(true);
-      Serial.println("MagicButton: Short press (1)");
+      if (debugging) {
+        Serial.println("MagicButton: Short press (1)");
+      }
     } else {
       // Long press = 0
       addBit(false);
-      Serial.println("MagicButton: Long press (0)");
+      if (debugging) {
+        Serial.println("MagicButton: Long press (0)");
+      }
     }
     
-    Serial.print("MagicButton: Current value = ");
-    Serial.print(accumulatedValue);
-    Serial.print(" (");
-    Serial.print(bitCount);
-    Serial.println(" bits)");
+    if (debugging) {
+      Serial.print("MagicButton: Current value = ");
+      Serial.print(accumulatedValue);
+      Serial.print(" (");
+      Serial.print(bitCount);
+      Serial.println(" bits)");
+    }
     
     buttonPressed = false;
   }
@@ -173,8 +186,10 @@ uint16_t MagicButton::checkButton(bool getDuration) {
   if (sequenceActive && !buttonPressed && sequenceTimer.isItTime()) {
     // Sequence complete!
     returnValue = accumulatedValue;
-    Serial.print("MagicButton: Sequence complete! Value = ");
-    Serial.println(returnValue);
+    if (debugging) {
+      Serial.print("MagicButton: Sequence complete! Value = ");
+      Serial.println(returnValue);
+    }
     reset();
   }
   

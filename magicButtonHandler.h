@@ -87,7 +87,7 @@ MagicButtonHandler::MagicButtonHandler(MagicButton* button)
   pendingValue2 = 0;
   localExecutionEnabled = true;
   networkBroadcastEnabled = true;
-  serialDebugEnabled = true;
+  serialDebugEnabled = debugging;
   parameterTimeout.stopTimer();  // Don't start until waiting for parameter
 }
 
@@ -296,7 +296,6 @@ void MagicButtonHandler::update() {
         } else if (paramCount == 1) {
           // Wait for value
           currentState = WAITING_FOR_VALUE_1;
-          parameterTimeout.resetTimer();
           parameterTimeout.startTimer();
           if (serialDebugEnabled) {
             Serial.printf("MagicButtonHandler: Command %d (%s) needs 1 value. Waiting...\n", 
@@ -305,7 +304,6 @@ void MagicButtonHandler::update() {
         } else if (paramCount == 2) {
           // Wait for first value
           currentState = WAITING_FOR_VALUE_1;
-          parameterTimeout.resetTimer();
           parameterTimeout.startTimer();
           if (serialDebugEnabled) {
             Serial.printf("MagicButtonHandler: Command %d (%s) needs 2 values. Waiting...\n", 
@@ -324,7 +322,6 @@ void MagicButtonHandler::update() {
           // Check if this is msgType 60 (needs duration hold)
           if (pendingMsgType == 60) {
             currentState = WAITING_FOR_DURATION;
-            parameterTimeout.resetTimer();
             parameterTimeout.startTimer();
             if (serialDebugEnabled) {
               Serial.printf("MagicButtonHandler: Got plength=%d, now waiting for duration hold...\n", pendingValue1);
@@ -337,7 +334,6 @@ void MagicButtonHandler::update() {
         } else if (paramCount == 2) {
           // Wait for second value
           currentState = WAITING_FOR_VALUE_2;
-          parameterTimeout.resetTimer();
           parameterTimeout.startTimer();
           if (serialDebugEnabled) {
             Serial.printf("MagicButtonHandler: Got value1=%d, waiting for value2...\n", pendingValue1);
@@ -381,7 +377,7 @@ void MagicButtonHandler::reset() {
   pendingMsgType = 0;
   pendingValue1 = 0;
   pendingValue2 = 0;
-  parameterTimeout.stop();
+  parameterTimeout.stopTimer();
 }
 
 // Generate random value within range (excludes 0 for tail.pspeed special case)

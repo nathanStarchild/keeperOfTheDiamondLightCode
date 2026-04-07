@@ -11,6 +11,8 @@
 #define ARDUINOJSON_USE_LONG_LONG 1
 #include <ArduinoJson.h>
 
+extern bool debugging;
+
 // ========== CONFIGURATION ==========
 // EEPROM addresses
 #define EEPROM_BRIDGE_ID_ADDR 0  // 4 bytes for uint32_t
@@ -64,7 +66,9 @@ void loadBridgeId();
 void saveBridgeId() {
   EEPROM.put(EEPROM_BRIDGE_ID_ADDR, bridgeId);
   EEPROM.commit();
-  Serial.printf("Saved bridgeId to EEPROM: %u\n", bridgeId);
+  if (debugging) {
+    Serial.printf("Saved bridgeId to EEPROM: %u\n", bridgeId);
+  }
 }
 
 void loadBridgeId() {
@@ -74,9 +78,13 @@ void loadBridgeId() {
   // Check if we have a valid stored bridge ID (not 0 or 0xFFFFFFFF)
   if (storedBridgeId != 0 && storedBridgeId != 0xFFFFFFFF) {
     bridgeId = storedBridgeId;
-    Serial.printf("Loaded bridgeId from EEPROM: %u\n", bridgeId);
+    if (debugging) {
+      Serial.printf("Loaded bridgeId from EEPROM: %u\n", bridgeId);
+    }
   } else {
-    Serial.println("No valid bridgeId in EEPROM");
+    if (debugging) {
+      Serial.println("No valid bridgeId in EEPROM");
+    }
   }
 }
 
@@ -129,7 +137,9 @@ void updateNodeState(bool runNodeCounter) {
       lastNodeCounterTime = now;
       nodeCounter();
     } else {
-      Serial.printf("Skipping nodeCounter() - debounced (%lu ms since last)\n", now - lastNodeCounterTime);
+      if (debugging) {
+        Serial.printf("Skipping nodeCounter() - debounced (%lu ms since last)\n", now - lastNodeCounterTime);
+      }
     }
   }
 }
@@ -137,7 +147,9 @@ void updateNodeState(bool runNodeCounter) {
 // ========== MESH CALLBACKS ==========
 
 void receivedCallback(uint32_t from, String &msg) {
-  Serial.printf("Mesh: Received from %u: %s\n", from, msg.c_str());
+  if (debugging) {
+    Serial.printf("Mesh: Received from %u: %s\n", from, msg.c_str());
+  }
   
   // Check for bridge announcement
   DynamicJsonDocument doc(128);
@@ -152,8 +164,10 @@ void receivedCallback(uint32_t from, String &msg) {
         nonMeshDeviceCount = doc["nonMeshCount"];
       }
       
-      Serial.printf("Mesh: Bridge connected (nodeId %u, %u non-mesh devices)\n", 
-                    bridgeId, nonMeshDeviceCount);
+      if (debugging) {
+        Serial.printf("Mesh: Bridge connected (nodeId %u, %u non-mesh devices)\n", 
+                      bridgeId, nonMeshDeviceCount);
+      }
       
       // Save bridge ID to EEPROM for future recognition
       if (wasNewBridge) {
@@ -168,7 +182,9 @@ void receivedCallback(uint32_t from, String &msg) {
   
   // Check if we're still waiting on a previous scheduled message
   if (pendingStartTime > 0) {
-    Serial.println("Mesh: Warning - new message received while waiting on scheduled message, dropping old message");
+    if (debugging) {
+      Serial.println("Mesh: Warning - new message received while waiting on scheduled message, dropping old message");
+    }
     pendingStartTime = 0;
   }
   
@@ -176,7 +192,9 @@ void receivedCallback(uint32_t from, String &msg) {
   DeserializationError error = deserializeJson(meshDoc, msg);
   
   if (error) {
-    Serial.printf("Mesh: JSON parse error: %s\n", error.c_str());
+    if (debugging) {
+      Serial.printf("Mesh: JSON parse error: %s\n", error.c_str());
+    }
     return;
   }
   
@@ -187,7 +205,9 @@ void receivedCallback(uint32_t from, String &msg) {
     
     // Check if message is stale (startTime more than 5 seconds ago)
     if (now > startTime && (now - startTime) > 5000000) {  // 5 seconds = 5,000,000 microseconds
-      Serial.printf("Mesh: Dropping stale message (startTime was %llu us ago)\n", (now - startTime));
+      if (debugging) {
+        Serial.printf("Mesh: Dropping stale message (startTime was %llu us ago)\n", (now - startTime));
+      }
       return;
     }
     
@@ -195,13 +215,17 @@ void receivedCallback(uint32_t from, String &msg) {
       // Schedule for later execution
       meshMsgString = msg;
       pendingStartTime = startTime;
-      uint64_t waitUs = startTime - now;
-      Serial.printf("Mesh: Scheduled message for execution in %llu us\n", waitUs);
+      if (debugging) {
+        uint64_t waitUs = startTime - now;
+        Serial.printf("Mesh: Scheduled message for execution in %llu us\n", waitUs);
+      }
       return;
     }
     
     // StartTime already passed (but within 5 seconds), execute immediately
-    Serial.println("Mesh: StartTime recently passed, executing immediately");
+    if (debugging) {
+      Serial.println("Mesh: StartTime recently passed, executing immediately");
+    }
   }
   
   // No startTime or time already passed - execute immediately
@@ -210,27 +234,35 @@ void receivedCallback(uint32_t from, String &msg) {
 }
 
 void newConnectionCallback(uint32_t nodeId) {
-  Serial.printf("Mesh: New connection, nodeId = %u\n", nodeId);
+  if (debugging) {
+    Serial.printf("Mesh: New connection, nodeId = %u\n", nodeId);
+  }
   bool wasConnected = meshConnected;
   meshConnected = mesh.getNodeList().size() > 0;
   
   // Check if this is the bridge we know from EEPROM
   if (bridgeId != 0 && nodeId == bridgeId) {
     bridgeConnected = true;
-    Serial.printf("Mesh: Recognized bridge from EEPROM (nodeId %u)\n", bridgeId);
+    if (debugging) {
+      Serial.printf("Mesh: Recognized bridge from EEPROM (nodeId %u)\n", bridgeId);
+    }
     // Don't run updateNodeState here - wait for bridge announce with device count
   }
   
   // If we just connected after being disconnected, reset nonMeshDeviceCount
   if (!wasConnected && meshConnected) {
     nonMeshDeviceCount = 0;
-    Serial.println("Mesh: Reconnected - reset non-mesh device count to 0");
+    if (debugging) {
+      Serial.println("Mesh: Reconnected - reset non-mesh device count to 0");
+    }
   }
 }
 
 void changedConnectionCallback() {
-  Serial.printf("Mesh: Connections changed\n");
-  Serial.printf("Mesh: Nodes connected: %d\n", mesh.getNodeList().size());
+  if (debugging) {
+    Serial.printf("Mesh: Connections changed\n");
+    Serial.printf("Mesh: Nodes connected: %d\n", mesh.getNodeList().size());
+  }
   
   bool wasConnected = meshConnected;
   meshConnected = mesh.getNodeList().size() > 0;
@@ -239,7 +271,9 @@ void changedConnectionCallback() {
   if (wasConnected && !meshConnected) {
     nonMeshDeviceCount = 0;
     bridgeConnected = false;
-    Serial.println("Mesh: Disconnected - reset non-mesh device count to 0");
+    if (debugging) {
+      Serial.println("Mesh: Disconnected - reset non-mesh device count to 0");
+    }
   }
   
   // Check if bridge disconnected (was in list, now isn't)
@@ -258,7 +292,9 @@ void changedConnectionCallback() {
     if (!bridgeStillConnected) {
       bridgeConnected = false;
       nonMeshDeviceCount = 0;
-      Serial.println("Mesh: Bridge disconnected - reset non-mesh device count to 0");
+      if (debugging) {
+        Serial.println("Mesh: Bridge disconnected - reset non-mesh device count to 0");
+      }
     }
   }
   
@@ -268,7 +304,9 @@ void changedConnectionCallback() {
 }
 
 void nodeTimeAdjustedCallback(int32_t offset) {
-  Serial.printf("Mesh: Time adjusted by %d us\n", offset);
+  if (debugging) {
+    Serial.printf("Mesh: Time adjusted by %d us\n", offset);
+  }
 }
 
 // ========== SETUP AND LOOP ==========
@@ -304,26 +342,34 @@ void wsSetup() {
   // Setup ArduinoOTA
   ArduinoOTA.setPassword("antares");
   ArduinoOTA.onStart([]() {
-    String type;
-    if (ArduinoOTA.getCommand() == U_FLASH)
-      type = "sketch";
-    else
-      type = "filesystem";
-    Serial.println("OTA: Start updating " + type);
+    if (debugging) {
+      String type;
+      if (ArduinoOTA.getCommand() == U_FLASH)
+        type = "sketch";
+      else
+        type = "filesystem";
+      Serial.println("OTA: Start updating " + type);
+    }
   });
   ArduinoOTA.onEnd([]() {
-    Serial.println("\nOTA: End");
+    if (debugging) {
+      Serial.println("\nOTA: End");
+    }
   });
   ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
-    Serial.printf("OTA: Progress: %u%%\r", (progress / (total / 100)));
+    if (debugging) {
+      Serial.printf("OTA: Progress: %u%%\r", (progress / (total / 100)));
+    }
   });
   ArduinoOTA.onError([](ota_error_t error) {
-    Serial.printf("OTA: Error[%u]: ", error);
-    if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
-    else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
-    else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
-    else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
-    else if (error == OTA_END_ERROR) Serial.println("End Failed");
+    if (debugging) {
+      Serial.printf("OTA: Error[%u]: ", error);
+      if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
+      else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
+      else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
+      else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
+      else if (error == OTA_END_ERROR) Serial.println("End Failed");
+    }
   });
   ArduinoOTA.begin();
   
@@ -347,7 +393,9 @@ void wsLoop() {
   // Send outgoing mesh message FIRST (before incoming overwrites wsMsgString)
   if (outbox) {
     mesh.sendBroadcast(wsMsgString);
-    Serial.printf("meshNode: Sent to mesh: %s\n", wsMsgString.c_str());
+    if (debugging) {
+      Serial.printf("meshNode: Sent to mesh: %s\n", wsMsgString.c_str());
+    }
     outbox = false;
   }
   
@@ -359,12 +407,14 @@ void wsLoop() {
     
     if (now >= pendingStartTime) {
       // Time to execute!
-      Serial.println("meshNode: Executing scheduled message (startTime reached)");
+      if (debugging) {
+        Serial.println("meshNode: Executing scheduled message (startTime reached)");
+      }
       meshInbox = true;
       pendingStartTime = 0;
     } else {
       // Still waiting
-      if (loopCounter % 100 == 0) {  // Only print occasionally to avoid spam
+      if (debugging && loopCounter % 100 == 0) {  // Only print occasionally to avoid spam
         uint64_t waitUs = pendingStartTime - now;
         Serial.printf("meshNode: Waiting %llu us for scheduled execution\n", waitUs);
         Serial.printf("it takes %u ms to get mesh time\n", after - before);
@@ -379,7 +429,9 @@ void wsLoop() {
       wsMsgString = meshMsgString;
       processWSMessage();
     } else {
-      Serial.printf("meshNode: Error parsing mesh message: %s\n", error.c_str());
+      if (debugging) {
+        Serial.printf("meshNode: Error parsing mesh message: %s\n", error.c_str());
+      }
     }
     meshInbox = false;
   }

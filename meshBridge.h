@@ -11,6 +11,8 @@
 #define ARDUINOJSON_USE_LONG_LONG 1
 #include <ArduinoJson.h>
 
+extern bool debugging;
+
 // ========== CONFIGURATION ==========
 // Pi Access Point Settings
 #define PI_SSID "diamondLightNetwork"
@@ -68,7 +70,9 @@ void reportNodeCount();
 // ========== MESH CALLBACKS ==========
 
 void receivedCallback(uint32_t from, String &msg) {
-  Serial.printf("Mesh: Received from %u: %s\n", from, msg.c_str());
+  if (debugging) {
+    Serial.printf("Mesh: Received from %u: %s\n", from, msg.c_str());
+  }
   
   if (!wsConnected) {
     return;
@@ -78,7 +82,9 @@ void receivedCallback(uint32_t from, String &msg) {
   DeserializationError error = deserializeJson(meshDoc, msg);
   
   if (error) {
-    Serial.printf("Mesh: JSON parse error: %s\n", error.c_str());
+    if (debugging) {
+      Serial.printf("Mesh: JSON parse error: %s\n", error.c_str());
+    }
     // Forward as-is even if parse fails
     forwardToWebSocket(msg);
     return;
@@ -89,24 +95,32 @@ void receivedCallback(uint32_t from, String &msg) {
     uint64_t meshStartTime = meshDoc["startTime"];  // in microseconds
     uint64_t serverStartTime = ((int64_t)meshStartTime + offsetUs) / 1000;  // convert to server milliseconds
     meshDoc["startTime"] = serverStartTime;
-    Serial.printf("Mesh: Converted startTime %llu us (mesh) to %llu ms (server)\n", meshStartTime, serverStartTime);
+    if (debugging) {
+      Serial.printf("Mesh: Converted startTime %llu us (mesh) to %llu ms (server)\n", meshStartTime, serverStartTime);
+    }
   }
   
   // Serialize and forward to server
   String serverMsg = "";
   serializeJson(meshDoc, serverMsg);
   forwardToWebSocket(serverMsg);
-  Serial.println("Mesh: Forwarded to WebSocket server");
+  if (debugging) {
+    Serial.println("Mesh: Forwarded to WebSocket server");
+  }
 }
 
 void newConnectionCallback(uint32_t nodeId) {
-  Serial.printf("Mesh: New connection, nodeId = %u\n", nodeId);
+  if (debugging) {
+    Serial.printf("Mesh: New connection, nodeId = %u\n", nodeId);
+  }
   meshConnected = mesh.getNodeList().size() > 0;
 }
 
 void changedConnectionCallback() {
-  Serial.printf("Mesh: Connections changed\n");
-  Serial.printf("Mesh: Nodes connected: %d\n", mesh.getNodeList().size());
+  if (debugging) {
+    Serial.printf("Mesh: Connections changed\n");
+    Serial.printf("Mesh: Nodes connected: %d\n", mesh.getNodeList().size());
+  }
   meshConnected = mesh.getNodeList().size() > 0;
   
   // Announce bridge identity when mesh topology changes
@@ -119,7 +133,9 @@ void changedConnectionCallback() {
 }
 
 void nodeTimeAdjustedCallback(int32_t offset) {
-  Serial.printf("Mesh: Time adjusted by %d us\n", offset);
+  if (debugging) {
+    Serial.printf("Mesh: Time adjusted by %d us\n", offset);
+  }
 }
 
 // ========== BRIDGE ANNOUNCEMENT ==========
@@ -129,8 +145,10 @@ void announceBridge() {
   snprintf(msg, sizeof(msg), "{\"msgType\":%d,\"nonMeshCount\":%u}", 
            BRIDGE_ANNOUNCE_MSG_TYPE, nonMeshDeviceCount);
   mesh.sendBroadcast(msg);
-  Serial.printf("Bridge: Announced to mesh (nodeId %u, %u non-mesh devices)\n", 
-                mesh.getNodeId(), nonMeshDeviceCount);
+  if (debugging) {
+    Serial.printf("Bridge: Announced to mesh (nodeId %u, %u non-mesh devices)\n", 
+                  mesh.getNodeId(), nonMeshDeviceCount);
+  }
 }
 
 void reportNodeCount() {
@@ -143,14 +161,18 @@ void reportNodeCount() {
   char msg[64];
   snprintf(msg, sizeof(msg), "{\"msgType\":%d,\"nodeCount\":%u}", NODE_COUNT_MSG_TYPE, nodeCount);
   webSocket.sendTXT(msg);
-  Serial.printf("Bridge: Reported %u mesh nodes to server\n", nodeCount);
+  if (debugging) {
+    Serial.printf("Bridge: Reported %u mesh nodes to server\n", nodeCount);
+  }
 }
 
 // ========== MESSAGE FORWARDING ==========
 
 void forwardToMesh(String &message) {
   if (!meshConnected && mesh.getNodeList().size() == 0) {
-    Serial.println("Bridge: No mesh nodes connected, skipping forward");
+    if (debugging) {
+      Serial.println("Bridge: No mesh nodes connected, skipping forward");
+    }
     return;
   }
   
@@ -158,7 +180,9 @@ void forwardToMesh(String &message) {
   DeserializationError error = deserializeJson(doc, message);
   
   if (error) {
-    Serial.printf("Bridge: JSON parse error: %s\n", error.c_str());
+    if (debugging) {
+      Serial.printf("Bridge: JSON parse error: %s\n", error.c_str());
+    }
     mesh.sendBroadcast(message);  // Forward as-is if can't parse
     return;
   }
@@ -168,23 +192,31 @@ void forwardToMesh(String &message) {
     uint64_t serverStartTime = doc["startTime"];  // in milliseconds
     uint64_t meshStartTime = (serverStartTime * 1000) - offsetUs;  // convert to mesh microseconds
     doc["startTime"] = meshStartTime;
-    Serial.printf("Bridge: Converted startTime %llu ms (server) to %llu us (mesh)\n", serverStartTime, meshStartTime);
+    if (debugging) {
+      Serial.printf("Bridge: Converted startTime %llu ms (server) to %llu us (mesh)\n", serverStartTime, meshStartTime);
+    }
   }
   
   String meshMsg = "";
   serializeJson(doc, meshMsg);
   mesh.sendBroadcast(meshMsg);
-  Serial.printf("Bridge: Forwarded to mesh (%d nodes)\n", mesh.getNodeList().size());
+  if (debugging) {
+    Serial.printf("Bridge: Forwarded to mesh (%d nodes)\n", mesh.getNodeList().size());
+  }
 }
 
 void forwardToWebSocket(String &message) {
   if (!wsConnected) {
-    Serial.println("Bridge: WebSocket not connected");
+    if (debugging) {
+      Serial.println("Bridge: WebSocket not connected");
+    }
     return;
   }
   
   webSocket.sendTXT(message);
-  Serial.println("Bridge: Forwarded to WebSocket server");
+  if (debugging) {
+    Serial.println("Bridge: Forwarded to WebSocket server");
+  }
 }
 
 // ========== WEBSOCKET HANDLING ==========
@@ -192,18 +224,24 @@ void forwardToWebSocket(String &message) {
 void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
   DynamicJsonDocument wsDoc(1024);
   DeserializationError error;
-  Serial.printf("\n=== WS EVENT ===\n");
-  Serial.printf("Type: %d, Length: %d\n", type, length);
-  Serial.printf("================\n");
+  if (debugging) {
+    Serial.printf("\n=== WS EVENT ===\n");
+    Serial.printf("Type: %d, Length: %d\n", type, length);
+    Serial.printf("================\n");
+  }
 
   switch (type) {
     case WStype_DISCONNECTED:
-      Serial.printf("WebSocket: Disconnected!\n");
+      if (debugging) {
+        Serial.printf("WebSocket: Disconnected!\n");
+      }
       wsConnected = false;
       break;
 
     case WStype_CONNECTED:
-      Serial.printf("WebSocket: Connected to %s\n", payload);
+      if (debugging) {
+        Serial.printf("WebSocket: Connected to %s\n", payload);
+      }
       wsConnected = true;
 
       #ifdef ROLE
@@ -214,18 +252,26 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
       break;
 
     case WStype_BIN:
-      Serial.printf("WebSocket: Binary data (treating as text): length=%d\n", length);
+      if (debugging) {
+        Serial.printf("WebSocket: Binary data (treating as text): length=%d\n", length);
+      }
       
     case WStype_TEXT:
-      Serial.printf("WebSocket: Text: %s\n", payload);
+      if (debugging) {
+        Serial.printf("WebSocket: Text: %s\n", payload);
+      }
       
       error = deserializeJson(wsDoc, payload);
       if (error) {
-        Serial.printf("WebSocket: JSON parse error: %s\n", error.f_str());
+        if (debugging) {
+          Serial.printf("WebSocket: JSON parse error: %s\n", error.f_str());
+        }
       } else {
-        Serial.print("WebSocket: Valid JSON received: ");
-        serializeJson(wsDoc, Serial);
-        Serial.println();
+        if (debugging) {
+          Serial.print("WebSocket: Valid JSON received: ");
+          serializeJson(wsDoc, Serial);
+          Serial.println();
+        }
 
         // Handle PONG (time sync with server)
         if (wsDoc["msgType"] == PONG_MSG_TYPE) {
@@ -242,10 +288,14 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
           // Only re-announce if count changed
           if (pyramidCount != nonMeshDeviceCount) {
             nonMeshDeviceCount = pyramidCount;
-            Serial.printf("Bridge: Non-mesh device count changed to %u - re-announcing\n", nonMeshDeviceCount);
+            if (debugging) {
+              Serial.printf("Bridge: Non-mesh device count changed to %u - re-announcing\n", nonMeshDeviceCount);
+            }
             announceBridge();
           } else {
-            Serial.printf("Bridge: Non-mesh device count unchanged (%u) - no re-announce\n", nonMeshDeviceCount);
+            if (debugging) {
+              Serial.printf("Bridge: Non-mesh device count unchanged (%u) - no re-announce\n", nonMeshDeviceCount);
+            }
           }
           
           return;  // Don't forward this message to mesh
@@ -295,11 +345,15 @@ void handlePong(uint64_t t0, uint64_t serverTime) {
   uint64_t now = (uint64_t)millis();
 
   if (!pingOutstanding) {
-    Serial.println("Pong: Ignoring (no ping outstanding)");
+    if (debugging) {
+      Serial.println("Pong: Ignoring (no ping outstanding)");
+    }
     return;
   }
   if (t0 != lastPingT0) {
-    Serial.println("Pong: Ignoring stale pong");
+    if (debugging) {
+      Serial.println("Pong: Ignoring stale pong");
+    }
     return;
   }
 
@@ -310,22 +364,30 @@ void handlePong(uint64_t t0, uint64_t serverTime) {
   uint64_t meshTime = mesh.getNodeTime();  // in microseconds
   int64_t newOffset = (int64_t)(serverTimeAdjusted * 1000) - (int64_t)meshTime;
 
-  Serial.printf("Pong: serverTime=%llu ms, meshTime=%llu us, rtt=%llu ms\n", 
-                serverTimeAdjusted, meshTime, rtt);
+  if (debugging) {
+    Serial.printf("Pong: serverTime=%llu ms, meshTime=%llu us, rtt=%llu ms\n", 
+                  serverTimeAdjusted, meshTime, rtt);
+  }
 
   if (firstOffset) {
     offsetUs = newOffset;
     firstOffset = false;
-    Serial.printf("Pong: First offset set: %lld us\n", offsetUs);
+    if (debugging) {
+      Serial.printf("Pong: First offset set: %lld us\n", offsetUs);
+    }
   } else {
     int64_t delta = llabs(newOffset - offsetUs);
     if (delta > 100000) {  // 100ms in microseconds
-      Serial.printf("Pong: Large jump (%lld us), snapping\n", delta);
+      if (debugging) {
+        Serial.printf("Pong: Large jump (%lld us), snapping\n", delta);
+      }
       offsetUs = newOffset;
     } else {
       offsetUs = (int64_t)(offsetUs * 0.9 + newOffset * 0.1);
     }
-    Serial.printf("Pong: Offset=%lld us (delta: %lld us)\n", offsetUs, newOffset - offsetUs);
+    if (debugging) {
+      Serial.printf("Pong: Offset=%lld us (delta: %lld us)\n", offsetUs, newOffset - offsetUs);
+    }
   }
 }
 
@@ -360,26 +422,34 @@ void wsSetup() {
   // Setup ArduinoOTA
   ArduinoOTA.setPassword("antares");
   ArduinoOTA.onStart([]() {
-    String type;
-    if (ArduinoOTA.getCommand() == U_FLASH)
-      type = "sketch";
-    else
-      type = "filesystem";
-    Serial.println("OTA: Start updating " + type);
+    if (debugging) {
+      String type;
+      if (ArduinoOTA.getCommand() == U_FLASH)
+        type = "sketch";
+      else
+        type = "filesystem";
+      Serial.println("OTA: Start updating " + type);
+    }
   });
   ArduinoOTA.onEnd([]() {
-    Serial.println("\nOTA: End");
+    if (debugging) {
+      Serial.println("\nOTA: End");
+    }
   });
   ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
-    Serial.printf("OTA: Progress: %u%%\r", (progress / (total / 100)));
+    if (debugging) {
+      Serial.printf("OTA: Progress: %u%%\r", (progress / (total / 100)));
+    }
   });
   ArduinoOTA.onError([](ota_error_t error) {
-    Serial.printf("OTA: Error[%u]: ", error);
-    if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
-    else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
-    else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
-    else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
-    else if (error == OTA_END_ERROR) Serial.println("End Failed");
+    if (debugging) {
+      Serial.printf("OTA: Error[%u]: ", error);
+      if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
+      else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
+      else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
+      else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
+      else if (error == OTA_END_ERROR) Serial.println("End Failed");
+    }
   });
   ArduinoOTA.begin();
   
@@ -400,8 +470,10 @@ void wsLoop() {
     if (alone) {
       alone = false;
       firstOffset = true;
-      Serial.println("meshBridge: Connected to Pi AP");
-      Serial.printf("meshBridge: IP = %s\n", WiFi.localIP().toString().c_str());
+      if (debugging) {
+        Serial.println("meshBridge: Connected to Pi AP");
+        Serial.printf("meshBridge: IP = %s\n", WiFi.localIP().toString().c_str());
+      }
       
       // Start WebSocket connection
       webSocket.begin(WS_SERVER, WS_PORT, WS_PATH);
@@ -411,7 +483,9 @@ void wsLoop() {
     if (!alone) {
       alone = true;
       wsConnected = false;
-      Serial.println("meshBridge: Disconnected from Pi AP");
+      if (debugging) {
+        Serial.println("meshBridge: Disconnected from Pi AP");
+      }
     }
   }
   
@@ -421,7 +495,9 @@ void wsLoop() {
     
     // Reconnect if needed
     if (!wsConnected && wsReconnectTimer.isItTime()) {
-      Serial.println("meshBridge: Attempting WebSocket reconnection...");
+      if (debugging) {
+        Serial.println("meshBridge: Attempting WebSocket reconnection...");
+      }
       webSocket.begin(WS_SERVER, WS_PORT, WS_PATH);
       webSocket.onEvent(webSocketEvent);
       wsReconnectTimer.resetTimer();
