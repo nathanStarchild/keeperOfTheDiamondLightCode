@@ -40,6 +40,8 @@ Complete reference for all message types used in the Keeper of the Diamond Light
 - 52 - MG Blob
 - 53 - MG Random
 - 54 - Enlightenment Achieved
+- 55 - Start Return Timer
+- 56 - Chill Pill
 - 63 - Node Counter
 - [50 - Zoom to Colour](#50---zoom-to-colour) (has parameters)
 
@@ -345,7 +347,11 @@ Complete reference for all message types used in the Keeper of the Diamond Light
 
 **54 - Enlightenment Achieved** calls `enlightenmentAchieved()` - **SYNCHRONIZED**
 
-**63 - Node Counter** calls `nodeCounter()` to flash LED count - no sync - debounced
+**55 - Start Return Timer** calls `returnTimer.startTimer()` - no sync
+
+**56 - Chill Pill** calls `chillPill()` - no sync
+
+**63 - Node Counter** calls `nodeCounter()` to flash LED count - **SYNCHRONIZED**
 
 ---
 
@@ -784,6 +790,8 @@ Complete reference for all message types used in the Keeper of the Diamond Light
 - Web client → Server → All devices (broadcast)
 - Magic button → Local execution + mesh broadcast
 
+**Synchronized:** YES - Uses `startTime` for coordinated effect
+
 **Calculation:**
 Calls `setSweepFromDuration()` which:
 - Sets `mainState.sweep.pspeed = 84` (25% overlap)
@@ -951,7 +959,7 @@ Calls `setSweepFromDuration()` which:
 **Network Flow:**
 - Server → All devices (broadcast)
 
-**Synchronized:** No
+**SYNCHRONIZED**
 
 **Notes:** Calls `enlightenmentCallback(val)`. Magic button pattern `.-.--.` (short-long-short-long-long-short) + value sequence.
 
@@ -1010,7 +1018,7 @@ Calls `setSweepFromDuration()` which:
 **Network Flow:**
 - Browser → Server → All devices
 
-**Synchronized:** No
+**SYNCHRONIZED**
 
 **Notes:** If not enabled, calls `upset_mainState()`. If primed, enables launch. Otherwise calls `tripperTrapMode()`.
 
@@ -1126,6 +1134,31 @@ Calls `setSweepFromDuration()` which:
 
 ---
 
+### 56 - Chill Pill
+
+**Purpose:** Activates the chill pill preset.
+
+**Parameters:** 0
+
+**Format:**
+```json
+{
+  "msgType": 56
+}
+```
+
+**Parsed By:**
+- ESP devices (`keeperOfTheDiamondLightCode.ino` - processWSMessage)
+
+**Network Flow:**
+- Server → All devices (broadcast)
+
+**Synchronized:** No
+
+**Notes:** Calls `chillPill()`. Magic button pattern `...---` (short-short-short-long-long-long).
+
+---
+
 ## Message Flow Diagrams
 
 ### Device Connection Flow
@@ -1195,16 +1228,21 @@ All clients execute simultaneously
 ### Adding New Message Types
 
 1. **Choose a number**: Check this document for available numbers
-2. **Add to ESP code**:
-   - Add case to `processWSMessage()` in `.ino` file
-   - If 0 parameters, add to `magicButtonHandler.h` parameter list
-   - Add to `getCommandName()` switch in `magicButtonHandler.h`
-3. **Add to server** (if special handling needed):
+2. **Add to messageTypes.h lookup table** (if used by magic button):
+   - Add entry to `MESSAGE_TYPES[]` array in correct sorted position
+   - Define parameter count, ranges, timeout behavior, and sync requirements
+   - See `messageTypes.h` for structure and examples
+3. **Add to ESP code**:
+   - Add case to `processWSMessage()` in `.ino` file with actual implementation
+   - The lookup table automatically handles parameter counting, command naming, and timeout behavior
+4. **Add to server** (if special handling needed):
    - Add handling in `server/app.js` message handler
-4. **Add to browser** (if web UI control):
+5. **Add to browser** (if web UI control):
    - Add control in `data/index.html`
    - Add handler in `data/main.js`
-5. **Update documentation**: Add entry to this file
+6. **Update documentation**:
+   - Add entry to this file
+   - Add magic button pattern to `magicCodes.txt` if applicable
 
 ### Synchronized Effects
 
@@ -1250,7 +1288,7 @@ Update `magicCodes.txt` when adding new patterns.
 | 10 | Set Step Rate | 1 | No | `.-.-` |
 | 11 | Set Fade Rate | 1 | No | `.-..` |
 | 12 | Set Brightness | 1 | No | `..--` |
-| 13 | Set N Ripples | 1 | No | `..--.` |
+| 13 | Set N Ripples | 1 | No | `..-.` |
 | 14 | Noise Test | 0 | No | `...-` |
 | 15 | Noise Fader | 0 | No | `....` |
 | 16 | Noise Length | 1 | No | `.----` |
@@ -1277,9 +1315,9 @@ Update `magicCodes.txt` when adding new patterns.
 | 38 | Toggle Pattern State | 2 | No | - |
 | 39 | Rainbow Spiral | 0 | No | `.--...` |
 | 40 | Blender | 0 | No | `.-.---` |
-| 41 | Enlightenment Callback | 1 | No | `.-.--.` |
+| 41 | Enlightenment Callback | 1 | YES | `.-.--.` |
 | 42 | Skater Direction | 2 | No | - |
-| 43 | Launch Controller | 2 | No | - |
+| 43 | Launch Controller | 2 | YES | - |
 | 44 | Lock State | 1 | No | - |
 | 45 | Disable Bored Timer | 0 | No | - |
 | 46 | Enable Bored Timer | 0 | No | - |
@@ -1290,7 +1328,9 @@ Update `magicCodes.txt` when adding new patterns.
 | 53 | MG Random | 0 | No | `..-.-.` |
 | 54 | Enlightenment Achieved | 0 | YES | `..-..-` |
 | 55 | Start Return Timer | 0 | No | `..-...` |
-| 63 | Node Counter | 0 | No | `......` |
+| 56 | Chill Pill | 0 | No | `...---` |
+| 60 | Sweep With Duration | 2 | YES | `....--` |
+| 63 | Node Counter | 0 | YES | `......` |
 
 ---
 

@@ -47,6 +47,7 @@ SPECIAL COMMANDS
 ..-.-.           → (53) mg_random
 ..-..-           → (54) enlightenmentAchieved
 ..-...           → (55) returnTimer
+...---           → (56) chillPill
 ......           → (63) nodeCounter
 ..----           → (48) sweep [+value]
 
@@ -70,11 +71,19 @@ COMMANDS WITH 1 PARAMETER (enter command, wait, then enter value)
 
 TIPS
 ----
-- Wait 600ms (0.6 seconds) after completing a sequence
-- For commands with parameters, enter the command first, wait for the sequence 
+- Wait 600ms (0.6 seconds) after completing a sequence- For commands with parameters, enter the command first, wait for the sequence 
   to complete, then enter the parameter value as another binary sequence
 - Short sequences are easier: use 1-9 for quick access to common commands
 - Command 50 (zoomToColour) is special - it automatically cycles palettes
+
+ADDING NEW COMMANDS
+-------------------
+To add a new magic button command:
+1. Add entry to MESSAGE_TYPES[] array in messageTypes.h (keeps array sorted by msgType)
+2. Add case handler in processWSMessage() in the .ino file
+3. Update this file (magicCodes.txt) and docs/messageTypes.md
+The lookup table in messageTypes.h automatically handles parameter counting, 
+command naming, timeout behavior, and random value generation.
 
 QUICK REFERENCE - MOST USEFUL COMMANDS
 ---------------------------------------
@@ -99,8 +108,7 @@ These numbers are available for new commands and have memorable patterns:
 SUPER EASY (all same type):
 .......          → (127) Available - seven shorts
 
-CLEAN SYMMETRICAL PATTERNS:
-...---           → (56)  Available - three shorts, three longs (perfectly symmetrical)
+CLEAN SYMMETRICAL PATTERNS (note: 56 is now assigned to chillPill):
 .....-           → (62)  Available - five shorts, one long
 
 POWERS OF 2 (memorable for programmers):
