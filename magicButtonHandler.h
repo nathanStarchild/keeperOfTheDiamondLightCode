@@ -254,9 +254,13 @@ void MagicButtonHandler::update() {
   
   // Check if we're waiting for duration input
   if (currentState == WAITING_FOR_DURATION) {
-    uint16_t duration = magicButton->checkButton(true);  // Get duration mode
-    if (duration > 0) {
+    MagicButton::ButtonState state = magicButton->getState(true);  // Duration mode
+    if (state == MagicButton::ACTIVE) {
+      // User is pressing button - stop parameter timeout
+      parameterTimeout.stopTimer();
+    } else if (state == MagicButton::COMPLETE) {
       // Got the duration!
+      uint16_t duration = magicButton->getValue();
       if (serialDebugEnabled) {
         Serial.printf("MagicButtonHandler: Got duration=%dms\n", duration);
       }
@@ -267,11 +271,18 @@ void MagicButtonHandler::update() {
   }
   
   // Normal binary input mode
-  uint16_t value = magicButton->checkButton();
+  MagicButton::ButtonState state = magicButton->getState();
   
-  if (value == 0) {
-    return;  // No new value
+  if (state == MagicButton::ACTIVE) {
+    // User is actively entering a sequence - stop parameter timeout
+    parameterTimeout.stopTimer();
+    return;
+  } else if (state == MagicButton::IDLE) {
+    return;  // No input yet
   }
+  
+  // State is COMPLETE - get the value
+  uint16_t value = magicButton->getValue();
   
   // State machine
   switch (currentState) {

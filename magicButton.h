@@ -15,16 +15,27 @@ extern bool debugging;
 
 class MagicButton {
   public:
+    // Button state enum
+    enum ButtonState {
+      IDLE,      // No input activity
+      ACTIVE,    // User is actively entering a sequence
+      COMPLETE   // Sequence finished, value ready to consume
+    };
+    
     // Constructor: takes button pin and optional pull-up mode
     MagicButton(uint8_t pin, bool usePullup = true);
     
     // Initialize button (call in setup())
     void begin();
     
-    // Check button state and return accumulated value when sequence complete
-    // Returns 0 if no sequence completed, otherwise returns the binary number
-    // If getDuration=true, returns press duration in ms instead of binary value
-    uint16_t checkButton(bool getDuration = false);
+    // Get current button state (updates internal state, call this in your loop)
+    // getDuration: true for duration mode (msgType 60), false for binary sequence mode
+    ButtonState getState(bool getDuration = false);
+    
+    // Get the completed value (binary or duration) and reset for next sequence
+    // Only call this after getState() returns COMPLETE
+    // Returns 0 with warning if called when state is not COMPLETE
+    uint16_t getValue();
     
     // Reset the current sequence
     void reset();
@@ -53,10 +64,12 @@ class MagicButton {
     uint8_t bitCount;
     MilliTimer sequenceTimer;  // Direct member (not pointer) - initialized in constructor
     bool sequenceActive;
+    bool sequenceComplete;     // True when sequence finished but value not yet consumed
     uint32_t shortPressThreshold;  // < this = 1, >= this = 0
     uint32_t sequenceTimeout;      // Time to wait before considering sequence complete
     
     // Helper functions
+    void checkButton(bool getDuration);  // Now private - updates internal state only
     void addBit(bool bit);
     void completeSequence();
     bool readButton();
@@ -78,6 +91,7 @@ MagicButton::MagicButton(uint8_t pin, bool usePullup)
   accumulatedValue = 0;
   bitCount = 0;
   sequenceActive = false;
+  sequenceComplete = false;
   shortPressThreshold = 300;   // 300ms threshold
   sequenceTimeout = 600;       // 600ms timeout
   sequenceTimer.stopTimer();   // Start stopped
@@ -108,48 +122,57 @@ void MagicButton::addBit(bool bit) {
   if (bitCount < 16) {  // Limit to 16 bits for uint16_t
     accumulatedValue = (accumulatedValue << 1) | (bit ? 1 : 0);
     bitCount++;
-    sequenceActive = true;
+    // sequenceActive already set on button press
     sequenceTimer.startTimer();
   }
 }
 
 // Complete the sequence
 void MagicButton::completeSequence() {
+  sequenceComplete = true;
   sequenceActive = false;
+  buttonPressed = false;
   sequenceTimer.stopTimer();
 }
 
-// Check button and return value when sequence complete
-uint16_t MagicButton::checkButton(bool getDuration) {
+// Update internal button state (now private - called by getState())
+void MagicButton::checkButton(bool getDuration) {
+  // Check for unconsumed completed sequence (stale value)
+  if (sequenceComplete) {
+    if (debugging) {
+      Serial.println("MagicButton: Warning - Previous sequence value never consumed, discarding");
+    }
+    reset();  // Discard stale value
+  }
+  
   currentButtonState = readButton();
-  uint16_t returnValue = 0;
   
   // Detect button press (transition to pressed)
   if (currentButtonState && !lastButtonState && !buttonPressed) {
     // Button just pressed
     pressStartTime = millis();
     buttonPressed = true;
+    sequenceActive = true;  // Mark sequence as active immediately
     if (debugging) {
       Serial.println("pressed");
     }
   }
   
-  // Handle duration mode - return press duration in milliseconds
+  // Handle duration mode - single press, return duration in milliseconds
   if (getDuration) {
-    // Detect button release and return duration
+    // Detect button release and store duration
     if (!currentButtonState && lastButtonState && buttonPressed) {
       uint32_t pressDuration = millis() - pressStartTime;
-      buttonPressed = false;
+      accumulatedValue = pressDuration;  // Store duration in accumulator
+      completeSequence();                // Mark complete and clean up state
       if (debugging) {
         Serial.print("MagicButton: Duration mode - press duration = ");
         Serial.print(pressDuration);
         Serial.println("ms");
       }
-      lastButtonState = currentButtonState;
-      return pressDuration;
     }
     lastButtonState = currentButtonState;
-    return 0;  // Still waiting for release
+    return;  // State will be checked via getState()
   }
   
   // Normal binary mode - detect button release and add bit
@@ -185,16 +208,42 @@ uint16_t MagicButton::checkButton(bool getDuration) {
   // Check for sequence timeout
   if (sequenceActive && !buttonPressed && sequenceTimer.isItTime()) {
     // Sequence complete!
-    returnValue = accumulatedValue;
+    completeSequence();  // Mark complete and clean up state
     if (debugging) {
       Serial.print("MagicButton: Sequence complete! Value = ");
-      Serial.println(returnValue);
+      Serial.println(accumulatedValue);
     }
-    reset();
+    // Don't reset here - let getValue() consume the value
   }
   
   lastButtonState = currentButtonState;
-  return returnValue;
+}
+
+// Get current button state
+MagicButton::ButtonState MagicButton::getState(bool getDuration) {
+  checkButton(getDuration);  // Update internal state
+  
+  if (sequenceComplete) {
+    return COMPLETE;
+  } else if (sequenceActive) {
+    return ACTIVE;
+  } else {
+    return IDLE;
+  }
+}
+
+// Get the completed value and reset
+uint16_t MagicButton::getValue() {
+  if (!sequenceComplete) {
+    if (debugging) {
+      Serial.println("MagicButton: Warning - getValue() called but no sequence complete");
+    }
+    return 0;
+  }
+  
+  uint16_t value = accumulatedValue;
+  reset();  // Consume the value and reset for next sequence
+  return value;
 }
 
 // Reset sequence
@@ -202,6 +251,7 @@ void MagicButton::reset() {
   accumulatedValue = 0;
   bitCount = 0;
   sequenceActive = false;
+  sequenceComplete = false;
   buttonPressed = false;
   sequenceTimer.stopTimer();
 }
