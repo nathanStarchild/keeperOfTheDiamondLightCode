@@ -14,7 +14,7 @@ FASTLED_USING_NAMESPACE
 
 MilliTimer boredTimer(11 * 60000); //bored timer, change if no messages or controller input
 
-bool debugging = false;
+bool debugging = true;
 uint16_t aoIndex = 0;
 uint16_t frameCount = 0;
 uint16_t stepRate = 1;
@@ -48,7 +48,7 @@ bool noRelayer = true;
 // #include "theBridge.h"
 
 //AfrikaBurn
-// #include "costumeString.h"
+#include "costumeString.h"
 
 // Mardi Gras
 //#include "esp8266Test.h"
@@ -113,7 +113,7 @@ bool noRelayer = true;
 //#include "lightPainting4.h"
 //#include "lightPainting5.h"
 // #include "miniPyramid.h"
-#include "piCostume.h"
+// #include "piCostume.h"
 // #include "moonBeam.h"
 //#include "hexBase.h"
 //#include "christmas.h"
@@ -858,7 +858,7 @@ void nodeCounter(){
 }
 
 void rollCaller() {
-  mainState,rollCall.enabled = true;
+  mainState.rollCall.enabled = true;
   setStepRate(1);
 
 }
@@ -2200,27 +2200,27 @@ void nodeCount(){
 }
 
 void rollCall() {
-  //8 frames up
-  //5 frames down
-  //2 frames off
-  // = 1 beat (15 frames)
+  //4 frames up
+  //10 frames down
+  //6 frames off
+  // = 1 beat (20 frames)
   //sweepSpot + 1 times
   // then 2 beats off
-  // repeat 3 times
+  // repeat 4 times
   
   // create references to the variables to make the life easier
-  uint8_t& frameInBeat = mainState.rollCall.pspeed;
+  int8_t& frameInBeat = mainState.rollCall.pspeed;
   uint8_t& currentBeat = mainState.rollCall.plength;
   uint8_t& currentCycle = mainState.rollCall.decay;
   uint8_t n = sweepSpot + 1;
 
-  uint8_t bri = 10;
+  uint8_t bri = 0;
   if (currentBeat < n){
-    if (frameInBeat < 8) {
-      bri = map(frameInBeat, 0, 8, 10, 255);
+    if (frameInBeat < 4) {
+      bri = map(frameInBeat, 0, 3, 0, 255);
       bri = ease8InOutApprox(bri);
-    } else if (frameInBeat < 13) {
-      bri = map(frameInBeat, 8, 13, 255, 10);
+    } else if (frameInBeat < 14) {
+      bri = map(frameInBeat, 4, 13, 255, 0);
       bri = ease8InOutApprox(bri);
     }
   }
@@ -2229,7 +2229,7 @@ void rollCall() {
   }
 
   frameInBeat++;
-  if (frameInBeat >= 14) {
+  if (frameInBeat >= 19) {
     //reset beat
     frameInBeat = 0;
     currentBeat++;
@@ -2237,7 +2237,7 @@ void rollCall() {
       //reset cycle
       currentBeat = 0;
       currentCycle++;
-      if (currentCycle > 2) {
+      if (currentCycle > 3) {
         currentCycle = 0;
         mainState.rollCall.enabled = false;
         setStepRate(oldStepRate);

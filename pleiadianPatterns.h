@@ -44,6 +44,7 @@ typedef struct patternState {
   pattern pi;
   pattern rainbowZoom;
   pattern nodeCount;
+  pattern rollCall;
 };
 
 // wave length 1 to 10
