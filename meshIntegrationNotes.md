@@ -926,3 +926,29 @@ process.on('SIGINT', () => {
   process.exit();
 });
 ```
+
+---
+
+## Future Refactoring Ideas
+
+### MagicButtonHandler: Array-Based Multi-Parameter Input
+
+**Current Implementation:**
+- Handler uses explicit states: WAITING_FOR_VALUE_1, WAITING_FOR_VALUE_2
+- Supports up to 2 parameters per command
+- Each parameter state handled separately in switch statement
+
+**Future Enhancement:**
+- Convert to array-based approach: `WAITING_FOR_VALUE` state with parameter index tracking
+- Enable unlimited parameters per command (current commands only use 0-2, but architecture would scale)
+- Cleaner code: single loop/logic handles all parameters
+- Trade-off: ~50 lines of changes vs current ~10 line refactor for WAITING_FOR_DURATION removal
+
+**Implementation Notes:**
+- Would need: `uint8_t currentParamIndex` counter, `uint16_t paramValues[MAX_PARAMS]` array
+- Single WAITING_FOR_VALUE state that increments currentParamIndex
+- Loop through params checking inputType for each
+- Deferred until needed - current 2-parameter maximum is sufficient for all existing commands
+
+**Date Added:** 2026-04-08  
+**Context:** After refactoring to remove WAITING_FOR_DURATION and use param.inputType checking

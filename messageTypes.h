@@ -97,7 +97,7 @@ const PROGMEM MessageTypeDef MESSAGE_TYPES[] = {
   {54, "enlightenmentAchieved", 0, {}, {}, true,  TIMEOUT_RESET},  // SYNCHRONIZED
   {55, "returnTimer",     0, {}, {}, false, TIMEOUT_RESET},
   {56, "chillPill",       0, {}, {}, false, TIMEOUT_RESET},
-  {60, "setSweepDuration", 1, {"plength",     0,     7,   3, INPUT_BINARY}, {}, true,  TIMEOUT_RANDOM},  // SYNCHRONIZED - special: plength + duration
+  {60, "setSweepDuration", 2, {"plength",  0,     7,    3, INPUT_BINARY}, {"duration", 100, 10000, 2000, INPUT_DURATION}, true, TIMEOUT_RANDOM},  // SYNCHRONIZED - plength + duration
   {63, "nodeCounter",     0, {}, {}, true,  TIMEOUT_RESET},  // SYNCHRONIZED
   {127, "rollCall",       0, {}, {}, true,  TIMEOUT_RESET},  // SYNCHRONIZED
 };

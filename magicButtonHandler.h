@@ -49,8 +49,7 @@ class MagicButtonHandler {
     enum State {
       WAITING_FOR_COMMAND,
       WAITING_FOR_VALUE_1,
-      WAITING_FOR_VALUE_2,
-      WAITING_FOR_DURATION
+      WAITING_FOR_VALUE_2
     };
     
     State currentState;
@@ -252,26 +251,21 @@ void MagicButtonHandler::update() {
     return;
   }
   
-  // Check if we're waiting for duration input
-  if (currentState == WAITING_FOR_DURATION) {
-    MagicButton::ButtonState state = magicButton->getState(true);  // Duration mode
-    if (state == MagicButton::ACTIVE) {
-      // User is pressing button - stop parameter timeout
-      parameterTimeout.stopTimer();
-    } else if (state == MagicButton::COMPLETE) {
-      // Got the duration!
-      uint16_t duration = magicButton->getValue();
-      if (serialDebugEnabled) {
-        Serial.printf("MagicButtonHandler: Got duration=%dms\n", duration);
-      }
-      executeCommand(pendingMsgType, pendingValue1, duration);
-      reset();
+  // Determine which input mode to use based on current parameter's inputType
+  bool useDurationMode = false;
+  if (currentState == WAITING_FOR_VALUE_1 || currentState == WAITING_FOR_VALUE_2) {
+    const MessageTypeDef* msgDef = getMessageTypeDef(pendingMsgType);
+    if (msgDef != nullptr) {
+      const ParamDef* param = (currentState == WAITING_FOR_VALUE_1) 
+                               ? &msgDef->param1 
+                               : &msgDef->param2;
+      ParamInputType inputType = (ParamInputType)pgm_read_byte(&param->inputType);
+      useDurationMode = (inputType == INPUT_DURATION);
     }
-    return;  // Keep waiting for duration
   }
   
-  // Normal binary input mode
-  MagicButton::ButtonState state = magicButton->getState();
+  // Get button state with appropriate mode (duration or binary)
+  MagicButton::ButtonState state = magicButton->getState(useDurationMode);
   
   if (state == MagicButton::ACTIVE) {
     // User is actively entering a sequence - stop parameter timeout
@@ -330,18 +324,9 @@ void MagicButtonHandler::update() {
         uint8_t paramCount = getParameterCount(pendingMsgType);
         
         if (paramCount == 1) {
-          // Check if this is msgType 60 (needs duration hold)
-          if (pendingMsgType == 60) {
-            currentState = WAITING_FOR_DURATION;
-            parameterTimeout.startTimer();
-            if (serialDebugEnabled) {
-              Serial.printf("MagicButtonHandler: Got plength=%d, now waiting for duration hold...\n", pendingValue1);
-            }
-          } else {
-            // Execute with one value
-            executeCommand(pendingMsgType, pendingValue1);
-            reset();
-          }
+          // Execute with one value
+          executeCommand(pendingMsgType, pendingValue1);
+          reset();
         } else if (paramCount == 2) {
           // Wait for second value
           currentState = WAITING_FOR_VALUE_2;
@@ -453,11 +438,7 @@ void MagicButtonHandler::handleTimeout() {
     int16_t min2 = pgm_read_word(&msgDef->param2.min);
     int16_t max2 = pgm_read_word(&msgDef->param2.max);
     pendingValue2 = generateRandomInRange(min2, max2);
-  } else if (currentState == WAITING_FOR_DURATION) {
-    // Generate random duration for msgType 60
-    int16_t minDur = pgm_read_word(&msgDef->param1.min);  // duration stored in param1
-    int16_t maxDur = pgm_read_word(&msgDef->param1.max);
-    pendingValue2 = generateRandomInRange(minDur, maxDur);  // duration goes in val2
+
   }
   
   if (serialDebugEnabled) {
