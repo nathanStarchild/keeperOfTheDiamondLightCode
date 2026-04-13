@@ -14,7 +14,7 @@ FASTLED_USING_NAMESPACE
 
 MilliTimer boredTimer(11 * 60000); //bored timer, change if no messages or controller input
 
-bool debugging = true;
+bool debugging = false;
 uint16_t aoIndex = 0;
 uint16_t frameCount = 0;
 uint16_t stepRate = 1;
@@ -48,7 +48,27 @@ bool noRelayer = true;
 // #include "theBridge.h"
 
 //AfrikaBurn
-#include "costumeString.h"
+//#include "costumeString.h"
+// #include "moonBeam.h"
+#include "bikeLights.h"
+
+//Antarean Pyramid
+// #include "antares_v4.h"
+// #include "antares1.h"
+//#include "antares2.h"
+//#include "antares3.h"
+// #include "antaresTop.h"
+// #include "octahedron.h"
+//#include "hexBase.h"
+//#include "hexBaseFull.h"
+//#include "tester.h"
+//#include "bigPyramid.h"
+//#include "bigBase.h"
+//#include "antares_v4_a.h"
+//#include "antares_v4_b.h"
+//#include "antares_v4_c.h"
+//#include "theBase_b.h"
+//#include "antares_octa.h"
 
 // Mardi Gras
 //#include "esp8266Test.h"
@@ -57,6 +77,7 @@ bool noRelayer = true;
 // #include "mg_pyramid_wash.h"
 // #include "mg_truck.h"
 // #include "mg_burn_barrels.h"
+//  #include "mg_lantern.h"
 // #include "mg_lantern_0.h"
 // #include "mg_lantern_1.h"
 // #include "mg_lantern_2.h"
@@ -114,7 +135,6 @@ bool noRelayer = true;
 //#include "lightPainting5.h"
 // #include "miniPyramid.h"
 // #include "piCostume.h"
-// #include "moonBeam.h"
 //#include "hexBase.h"
 //#include "christmas.h"
 //#include "tarpPalace.h"
@@ -122,23 +142,6 @@ bool noRelayer = true;
 //#include "roller.h"
 //#include "aerials1.h"
 //#include "aerials2.h"
-
-//Antarean Pyramid
-// #include "antares1.h"
-//#include "antares2.h"
-//#include "antares3.h"
-// #include "antaresTop.h"
-// #include "octahedron.h"
-//#include "hexBase.h"
-//#include "hexBaseFull.h"
-//#include "tester.h"
-//#include "bigPyramid.h"
-//#include "bigBase.h"
-//#include "antares_v4_a.h"
-//#include "antares_v4_b.h"
-//#include "antares_v4_c.h"
-//#include "theBase_b.h"
-//#include "antares_octa.h"
 
 //#include "strangerWall.h"
 //#include "strangerRoof.h"

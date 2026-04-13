@@ -17,12 +17,14 @@ extern bool debugging;
 #include <ArduinoJson.h>
 
 // Network configuration: set to "Pi" or "Router"
-#define SERVER "Pi"
+#define SERVER_PI 1
+#define SERVER_LAN 2
+#define SERVER SERVER_PI
 
-#if SERVER == "Pi"
+#if SERVER == SERVER_PI
   // Pi Access Point configuration (for pyramid installations and other direct-connected devices)
   #define SSID "diamondLightNetwork"
-  #define WIFI_KEY ""
+  // #define WIFI_KEY ""
   #define WS_SERVER "200.200.200.1"
 #else
   // Router configuration (for development/testing)
@@ -73,7 +75,7 @@ void handleTotalLEDCount(uint16_t totalCount);
 extern void nodeCounter();  // Defined in main .ino file
 extern MilliTimer nodeCountTimer;  // Defined in main .ino file
 extern uint16_t sweepSpot;  // Defined in element definition
-extern MainState mainState;  // Defined in main .ino file
+extern patternState mainState;  // Defined in main .ino file
 
 #ifdef ESP8266
 WiFiEventHandler stationConnectedHandler;
@@ -109,7 +111,11 @@ void wsSetup() {
   WiFi.setAutoReconnect(false);
   WiFi.setSleep(false);
   
-  WiFi.begin(SSID, WIFI_KEY);
+  #ifdef WIFI_KEY
+    WiFi.begin(SSID, WIFI_KEY);
+  #else
+    WiFi.begin(SSID);
+  #endif
 
   #ifdef ESP8266
     stationConnectedHandler = WiFi.onStationModeGotIP(&WiFiGotIP);
@@ -159,12 +165,15 @@ void wsSetup() {
      delay(500);
      if (debugging) {
        Serial.print(".");
+       Serial.println(WiFi.status());
      }
      retries ++;
    }
    if (WiFi.status() != WL_CONNECTED){
      if (debugging) {
-       Serial.println("Couldn't connect to network");
+       Serial.print("Couldn't connect to network ");
+       Serial.print(SSID);
+       Serial.println();
      }
      alone = true;
    }
@@ -177,7 +186,11 @@ void wsLoop() {
         if (debugging) {
           Serial.println("tryin to connect");
         }
-        WiFi.begin(SSID, WIFI_KEY);
+        #ifdef WIFI_KEY
+          WiFi.begin(SSID, WIFI_KEY);
+        #else
+          WiFi.begin(SSID);
+        #endif
         tryToConnectTimer.resetTimer();
       } 
       return;
