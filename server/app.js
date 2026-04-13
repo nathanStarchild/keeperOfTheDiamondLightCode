@@ -74,12 +74,12 @@ function serverTime() {
 
 let boredTimer;
 
-// app.use((req, res, next) => {
-//     if (req.get('host') != hostName) {
-//         return res.redirect(`http://${hostName}`);
-//     }
-//     next();
-// })
+app.use((req, res, next) => {
+    if (req.get('host') != hostName) {
+        return res.redirect(`http://${hostName}`);
+    }
+    next();
+})
 
 app.use(express.static(path.join(__dirname, '..', '/data')));
 
